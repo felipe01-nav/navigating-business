@@ -4,7 +4,7 @@
      - Everything else -> network first, falling back to cache when offline.
    Bump CACHE_VERSION whenever a release should discard old cached assets. */
 
-const CACHE_VERSION = 'nb-2026-09-22-e';
+const CACHE_VERSION = 'nb-2026-09-22-f';
 const ART_ASSETS = ['art-core.js', 'art-merge.js', 'art-v47.js'];
 
 self.addEventListener('install', (event) => {
