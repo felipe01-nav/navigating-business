@@ -2,9 +2,10 @@
    Strategy:
      - Art bundles are large and effectively immutable -> cache first.
      - Everything else -> network first, falling back to cache when offline.
-   Bump CACHE_VERSION whenever a release should discard old cached assets. */
+   Bump CACHE_VERSION whenever a release should discard old cached assets,
+   and bump ?v= in index.html at the same time. */
 
-const CACHE_VERSION = 'nb-2026-09-22-h';
+const CACHE_VERSION = 'nb-2026-09-22-i';
 const ART_ASSETS = ['art-core.js', 'art-merge.js', 'art-v47.js'];
 
 self.addEventListener('install', (event) => {
