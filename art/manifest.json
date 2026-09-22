@@ -1,6 +1,6 @@
 {
   "_comment": "Single source of truth for external art. Key = the art key used by the game's art maps (ART_IMG, IMG, FAC_IMG, ...) or declared by a layer (hq_* from 90-hq-stages.js). Value = filename, resolved against art/ first and the repo root second. Two keys may point at the same file when different bundles name the same subject differently — see the aliases section. Add an entry only after the asset has passed prompt review, or after an explicit decision to ship it anyway — see accepted_with_defects. 85-art-override.js reads this file at boot and reports coverage to the console.",
-  "version": 4,
+  "version": 5,
 
   "assets": {
     "beachhouse": "beachhouse.webp",
@@ -35,6 +35,7 @@
     "suv": "suv.webp",
 
     "hq_0": "hq_0.webp",
+    "hq_1": "hq_1.webp",
     "hq_2": "hq_2.webp",
     "hq_3": "hq_3.webp",
     "hq_4": "hq_4.webp",
@@ -59,11 +60,11 @@
     "brownstone": "Legible street signage, pedestrians and a taxi. Text and people are both excluded.",
     "ski": "Translucent inset border roughly 3% in from each edge. Borders are excluded.",
     "studio": "Isometric dollhouse cutaway on a flat dark background. Flat backgrounds are excluded.",
-    "compound": "Helipad marked with the letter H. Lettering is excluded."
+    "compound": "Helipad marked with the letter H. Lettering is excluded.",
+    "hq_1": "Isometric cutaway office floor on a flat green/blue background. Same failure mode as studio. Shipped because an empty slot on stage 2 of the ladder reads as a broken build."
   },
 
   "held": {
-    "pickup": "Translucent vertical bands overlaying the left and right edges, same artifact class as ski.",
-    "hq_1": "Isometric cutaway office floor on a flat green/blue background. Same failure mode as studio. File is in art/ and ships the moment this line moves up to assets."
+    "pickup": "Translucent vertical bands overlaying the left and right edges, same artifact class as ski."
   }
 }
