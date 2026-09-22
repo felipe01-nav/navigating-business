@@ -32,9 +32,19 @@
    ---- one key, one map ----------------------------------------------
    The same name can appear in more than one map: 'tower' is a mansion
    in ART_IMG and a retired facility in FAC_IMG. Writing to both put a
-   luxury high-rise into the facilities UI. A key is now applied to the
+   luxury high-rise into the facilities UI. A key is applied to the
    first map in MAP_NAMES order that owns it, and any further owners are
    reported as shadowed.
+
+   ---- aliases --------------------------------------------------------
+   Bundles disagree about names. ART_IMG has 'starter'; the older IMG
+   bundle calls the same house 'house_starter', and likewise
+   house_family, house_mansion, car_sedan, car_sports, car_suv.
+   Overriding one and not the other leaves half the UI on old art with
+   nothing logged anywhere. After a key is applied, any map key matching
+   /(^|_)key$/ that the manifest does not claim for itself receives the
+   same file and is reported under aliased. Exact manifest entries
+   always win; this only fills gaps.
 
    ---- declared keys --------------------------------------------------
    hq_0..hq_9 are published by 90-hq-stages.js and have no embedded art
@@ -103,7 +113,9 @@
     return out;
   }
 
+  var claimed = {};    /* every key the manifest names, for alias safety */
   var applied = [];    /* key -> url, actually swapped in */
+  var aliased = [];    /* prefixed variant of an applied key, filled in */
   var created = [];    /* declared key, published into HQ_IMG */
   var shadowed = [];   /* key also present in a lower-priority map, left alone */
   var missing = [];    /* manifest entry with no file at any base path */
@@ -115,6 +127,24 @@
         detail: { key: key, url: url, map: where }
       }));
     } catch (e) {}
+  }
+
+  /* Fill in bundle-specific spellings of a key we just applied. */
+  function applyAliases(key, url) {
+    var suffix = new RegExp("(^|_)" + key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$");
+    var found = maps();
+    for (var i = 0; i < found.length; i++) {
+      for (var k in found[i].map) {
+        if (!Object.prototype.hasOwnProperty.call(found[i].map, k)) continue;
+        if (k === key || claimed[k]) continue;      /* exact entries win */
+        if (!suffix.test(k)) continue;
+        try {
+          found[i].map[k] = url;
+          aliased.push(k + " ← " + key + " (" + found[i].name + ")");
+          announce(k, url, found[i].name + " (alias of " + key + ")");
+        } catch (e) {}
+      }
+    }
   }
 
   function place(key, url) {
@@ -135,6 +165,7 @@
         shadowed.push(key + ": applied to " + target.name + ", also present in " + owners[j].name);
       }
       announce(key, url, target.name);
+      applyAliases(key, url);
       return;
     }
 
@@ -184,7 +215,9 @@
   function report(manifest, total) {
     var gameKeys = allGameKeys();
     var overridden = {};
-    for (var i = 0; i < applied.length; i++) overridden[applied[i]] = true;
+    var i;
+    for (i = 0; i < applied.length; i++) overridden[applied[i]] = true;
+    for (i = 0; i < aliased.length; i++) overridden[aliased[i].split(" ")[0]] = true;
 
     var embedded = [];
     for (var k in gameKeys) {
@@ -193,6 +226,9 @@
     embedded.sort();
 
     var held = manifest.held ? Object.keys(manifest.held) : [];
+    var defects = manifest.accepted_with_defects
+      ? Object.keys(manifest.accepted_with_defects).filter(function (n) { return n !== "_comment"; })
+      : [];
     var where = maps().map(function (m) {
       return m.name + " (" + Object.keys(m.map).length + " keys, " +
              (m.onWindow ? "window" : "lexical") + ")";
@@ -200,14 +236,16 @@
 
     try {
       console.groupCollapsed("[art-override] " + applied.length + "/" + total +
-                             " manifest assets live — " + embedded.length +
-                             " game keys still embedded");
+                             " manifest assets live, " + aliased.length + " aliased — " +
+                             embedded.length + " game keys still embedded");
       console.log("maps found:", where);
       console.log("overridden:", applied.slice().sort());
+      if (aliased.length)  console.log("alias spellings also filled:", aliased.slice().sort());
       if (created.length)  console.log("published for layer-declared keys (no embedded art):", created.slice().sort());
       if (shadowed.length) console.log("name collisions, lower-priority map left untouched:", shadowed);
       if (missing.length)  console.warn("in manifest but no file found:", missing);
       if (unknown.length)  console.error("in manifest but NOT a real art key (check the filename):", unknown);
+      if (defects.length)  console.warn("shipped with known prompt violations:", defects);
       if (held.length)     console.log("held back by review:", held);
       console.log("still using embedded base64:", embedded);
       console.groupEnd();
@@ -218,22 +256,26 @@
       window.NB_ART_COVERAGE = {
         maps: where,
         applied: applied.slice().sort(),
+        aliased: aliased.slice().sort(),
         created: created.slice().sort(),
         shadowed: shadowed.slice(),
         missing: missing.slice(),
         unknown: unknown.slice(),
+        acceptedWithDefects: defects,
         held: held,
         embedded: embedded
       };
     } catch (e) {}
 
-    if (applied.length) repaint();
+    if (applied.length || aliased.length) repaint();
   }
 
   function apply(manifest) {
     var assets = (manifest && manifest.assets) || {};
     var keys = Object.keys(assets);
     var total = keys.length;
+    var i;
+    for (i = 0; i < total; i++) claimed[keys[i]] = true;
     if (!total) { report(manifest, 0); return; }
 
     var remaining = total;
@@ -241,7 +283,7 @@
       remaining -= 1;
       if (remaining === 0) report(manifest, total);
     }
-    for (var i = 0; i < total; i++) resolve(keys[i], assets[keys[i]], 0, done);
+    for (i = 0; i < total; i++) resolve(keys[i], assets[keys[i]], 0, done);
   }
 
   function run() {
