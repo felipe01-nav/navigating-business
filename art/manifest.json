@@ -1,0 +1,41 @@
+{
+  "_comment": "Single source of truth for external art. Key = the art key used by the game's art maps (ART_IMG, FAC_IMG, ...). Value = filename, resolved against art/ first and the repo root second. Add an entry only after the asset has passed prompt review. 85-art-override.js reads this file at boot and reports coverage to the console.",
+  "version": 1,
+
+  "assets": {
+    "beachhouse": "beachhouse.webp",
+    "bungalow": "bungalow.webp",
+    "chateau": "chateau.webp",
+    "family": "family.webp",
+    "lakehouse": "lakehouse.webp",
+    "loft": "loft.webp",
+    "mansion": "mansion.webp",
+    "modern": "modern.webp",
+    "penthouse": "penthouse.webp",
+    "ranch": "ranch.webp",
+    "starter": "starter.webp",
+    "suburban": "suburban.webp",
+    "tower": "tower.webp",
+    "townhome": "townhome.webp",
+    "villa": "villa.webp",
+    "vineyard": "vineyard.webp",
+
+    "beater": "beater.webp",
+    "ev": "ev.webp",
+    "german": "german.webp",
+    "hatch": "hatch.webp",
+    "landrover": "landrover.webp",
+    "muscle": "muscle.webp",
+    "sedan": "sedan.webp",
+    "sports": "sports.webp",
+    "suv": "suv.webp"
+  },
+
+  "held": {
+    "brownstone": "Legible street signage, pedestrians and a taxi. Text and people are both excluded.",
+    "ski": "Translucent inset border roughly 3% in from each edge. Borders are excluded.",
+    "studio": "Isometric dollhouse cutaway on a flat dark background. Flat backgrounds are excluded.",
+    "compound": "Helipad marked with the letter H. Lettering is excluded. Arguably a pictogram; awaiting a call.",
+    "pickup": "Translucent vertical bands overlaying the left and right edges, same artifact class as ski."
+  }
+}

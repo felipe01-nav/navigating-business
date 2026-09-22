@@ -5,7 +5,7 @@
    Bump CACHE_VERSION whenever a release should discard old cached assets,
    and bump ?v= in index.html at the same time. */
 
-const CACHE_VERSION = 'nb-2026-09-22-j';
+const CACHE_VERSION = 'nb-2026-09-22-k';
 const ART_ASSETS = ['art-core.js', 'art-merge.js', 'art-v47.js'];
 
 self.addEventListener('install', (event) => {
@@ -33,6 +33,13 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
+
+  /* The manifest must never be served stale, or a newly added asset
+     silently fails to appear. */
+  if (url.pathname.endsWith('art/manifest.json')) {
+    event.respondWith(fetch(req).catch(() => caches.match(req)));
+    return;
+  }
 
   const isArt = ART_ASSETS.some((f) => url.pathname.endsWith(f));
 
