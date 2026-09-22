@@ -1,11 +1,13 @@
 {
-  "_comment": "Single source of truth for external art. Key = the art key used by the game's art maps (ART_IMG, FAC_IMG, ...) or declared by a layer (hq_* from 90-hq-stages.js). Value = filename, resolved against art/ first and the repo root second. Add an entry only after the asset has passed prompt review. 85-art-override.js reads this file at boot and reports coverage to the console.",
-  "version": 2,
+  "_comment": "Single source of truth for external art. Key = the art key used by the game's art maps (ART_IMG, FAC_IMG, ...) or declared by a layer (hq_* from 90-hq-stages.js). Value = filename, resolved against art/ first and the repo root second. Add an entry only after the asset has passed prompt review, or after an explicit decision to ship it anyway — see accepted_with_defects. 85-art-override.js reads this file at boot and reports coverage to the console.",
+  "version": 3,
 
   "assets": {
     "beachhouse": "beachhouse.webp",
+    "brownstone": "brownstone.webp",
     "bungalow": "bungalow.webp",
     "chateau": "chateau.webp",
+    "compound": "compound.webp",
     "family": "family.webp",
     "lakehouse": "lakehouse.webp",
     "loft": "loft.webp",
@@ -13,7 +15,9 @@
     "modern": "modern.webp",
     "penthouse": "penthouse.webp",
     "ranch": "ranch.webp",
+    "ski": "ski.webp",
     "starter": "starter.webp",
+    "studio": "studio.webp",
     "suburban": "suburban.webp",
     "tower": "tower.webp",
     "townhome": "townhome.webp",
@@ -41,11 +45,15 @@
     "hq_9": "hq_9.webp"
   },
 
-  "held": {
+  "accepted_with_defects": {
+    "_comment": "Live in assets by explicit decision, but they violate their prompt's strict exclusions. Regenerate these first when image credits allow.",
     "brownstone": "Legible street signage, pedestrians and a taxi. Text and people are both excluded.",
     "ski": "Translucent inset border roughly 3% in from each edge. Borders are excluded.",
     "studio": "Isometric dollhouse cutaway on a flat dark background. Flat backgrounds are excluded.",
-    "compound": "Helipad marked with the letter H. Lettering is excluded. Arguably a pictogram; awaiting a call.",
+    "compound": "Helipad marked with the letter H. Lettering is excluded."
+  },
+
+  "held": {
     "pickup": "Translucent vertical bands overlaying the left and right edges, same artifact class as ski.",
     "hq_1": "Isometric cutaway office floor on a flat green/blue background. Same failure mode as studio. File is in art/ and ships the moment this line moves up to assets."
   }
