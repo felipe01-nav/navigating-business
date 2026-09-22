@@ -1,48 +1,78 @@
-/* 95-tidy.js  —  v4.43  "Right place, right company"
+/* 95-tidy.js  —  v4.43 "Right place, right company"  (v4.46 hardening)
    =====================================================================
    A top layer that corrects PLACEMENT and RELEVANCE. It owns no game
    state, replaces no named function, and fails silently rather than
    breaking a render.
 
-   THE BUG BEHIND THE MESS
-   -----------------------
-   40-v428-trucking.js mounts cards with:
-       function tabNow(){ return G.ui.activeTab; }
-       mount(["clients"].concat(GROWTH), "data-v426channels", channelCard);
-       var GROWTH = ["growth","market","expansion","rivals"];
-   The Expansion screen is ONE tab (activeTab === "expansion") with two
-   sub-tabs held in G.ui.v417ExpSub ("growth" | "facilities"). mount()
-   never consults the sub-tab, so every card aimed at "expansion"
-   rendered on BOTH sub-tabs. That is why founder decisions, marketing
-   channels, markets and rivals all turned up inside the HQ / Facilities
-   screen, and why marketing appeared twice.
+   THE BUG BEHIND THE MESS (v4.43)
+   -------------------------------
+   40-v428-trucking.js mounts cards against G.ui.activeTab only, but
+   the Expansion screen is ONE tab with two sub-tabs held in
+   G.ui.v417ExpSub ("growth" | "facilities"). Every card aimed at
+   "expansion" therefore rendered on BOTH sub-tabs — hence founder
+   decisions in Facilities, and marketing in two places at once.
 
-   WHAT THIS FILE DOES
-   -------------------
-   1. Sub-tab hygiene  — on Expansion > Facilities/HQ, hide cards that
-      belong to the Growth sub-tab. HQ cards are protected explicitly.
-   2. Dock hygiene     — each screen appears in exactly one group; the
-      preferred home wins and duplicates elsewhere are dropped.
-   3. Industry relevance — fleet-only hiring rungs (the v428_* keys) are
-      hidden for companies that are not fleet businesses, and the
-      Industry Ops dock entry is withdrawn when usesOps() is false,
-      per company, restoring itself for fleet companies.
-   4. window.NBTidy.report() — diagnostics to paste back to me.
+   v4.46 — WHY THIS FILE WAS MISBEHAVING
+   -------------------------------------
+   The first cut observed #app with a MutationObserver and swept every
+   900 ms. Its own DOM edits re-triggered the observer, and the dock
+   edits provoked re-renders elsewhere, producing a visible flicker and
+   making form fields impossible to focus — they were being replaced
+   underneath the cursor. This version:
+
+     • has NO MutationObserver;
+     • sweeps on a slow timer, and only when the screen signature has
+       actually changed since the last sweep;
+     • does nothing at all while the account gate or the onboarding
+       overlay is up, or while any field has focus;
+     • touches the dock only when the dock is genuinely untidy;
+     • never re-points activeTab more than once;
+     • can be switched off entirely with ?notidy=1.
    ===================================================================== */
 (function () {
   "use strict";
   if (window.__v443) return;
   window.__v443 = true;
 
+  var OFF = false;
+  try { OFF = new URLSearchParams(location.search).get("notidy") === "1"; } catch (e) {}
+  if (OFF) { try { console.log("[v4.46] tidy layer disabled by ?notidy=1"); } catch (e) {} return; }
+
   var LOG = [];
   function note(s) { LOG.push(s); if (LOG.length > 240) LOG.shift(); }
-  function gated() { return !!document.getElementById("nbGate"); }
   function screenEl() { return document.getElementById("screen"); }
   function ui() { try { return (window.G && window.G.ui) || {}; } catch (e) { return {}; } }
   function txt(n) { try { return (n && n.textContent ? n.textContent : "").replace(/\s+/g, " ").trim(); } catch (e) { return ""; } }
 
   /* ---------------------------------------------------------------
-     0. Industry helpers
+     0. When to keep our hands entirely to ourselves
+     --------------------------------------------------------------- */
+  function busyElsewhere() {
+    /* the sign-in gate is mounted */
+    if (document.getElementById("nbGate")) return true;
+    /* onboarding / new-company flow is visible */
+    try {
+      var ob = document.getElementById("onboard");
+      if (ob && ob.style.display !== "none" && ob.offsetParent !== null && ob.childNodes.length) return true;
+    } catch (e) {}
+    /* a modal is open */
+    try {
+      var mo = document.getElementById("modalOverlay");
+      if (mo && mo.offsetParent !== null && txt(mo)) return true;
+    } catch (e) {}
+    /* the player is typing or has something focused */
+    try {
+      var a = document.activeElement;
+      if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return true;
+      if (a && a.isContentEditable) return true;
+    } catch (e) {}
+    /* no game yet — nothing to tidy */
+    try { if (!window.G || !window.G.company) return true; } catch (e) { return true; }
+    return false;
+  }
+
+  /* ---------------------------------------------------------------
+     1. Industry helpers
      --------------------------------------------------------------- */
   function industryKey() {
     try { if (typeof window.IND === "function") return window.IND(); } catch (e) {}
@@ -51,8 +81,6 @@
   function industryCfg() {
     try { return (window.INDUSTRIES || {})[industryKey()] || null; } catch (e) { return null; }
   }
-  /* Fleet businesses are the only ones that should ever see driver,
-     dispatcher, owner-operator or freight-desk hiring. */
   function isFleet() {
     try {
       var k = String(industryKey() || "");
@@ -70,14 +98,10 @@
   }
 
   /* ---------------------------------------------------------------
-     1. Sub-tab hygiene on the Expansion screen
+     2. Sub-tab hygiene on the Expansion screen
      --------------------------------------------------------------- */
-
-  /* Cards that must never be touched on the HQ / Facilities sub-tab. */
   var KEEP_SEL = "[data-v442go],[data-v442],[data-v436up],.hq-photo,.fac-card,.v47-hqcard";
   var KEEP_TEXT = /\b(hq|headquarters?|facilit|workspace|office|move[- ]in|lease|square feet|seats?)\b/i;
-
-  /* Headings that belong to Growth, Decisions or Market & Rivals. */
   var GROWTH_TEXT = new RegExp([
     "founder", "decision", "side hustle", "hustle",
     "marketing", "channel", "campaign",
@@ -96,13 +120,14 @@
     var s = screenEl(); if (!s) return;
     var u = ui();
     if (u.activeTab !== "expansion") return;
-    if (u.v417ExpSub === "growth") return;      /* Growth sub-tab: leave alone. */
+    if (u.v417ExpSub === "growth") return;
 
     var cards = s.querySelectorAll(".card");
     for (var i = 0; i < cards.length; i++) {
       var c = cards[i];
       if (c.getAttribute("data-v443hid") === "1") continue;
-      if (c.querySelector(KEEP_SEL) || (c.matches && c.matches(KEEP_SEL))) continue;
+      if (c.querySelector("input,textarea,select")) continue;    /* never hide a form */
+      if (c.querySelector(KEEP_SEL)) continue;
       var head = cardHeading(c);
       if (!head) continue;
       if (KEEP_TEXT.test(head)) continue;
@@ -114,12 +139,8 @@
   }
 
   /* ---------------------------------------------------------------
-     2. Dock hygiene — one home per screen
+     3. Dock hygiene — one home per screen (only when untidy)
      --------------------------------------------------------------- */
-
-  /* id or label pattern  ->  pattern identifying the group it belongs in.
-     Felipe's ruling: marketing and markets live in Growth; HQ, facilities
-     and expansion live in the HQ group. */
   var HOMES = [
     { item: /^(marketing|channels?|campaigns?)$/i, group: /growth/i },
     { item: /^(market|markets|rivals)$/i, group: /growth/i },
@@ -128,6 +149,13 @@
 
   function groups() { try { return window.DOCK_GROUPS || null; } catch (e) { return null; } }
   function items() { try { return window.DOCK_ITEMS || null; } catch (e) { return null; } }
+
+  function dockSig() {
+    var gs = groups(); if (!gs) return "";
+    var out = [];
+    for (var i = 0; i < gs.length; i++) if (gs[i]) out.push((gs[i].id || "") + ":" + (gs[i].items || []).join(","));
+    return out.join("|");
+  }
 
   function labelFor(id) {
     var list = items(); if (!list) return "";
@@ -144,16 +172,18 @@
     return null;
   }
 
+  var lastDockSig = null;
+
   function tidyDock() {
     var gs = groups(); if (!gs) return;
+    var sig = dockSig();
+    if (sig === lastDockSig) return;        /* already tidy, or unchanged */
 
-    /* (a) route each ruled item to its single preferred home */
     for (var r = 0; r < HOMES.length; r++) {
       var rule = HOMES[r];
       var home = findGroup(rule.group);
       if (!home || !home.items) continue;
 
-      /* collect every id that matches this rule, by id or by label */
       var ids = {};
       for (var i = 0; i < gs.length; i++) {
         var g = gs[i]; if (!g || !g.items) continue;
@@ -170,34 +200,34 @@
           var at = gg.items.indexOf(id2);
           while (at >= 0) {
             gg.items.splice(at, 1);
-            note("dock: removed \"" + id2 + "\" from group \"" + (gg.id || gg.label) + "\"");
+            note("dock: removed \"" + id2 + "\" from \"" + (gg.id || gg.label) + "\"");
             at = gg.items.indexOf(id2);
           }
         }
         if (home.items.indexOf(id2) < 0) {
           home.items.push(id2);
-          note("dock: placed \"" + id2 + "\" in group \"" + (home.id || home.label) + "\"");
+          note("dock: placed \"" + id2 + "\" in \"" + (home.id || home.label) + "\"");
         }
       }
     }
 
-    /* (b) global de-duplication: an id may appear once, in the first group
-           that claims it */
     var seen = {};
     for (var a = 0; a < gs.length; a++) {
       var grp = gs[a]; if (!grp || !grp.items) continue;
       for (var b = grp.items.length - 1; b >= 0; b--) {
-        var it = grp.items[b];
-        if (seen[it]) { grp.items.splice(b, 1); note("dock: de-duped \"" + it + "\""); }
+        if (seen[grp.items[b]]) { note("dock: de-duped \"" + grp.items[b] + "\""); grp.items.splice(b, 1); }
       }
       for (var c2 = 0; c2 < grp.items.length; c2++) seen[grp.items[c2]] = 1;
     }
+
+    lastDockSig = dockSig();
   }
 
   /* ---------------------------------------------------------------
-     3. Industry Ops — present only where the industry has ops
+     4. Industry Ops — present only where the industry has ops
      --------------------------------------------------------------- */
-  var opsHome = null;   /* { groupId, id, index } remembered on first sight */
+  var opsHome = null;
+  var bouncedOnce = false;
 
   function opsItemId() {
     var list = items(); if (!list) return null;
@@ -212,7 +242,6 @@
     var gs = groups(); if (!gs) return;
     var id = opsItemId(); if (!id) return;
 
-    /* remember where it lives, so it can be restored for fleet companies */
     if (!opsHome) {
       for (var i = 0; i < gs.length; i++) {
         var g = gs[i]; if (!g || !g.items) continue;
@@ -227,7 +256,8 @@
       var pos = gg.items.indexOf(id);
       if (!want && pos >= 0) {
         gg.items.splice(pos, 1);
-        note("ops: withdrew \"" + id + "\" (" + (industryKey() || "unknown industry") + " has no industry ops)");
+        lastDockSig = null;
+        note("ops: withdrew \"" + id + "\" (" + (industryKey() || "unknown") + " has no industry ops)");
       }
     }
     if (want && opsHome) {
@@ -235,26 +265,23 @@
       for (var m = 0; m < gs.length; m++) if (gs[m] && gs[m].id === opsHome.groupId) host = gs[m];
       if (host && host.items && host.items.indexOf(id) < 0) {
         host.items.splice(Math.min(opsHome.index, host.items.length), 0, id);
+        lastDockSig = null;
         note("ops: restored \"" + id + "\"");
       }
     }
 
-    /* if the player is standing on a withdrawn tab, move them off it */
+    /* move the player off a withdrawn tab — once only, never in a loop */
     try {
-      if (!want && window.G && window.G.ui && window.G.ui.activeTab === id) {
+      if (!want && !bouncedOnce && window.G && window.G.ui && window.G.ui.activeTab === id) {
+        bouncedOnce = true;
         window.G.ui.activeTab = "decisions";
       }
     } catch (e) {}
   }
 
   /* ---------------------------------------------------------------
-     4. Hiring relevance — no drivers in a software company
+     5. Hiring relevance — no drivers in a software company
      --------------------------------------------------------------- */
-
-  /* Role words that only make sense inside a fleet business. The rung keys
-     themselves are left untouched: promotion logic indexes into
-     LADDERS[dept].rungs and 60-v433 already had to repair that ordering
-     once. Hiding at the DOM layer is the change with no blast radius. */
   var FLEET_TEXT = /(owner[\u2011\u2013\u2014-]?operator|dry van|reefer|flatbed|day\s?cab|sleeper cab|lead driver|driver\s*\/?\s*trainer|\bdriver\b|\bdispatcher\b|fleet operations|safety\s*&?\s*compliance|freight)/i;
   var ROW_SEL = ".row,.hrow,.rung,.hire,.hire-row,li,tr";
 
@@ -262,8 +289,8 @@
     var row = node;
     try { if (node.closest) row = node.closest(ROW_SEL) || node; } catch (e) {}
     if (!row || row.getAttribute("data-v443hid") === "1") return;
-    /* never blank out a whole screen or a whole card */
     if (row.id === "screen" || (row.classList && row.classList.contains("card"))) row = node;
+    if (row.querySelector && row.querySelector("input,textarea,select")) return;
     row.style.display = "none";
     row.setAttribute("data-v443hid", "1");
     note("hiring: hid " + why);
@@ -273,21 +300,20 @@
     if (isFleet()) return;
     var s = screenEl(); if (!s) return;
 
-    /* (a) anything carrying a v428_ rung key in an attribute */
-    var all = s.getElementsByTagName("*");
-    for (var i = 0; i < all.length; i++) {
-      var n = all[i], at = n.attributes, hit = false;
+    var flagged = s.querySelectorAll("[data-key],[data-rung],[data-hire],[data-role],[data-promote]");
+    for (var i = 0; i < flagged.length; i++) {
+      var n = flagged[i], at = n.attributes, hit = false;
       for (var j = 0; j < at.length; j++) {
         if (String(at[j].value).indexOf("v428_") >= 0) { hit = true; break; }
       }
       if (hit) hideRow(n, String(n.getAttribute("data-key") || "v428_ element"));
     }
 
-    /* (b) rows that read as fleet roles and carry a hire//promote control */
     var rows = s.querySelectorAll(ROW_SEL);
     for (var k = 0; k < rows.length; k++) {
       var r = rows[k];
       if (r.getAttribute("data-v443hid") === "1") continue;
+      if (r.querySelector("input,textarea,select")) continue;
       var t = txt(r);
       if (!t || t.length > 260) continue;
       if (!FLEET_TEXT.test(t)) continue;
@@ -299,11 +325,24 @@
   }
 
   /* ---------------------------------------------------------------
-     5. Sweep
+     6. Sweep — slow, idle-only, and change-driven
      --------------------------------------------------------------- */
   var busy = false;
-  function sweep() {
-    if (busy || gated()) return;
+  var lastSig = "";
+
+  function screenSig() {
+    var s = screenEl();
+    var u = ui();
+    return (u.activeTab || "") + "/" + (u.v417ExpSub || "") + "/" + (s ? s.childNodes.length : -1)
+         + "/" + (s ? (s.firstElementChild ? txt(s.firstElementChild).slice(0, 40) : "") : "");
+  }
+
+  function sweep(force) {
+    if (busy) return;
+    if (busyElsewhere()) return;
+    var sig = screenSig();
+    if (!force && sig === lastSig) return;
+    lastSig = sig;
     busy = true;
     try { tidyDock(); } catch (e) {}
     try { tidyOps(); } catch (e) {}
@@ -312,35 +351,21 @@
     busy = false;
   }
 
-  function start() {
-    sweep();
-    var app = document.getElementById("app") || document.body;
-    try {
-      var mo = new MutationObserver(function () {
-        if (sweep.__q) return;
-        sweep.__q = true;
-        requestAnimationFrame(function () { sweep.__q = false; sweep(); });
-      });
-      mo.observe(app, { childList: true, subtree: true });
-    } catch (e) {}
-    setInterval(sweep, 900);
-  }
-
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
-  else start();
+  setInterval(function () { try { sweep(false); } catch (e) {} }, 1200);
 
   /* ---------------------------------------------------------------
-     6. Diagnostics
+     7. Diagnostics
      --------------------------------------------------------------- */
   window.NBTidy = {
-    version: "4.43",
-    sweep: sweep,
+    version: "4.46",
+    sweep: function () { return sweep(true); },
     log: function () { return LOG.slice(); },
     report: function () {
-      var out = { version: "4.43" };
+      var out = { version: "4.46" };
       try { out.industry = industryKey(); } catch (e) {}
       try { out.isFleet = isFleet(); out.opsWanted = opsWanted(); out.opsItem = opsItemId(); } catch (e) {}
       try { out.activeTab = ui().activeTab; out.expSub = ui().v417ExpSub; } catch (e) {}
+      try { out.holdingOff = busyElsewhere(); } catch (e) {}
       try {
         out.dock = (groups() || []).map(function (g) {
           return { id: g.id, label: g.label, items: (g.items || []).slice() };
