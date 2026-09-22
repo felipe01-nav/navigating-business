@@ -2,14 +2,9 @@
    v4.38 — Cloud saves replace the browser save system.
 
    The Saves tab is rebuilt entirely: renderSaves() is overridden
-   so the tab renders sign-in, cloud slots, autosave-to-cloud and
-   the leaderboard. Browser localStorage slots are no longer the
-   save system — they appear only as a one-time "import to cloud"
-   list so nobody loses an existing run.
-
-   The engine's internal autosave (saveToSlot) is left alone on
-   purpose: it is now a crash buffer, not a user-facing feature.
-   Every month close also pushes a cloud autosave when signed in.
+   so the tab renders cloud slots, autosave-to-cloud, imports and
+   the leaderboard. Sign-in itself now lives in the account gate
+   (80-account-gate.js), which runs before the game starts.
 
    Talks to the Supabase RPCs in supabase-schema.sql.
    The key below is the PUBLIC anon key. Never put a secret here.
@@ -67,7 +62,11 @@
   }
 
   function expired(e) {
-    if (e && /Session expired/i.test(e.message || '')) { set(K_TOKEN, null); return true; }
+    if (e && /Session expired/i.test(e.message || '')) {
+      set(K_TOKEN, null);
+      try { if (window.NBGate) window.NBGate.open(); } catch (x) {}
+      return true;
+    }
     return false;
   }
 
@@ -117,12 +116,19 @@
     return Promise.resolve(window.v28ApplyCode(payload));
   }
 
-  /* legacy browser slots — import only */
+  /* legacy browser slots — import only. The gate captures the originals
+     before retiring them, so these keep working after the rip-out. */
   function localSlots() {
     try {
-      if (typeof window.listSlots !== 'function') return [];
-      return (window.listSlots() || []).filter(Boolean);
-    } catch (e) { err('localSlots', e); return []; }
+      if (typeof window.__nbLegacyList === 'function') return window.__nbLegacyList() || [];
+      if (typeof window.listSlots === 'function') return window.listSlots() || [];
+    } catch (e) { err('localSlots', e); }
+    return [];
+  }
+  function localLoad(key) {
+    if (typeof window.__nbLegacyLoad === 'function') return window.__nbLegacyLoad(key);
+    if (typeof window.loadSlot === 'function') return window.loadSlot(key);
+    return null;
   }
 
   /* ------------------------------------------------------------- styles */
@@ -139,10 +145,6 @@
     + '.nbc-row .who b{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}'
     + '.nbc-row .who span{font-size:11px;opacity:.7;}'
     + '.nbc-row .act{white-space:nowrap;}'
-    + '.nbc-in{background:rgba(0,0,0,.25);color:inherit;border:1px solid var(--border,#293042);'
-    + 'border-radius:8px;padding:9px 10px;margin:4px 0 10px;font-size:14px;width:100%;box-sizing:border-box;}'
-    + '.nbc-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;}'
-    + '@media(max-width:560px){.nbc-grid{grid-template-columns:1fr;}}'
     + '.nbc-who{font-size:12px;opacity:.75;margin-bottom:8px;}'
     + '.nbc-bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:4px 0 2px;}'
     + '.nbc-chk{display:flex;gap:8px;align-items:center;font-size:12px;opacity:.85;margin-top:10px;}'
@@ -180,41 +182,11 @@
 
   /* -------------------------------------------------------- saves screen */
 
-  function el(html) {
-    var d = document.createElement('div');
-    d.innerHTML = html;
-    return d.firstElementChild;
-  }
-
-  function signInCard() {
-    return ''
-      + '<div class="card" data-nbc="1">'
-      + '<h3>\u2601\uFE0F Your saves live in the cloud</h3>'
-      + '<div class="muted" style="font-size:12px;margin-bottom:10px;">'
-      + 'Pick a player code and a PIN. No email, no password. Your code is how your saves find you '
-      + 'on any computer, browser or phone.</div>'
-      + '<div class="nbc-msg"></div>'
-      + '<div class="nbc-grid">'
-      +   '<div><label class="muted" style="font-size:11px;">Player code</label>'
-      +   '<input class="nbc-in" id="nbcCode" placeholder="e.g. FG01" maxlength="12" autocapitalize="characters" /></div>'
-      +   '<div><label class="muted" style="font-size:11px;">PIN (4\u20138 digits)</label>'
-      +   '<input class="nbc-in" id="nbcPin" type="password" inputmode="numeric" maxlength="8" placeholder="\u2022\u2022\u2022\u2022" /></div>'
-      + '</div>'
-      + '<div class="nbc-bar"><button class="btn small" data-nbc-act="login">Sign in</button></div>'
-      + '<h3 style="margin-top:16px;">New player</h3>'
-      + '<label class="muted" style="font-size:11px;">Display name for the leaderboard (optional)</label>'
-      + '<input class="nbc-in" id="nbcName" maxlength="40" placeholder="Your name" />'
-      + '<div class="nbc-bar"><button class="btn secondary small" data-nbc-act="register">Create my code</button></div>'
-      + '<div class="muted" style="font-size:11px;margin-top:8px;">'
-      + 'A PIN keeps other players out of your slots. It is not bank security \u2014 do not reuse a real password.</div>'
-      + '</div>';
-  }
-
   function accountCard() {
     return ''
       + '<div class="card" data-nbc="1">'
       + '<h3>\u2601\uFE0F Cloud saves</h3>'
-      + '<div class="nbc-who">Signed in as <b>' + esc(code()) + '</b> \u00b7 saves follow this code on any device.</div>'
+      + '<div class="nbc-who">Signed in as <b>' + esc(code() || '\u2014') + '</b> \u00b7 your saves follow this code on any device.</div>'
       + '<div class="nbc-msg"></div>'
       + '<div class="nbc-bar">'
       +   '<button class="btn small" data-nbc-act="save"' + (hasGame() ? '' : ' disabled') + '>Save this game</button>'
@@ -223,9 +195,19 @@
       +   '<button class="btn secondary small" data-nbc-act="logout">Sign out</button>'
       + '</div>'
       + '<label class="nbc-chk"><input type="checkbox" data-nbc-act="auto"' + (autoOn() ? ' checked' : '') + ' />'
-      + 'Autosave to the cloud every month close</label>'
+      + 'Autosave to the cloud as you play</label>'
       + '<h3 style="margin-top:16px;">My saves</h3>'
       + '<div id="nbcList"><div class="muted" style="font-size:12px;">Loading\u2026</div></div>'
+      + '</div>';
+  }
+
+  function signedOutCard() {
+    return ''
+      + '<div class="card" data-nbc="1">'
+      + '<h3>\u2601\uFE0F Cloud saves</h3>'
+      + '<div class="nbc-msg"></div>'
+      + '<div class="muted" style="font-size:12px;margin-bottom:10px;">You are not signed in.</div>'
+      + '<button class="btn small" data-nbc-act="gate">Sign in</button>'
       + '</div>';
   }
 
@@ -244,8 +226,8 @@
       + '<div class="card mt14" data-nbc="1">'
       + '<h3>\u{1F4E6} Old browser saves</h3>'
       + '<div class="muted" style="font-size:12px;margin-bottom:10px;">'
-      + 'These are trapped in this browser and will vanish if site data is cleared. '
-      + 'Move them to the cloud once, then forget they existed.</div>'
+      + 'Left over from the retired browser save system. They are stuck in this one browser. '
+      + 'Move anything you care about to the cloud, once.</div>'
       + rows
       + '</div>';
   }
@@ -261,7 +243,7 @@
   function buildSaves() {
     var wrap = document.createElement('div');
     wrap.setAttribute('data-nbc-root', '1');
-    wrap.innerHTML = (token() ? accountCard() : signInCard()) + legacyCard() + leaderboardCard();
+    wrap.innerHTML = (token() ? accountCard() : signedOutCard()) + legacyCard() + leaderboardCard();
     if (token()) setTimeout(refreshList, 0);
     return wrap;
   }
@@ -287,7 +269,7 @@
           + '</div></div>';
       }).join('');
     }).catch(function (e) {
-      if (expired(e)) { repaint(); return; }
+      if (expired(e)) return;
       host.innerHTML = '<div class="muted" style="font-size:12px;">' + esc(e.message) + '</div>';
     });
   }
@@ -317,17 +299,16 @@
       say('Saved to the cloud.', 'ok');
       refreshList();
     }).catch(function (e) {
-      if (expired(e)) { repaint(); return; }
+      if (expired(e)) return;
       say(e.message, 'err');
     });
   }
 
   function doImport(key) {
-    if (!token()) return say('Sign in first, then move your old saves across.', 'err');
-    if (typeof window.loadSlot !== 'function') return say('Cannot read that browser slot.', 'err');
+    if (!token()) return say('Sign in first.', 'err');
     say('Reading the old save\u2026', 'info');
     Promise.resolve().then(function () {
-      var st = window.loadSlot(key);
+      var st = localLoad(key);
       if (!st) throw new Error('That browser slot is empty.');
       if (typeof window.v28ExportCode !== 'function') throw new Error('No export path in this build.');
       return window.v28ExportCode(st);
@@ -341,7 +322,7 @@
       say('Moved to the cloud.', 'ok');
       refreshList();
     }).catch(function (e) {
-      if (expired(e)) { repaint(); return; }
+      if (expired(e)) return;
       say(e.message, 'err');
     });
   }
@@ -352,32 +333,14 @@
     rpc('nb_get_save', { p_token: token(), p_slot: slot })
       .then(function (payload) { return applyCode(String(payload)); })
       .then(function () { say('Loaded.', 'ok'); repaint(); })
-      .catch(function (e) { if (!expired(e)) say(e.message, 'err'); else repaint(); });
+      .catch(function (e) { if (!expired(e)) say(e.message, 'err'); });
   }
 
   function doDelete(slot) {
     if (!window.confirm('Delete this cloud save? This cannot be undone.')) return;
     rpc('nb_delete_save', { p_token: token(), p_slot: slot })
       .then(function () { say('Deleted.', 'ok'); refreshList(); })
-      .catch(function (e) { if (!expired(e)) say(e.message, 'err'); else repaint(); });
-  }
-
-  function doAuth(kind) {
-    var c = (document.getElementById('nbcCode') || {}).value || '';
-    var p = (document.getElementById('nbcPin') || {}).value || '';
-    var n = (document.getElementById('nbcName') || {}).value || '';
-    c = c.trim().toUpperCase();
-    if (!/^[A-Z0-9]{2,12}$/.test(c)) return say('Player code must be 2\u201312 letters or numbers.', 'err');
-    if (!/^[0-9]{4,8}$/.test(p)) return say('PIN must be 4\u20138 digits.', 'err');
-    say('Working\u2026', 'info');
-    var call = kind === 'login'
-      ? rpc('nb_login', { p_code: c, p_pin: p })
-      : rpc('nb_register', { p_code: c, p_pin: p, p_name: n });
-    call.then(function (tok) {
-      set(K_TOKEN, tok); set(K_CODE, c);
-      repaint();
-      setTimeout(function () { say('Signed in as ' + c + '.', 'ok'); }, 30);
-    }).catch(function (e) { say(e.message, 'err'); });
+      .catch(function (e) { if (!expired(e)) say(e.message, 'err'); });
   }
 
   function doScore() {
@@ -387,7 +350,7 @@
       p_token: token(), p_score: m.cash, p_company: m.company, p_month: m.month, p_year: m.year
     }).then(function () {
       say('Score submitted: ' + money(m.cash) + '. Only your best is kept.', 'ok');
-    }).catch(function (e) { if (!expired(e)) say(e.message, 'err'); else repaint(); });
+    }).catch(function (e) { if (!expired(e)) say(e.message, 'err'); });
   }
 
   function doBoard() {
@@ -420,11 +383,14 @@
       ev.preventDefault();
       ev.stopPropagation();
 
-      if (act === 'login' || act === 'register') return doAuth(act);
       if (act === 'logout') {
+        if (window.NBGate && window.NBGate.signOut) return window.NBGate.signOut();
         set(K_TOKEN, null);
-        repaint();
-        return setTimeout(function () { say('Signed out. Your saves stay in the cloud.', 'ok'); }, 30);
+        return location.reload();
+      }
+      if (act === 'gate') {
+        if (window.NBGate && window.NBGate.open) return window.NBGate.open();
+        return location.reload();
       }
       if (act === 'save')    return doSave();
       if (act === 'refresh') return refreshList();
@@ -449,11 +415,8 @@
 
   function install() {
     try {
-      if (typeof window.renderSaves === 'function') {
-        window.renderSaves = buildSaves;
-        return true;
-      }
-      if (typeof renderSaves === 'function') {   /* bare global */
+      if (typeof window.renderSaves === 'function') { window.renderSaves = buildSaves; return true; }
+      if (typeof renderSaves === 'function') {
         renderSaves = buildSaves;
         window.renderSaves = buildSaves;
         return true;
@@ -462,36 +425,13 @@
     return false;
   }
 
-  var installed = install();
-  if (!installed) {
+  if (!install()) {
     var tries = 0;
     var iv = setInterval(function () {
       tries++;
       if (install() || tries > 40) clearInterval(iv);
     }, 250);
   }
-
-  /* fallback: if the Saves tab never appears, give a corner button */
-  setTimeout(function () {
-    try {
-      if (window.renderSaves === buildSaves) return;
-      if (document.getElementById('nbCloudBtn')) return;
-      var b = document.createElement('button');
-      b.id = 'nbCloudBtn';
-      b.type = 'button';
-      b.textContent = '\u2601 Cloud saves';
-      b.style.cssText = 'position:fixed;right:14px;bottom:14px;z-index:99998;border:1px solid #3a4150;'
-        + 'background:#1b1f27;color:#e8ecf3;font:600 13px system-ui,sans-serif;padding:10px 13px;'
-        + 'border-radius:999px;cursor:pointer;';
-      b.onclick = function () {
-        var host = document.getElementById('screen') || document.body;
-        var old = host.querySelector('[data-nbc-root]');
-        if (old) { old.parentNode.removeChild(old); return; }
-        host.insertBefore(buildSaves(), host.firstChild);
-      };
-      document.body.appendChild(b);
-    } catch (e) { err('fallback', e); }
-  }, 3000);
 
   /* --------------------------------------------- autosave on month close */
 
