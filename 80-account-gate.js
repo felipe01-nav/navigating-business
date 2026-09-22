@@ -1,5 +1,5 @@
 /* ============================================================
-   v4.39 — Account gate.
+   v4.39 — Account gate.   (v4.44: Continue fix, see below)
 
    Nothing is playable until a player signs in. After sign-in the
    gate offers Continue (most recent cloud save), Load (pick a
@@ -11,6 +11,17 @@
    engine's autosave is redirected into a debounced cloud save.
    The originals are captured first so existing browser runs can
    still be imported once from the Saves tab.
+
+   v4.44 — THE CONTINUE BUG.
+   This file declared a module-local `function loadSlot(slot)` for
+   the cloud load, and then, while retiring the browser system, ran
+   `loadSlot = window.loadSlot;`. Inside this IIFE that bare name
+   resolves to the LOCAL function, not the global, so the gate
+   overwrote its own cloud loader with the no-op stub that returns
+   null. Continue therefore did nothing at all — no error, no log,
+   no network call. The local function is now named loadCloudSlot,
+   and the bare re-assignments are gone; window.* assignment is
+   sufficient for classic-script globals in any case.
 
    Escape hatches, should anything go wrong:
      ?nogate=1  — skip the gate entirely
@@ -274,11 +285,15 @@
       + '<div class="gmsg"></div>';
   }
 
-  /* ---------- loading a save ---------- */
+  /* ---------- loading a save ----------
+     NOTE: deliberately NOT called loadSlot. See the v4.44 note at the
+     top of this file — that name collides with the browser-save stub
+     installed further down, which silently killed Continue. */
 
-  function loadSlot(slot) {
+  function loadCloudSlot(slot) {
     msg('Loading\u2026', 'info');
     rpc('nb_get_save', { p_token: token(), p_slot: slot }).then(function (payload) {
+      if (payload == null || String(payload) === '') throw new Error('That save came back empty.');
       if (typeof window.v28ApplyCode !== 'function') throw new Error('This build cannot apply save codes.');
       return window.v28ApplyCode(String(payload));
     }).then(function () {
@@ -290,7 +305,9 @@
       try { if (typeof renderScreen === 'function') renderScreen(); } catch (e) {}
       try { if (typeof renderAll === 'function') renderAll(); } catch (e) {}
     }).catch(function (e) {
-      msg(e.message || 'Could not load that save.', 'err');
+      err('loadCloudSlot', e);
+      try { console.error('[gate] Continue failed:', e); } catch (x) {}
+      msg((e && e.message) || 'Could not load that save.', 'err');
     });
   }
 
@@ -339,13 +356,16 @@
       if (a === 'register') return auth('register');
       if (a === 'toreg') return viewRegister();
       if (a === 'tologin') return viewSignIn();
-      if (a === 'continue') return loadSlot(saves[0].slot);
+      if (a === 'continue') {
+        if (!saves.length || !saves[0]) return msg('There is no save to continue.', 'err');
+        return loadCloudSlot(saves[0].slot);
+      }
       if (a === 'toload') return viewLoad();
       if (a === 'back') return paintChoose();
-      if (a === 'pick') return loadSlot(b.getAttribute('data-slot'));
+      if (a === 'pick') return loadCloudSlot(b.getAttribute('data-slot'));
       if (a === 'new') return newGame();
       if (a === 'signout') { set(K_TOKEN, null); return viewSignIn(); }
-    } catch (e) { err('click', e); }
+    } catch (e) { err('click', e); try { console.error('[gate] click', e); } catch (x) {} }
   }, true);
 
   document.addEventListener('keydown', function (ev) {
@@ -401,14 +421,14 @@
 
   if (!KEEPLOCAL) {
     try {
+      /* window.* assignment is enough for classic-script globals. The bare
+         re-assignments that used to live here (saveToSlot = window.saveToSlot,
+         and so on) resolved to this IIFE's own locals and destroyed the
+         cloud loader. They are gone for good. */
       window.saveToSlot = function () { cloudAutosave(); return true; };
       window.listSlots  = function () { return []; };
       window.loadSlot   = function () { return null; };
       window.deleteSlot = function () { return true; };
-      try { saveToSlot = window.saveToSlot; } catch (e) {}
-      try { listSlots = window.listSlots; } catch (e) {}
-      try { loadSlot = window.loadSlot; } catch (e) {}
-      try { deleteSlot = window.deleteSlot; } catch (e) {}
       if (window.NBSave) {
         window.NBSave.save = function () { cloudAutosave(); return true; };
         window.NBSave.list = function () { return []; };
@@ -422,6 +442,8 @@
     signOut: signOut,
     newGame: newGame,
     open: function () { if (token()) viewChoose(); else viewSignIn(); },
+    load: function (slot) { return loadCloudSlot(slot || (saves[0] && saves[0].slot)); },
+    saves: function () { return saves.slice(); },
     legacy: function () { return window.__nbLegacyList(); },
     errs: function () { return ERR.slice(); }
   };
