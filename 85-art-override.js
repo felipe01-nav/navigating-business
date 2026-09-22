@@ -23,19 +23,34 @@
   /* art key -> filename. Keys must match the keys already present in the
      embedded art maps; anything unrecognised is reported and skipped. */
   var OVERRIDES = {
-    chateau:   "chateau.webp",
-    family:    "family.webp",
-    lakehouse: "lakehouse.webp",
-    loft:      "loft.webp",
-    mansion:   "mansion.webp",
-    ranch:     "ranch.webp",
-    suburban:  "suburban.webp"
+    /* Batch 1 — currently sitting at the repo root. */
+    chateau:    "chateau.webp",
+    family:     "family.webp",
+    lakehouse:  "lakehouse.webp",
+    loft:       "loft.webp",
+    mansion:    "mansion.webp",
+    ranch:      "ranch.webp",
+    suburban:   "suburban.webp",
+
+    /* Batch 2 — in art/, where they belong. */
+    beachhouse: "beachhouse.webp",
+    bungalow:   "bungalow.webp",
+    modern:     "modern.webp",
+    penthouse:  "penthouse.webp",
+    starter:    "starter.webp",
+    tower:      "tower.webp",
+    townhome:   "townhome.webp",
+    villa:      "villa.webp",
+    vineyard:   "vineyard.webp"
 
     /* Held back pending regeneration — these fail their own prompt's
        STRICT EXCLUSIONS and must not ship:
          brownstone.webp — legible street signage, pedestrians, a taxi
          ski.webp        — translucent inset border
          studio.webp     — isometric cutaway on a flat background
+         compound.webp   — helipad marked with the letter H (lettering)
+       compound.webp is in art/ and is one line away from shipping if
+       the H is judged a pictogram rather than text.
     */
   };
 
