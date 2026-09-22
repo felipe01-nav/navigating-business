@@ -1,12 +1,24 @@
-/* 70-cloud-saves.js — NAVigating Business: cloud accounts, saves, leaderboard.
- *
- * Talks to Supabase RPC endpoints defined in supabase-schema.sql.
- * No dependencies: plain fetch. Loads last so all game globals exist.
- *
- * Keys below are the PUBLIC anon key. Never put a service_role key here.
- */
+/* ============================================================
+   v4.38 — Cloud saves replace the browser save system.
+
+   The Saves tab is rebuilt entirely: renderSaves() is overridden
+   so the tab renders sign-in, cloud slots, autosave-to-cloud and
+   the leaderboard. Browser localStorage slots are no longer the
+   save system — they appear only as a one-time "import to cloud"
+   list so nobody loses an existing run.
+
+   The engine's internal autosave (saveToSlot) is left alone on
+   purpose: it is now a crash buffer, not a user-facing feature.
+   Every month close also pushes a cloud autosave when signed in.
+
+   Talks to the Supabase RPCs in supabase-schema.sql.
+   The key below is the PUBLIC anon key. Never put a secret here.
+   Exports window.NBCloud.
+   ============================================================ */
 (function () {
   'use strict';
+  if (window.__v438on) return;
+  window.__v438on = true;
 
   var BASE = 'https://pzgrxfyogymctiumbszb.supabase.co';
   var ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6Z3J4ZnlvZ3ltY3RpdW1ic3piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwOTE4ODUsImV4cCI6MjEwNTY2Nzg4NX0.V35JeWqwuWS7wQwbMwD63HMziizCZS46DpROB0lB7pk';
@@ -16,13 +28,16 @@
   var K_AUTO  = 'besim2_cloud_autosync';
   var K_PING  = 'besim2_cloud_lastping';
 
+  var ERR = [];
+  function err(w, e) { if (ERR.length < 50) ERR.push(w + ': ' + ((e && e.message) || e)); }
+
   /* ------------------------------------------------------------ storage */
 
   function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function set(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
-
   function token() { return get(K_TOKEN); }
-  function code()  { return get(K_CODE); }
+  function code() { return get(K_CODE); }
+  function autoOn() { return get(K_AUTO) !== '0'; }   /* default ON */
 
   /* ---------------------------------------------------------------- rpc */
 
@@ -42,13 +57,18 @@
         try { d = t ? JSON.parse(t) : null; } catch (e) { d = t; }
         if (!r.ok) {
           var m = (d && (d.message || d.hint || d.details)) || ('Request failed (' + r.status + ')');
-          var err = new Error(String(m));
-          err.status = r.status;
-          throw err;
+          var e2 = new Error(String(m));
+          e2.status = r.status;
+          throw e2;
         }
         return d;
       });
     });
+  }
+
+  function expired(e) {
+    if (e && /Session expired/i.test(e.message || '')) { set(K_TOKEN, null); return true; }
+    return false;
   }
 
   /* -------------------------------------------------------- game bridge */
@@ -57,23 +77,28 @@
     try { if (typeof G !== 'undefined' && G) return G; } catch (e) {}
     return window.G || null;
   }
-
-  function num(v) {
-    var n = Number(v);
-    return isFinite(n) ? n : null;
+  function hasGame() {
+    var g = state();
+    return !!(g && g.company);
+  }
+  function num(v) { var n = Number(v); return isFinite(n) ? n : null; }
+  function money(n) {
+    if (n == null) return '';
+    try { if (typeof fmt$ === 'function') return fmt$(n); } catch (e) {}
+    var x = Number(n);
+    return isFinite(x) ? '$' + Math.round(x).toLocaleString() : '';
   }
 
   function meta() {
-    var g = state() || {};
-    var m = { company: null, month: null, year: null, cash: null };
+    var g = state() || {}, m = { company: null, month: null, year: null, cash: null };
     try {
-      var c = g.companyName || g.company || (g.co && g.co.name) || null;
-      if (c && typeof c === 'object') c = c.name || null;
-      m.company = (typeof c === 'string' && c) ? c.slice(0, 80) : null;
-      m.month = num(g.month);
-      m.year  = num(g.year);
-      m.cash  = num(g.cash != null ? g.cash : (g.finance && g.finance.cash));
-    } catch (e) {}
+      var c = g.company || {};
+      var nm = (g.meta && g.meta.name) || c.name || null;
+      m.company = (typeof nm === 'string' && nm) ? nm.slice(0, 80) : null;
+      m.month = num(g.month != null ? g.month : c.month);
+      m.year  = num(g.year != null ? g.year : c.year);
+      m.cash  = num(c.cash != null ? c.cash : g.cash);
+    } catch (e) { err('meta', e); }
     return m;
   }
 
@@ -85,7 +110,6 @@
     }
     return Promise.resolve(window.v28ExportCode(g));
   }
-
   function applyCode(payload) {
     if (typeof window.v28ApplyCode !== 'function') {
       return Promise.reject(new Error('This build cannot apply save codes.'));
@@ -93,327 +117,417 @@
     return Promise.resolve(window.v28ApplyCode(payload));
   }
 
-  /* ----------------------------------------------------------- styling */
-
-  var CSS = ''
-    + '#nbCloudBtn{position:fixed;right:14px;bottom:14px;z-index:99998;border:1px solid #3a4150;'
-    + 'background:#1b1f27;color:#e8ecf3;font:600 13px/1 system-ui,-apple-system,sans-serif;'
-    + 'padding:10px 13px;border-radius:999px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.4)}'
-    + '#nbCloudBtn:hover{background:#242a35}'
-    + '#nbCloudWrap{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.55);display:flex;'
-    + 'align-items:center;justify-content:center;padding:16px}'
-    + '#nbCloudPanel{width:min(520px,100%);max-height:86vh;overflow:auto;background:#15171c;color:#e8ecf3;'
-    + 'border:1px solid #333a47;border-radius:14px;padding:18px;'
-    + 'font:14px/1.45 system-ui,-apple-system,sans-serif;box-shadow:0 10px 40px rgba(0,0,0,.6)}'
-    + '#nbCloudPanel h2{margin:0 0 4px;font-size:17px}'
-    + '#nbCloudPanel h3{margin:18px 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#93a0b4}'
-    + '#nbCloudPanel .nb-sub{color:#93a0b4;font-size:12px;margin:0 0 12px}'
-    + '#nbCloudPanel input{width:100%;box-sizing:border-box;background:#0f1116;color:#e8ecf3;'
-    + 'border:1px solid #333a47;border-radius:8px;padding:9px 10px;margin:4px 0 10px;font-size:14px}'
-    + '#nbCloudPanel button{background:#2a6df4;color:#fff;border:0;border-radius:8px;padding:9px 13px;'
-    + 'font:600 13px system-ui,sans-serif;cursor:pointer;margin:0 6px 6px 0}'
-    + '#nbCloudPanel button.nb-ghost{background:#242a35;color:#cfd6e2;border:1px solid #333a47}'
-    + '#nbCloudPanel button.nb-danger{background:#7a2230}'
-    + '#nbCloudPanel button:disabled{opacity:.5;cursor:default}'
-    + '#nbCloudPanel .nb-row{display:flex;gap:10px;align-items:center;justify-content:space-between;'
-    + 'border:1px solid #2a3140;border-radius:10px;padding:9px 11px;margin-bottom:7px}'
-    + '#nbCloudPanel .nb-row div{min-width:0}'
-    + '#nbCloudPanel .nb-row b{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'
-    + '#nbCloudPanel .nb-row small{color:#8e9bb0;font-size:11px}'
-    + '#nbCloudPanel .nb-msg{border-radius:8px;padding:9px 11px;margin:10px 0;font-size:13px;display:none}'
-    + '#nbCloudPanel .nb-msg.ok{display:block;background:#12301f;color:#9be3b6}'
-    + '#nbCloudPanel .nb-msg.err{display:block;background:#33161c;color:#f0a3ae}'
-    + '#nbCloudPanel .nb-msg.info{display:block;background:#1a2432;color:#a9c3e6}'
-    + '#nbCloudPanel label.nb-check{display:flex;gap:8px;align-items:center;color:#93a0b4;font-size:12px;margin-top:10px}'
-    + '#nbCloudPanel label.nb-check input{width:auto;margin:0}'
-    + '#nbCloudPanel .nb-close{float:right;background:none;border:0;color:#93a0b4;font-size:20px;'
-    + 'cursor:pointer;padding:0 4px;margin:0}';
-
-  function injectCss() {
-    if (document.getElementById('nbCloudCss')) return;
-    var s = document.createElement('style');
-    s.id = 'nbCloudCss';
-    s.textContent = CSS;
-    document.head.appendChild(s);
+  /* legacy browser slots — import only */
+  function localSlots() {
+    try {
+      if (typeof window.listSlots !== 'function') return [];
+      return (window.listSlots() || []).filter(Boolean);
+    } catch (e) { err('localSlots', e); return []; }
   }
 
-  /* -------------------------------------------------------------- panel */
+  /* ------------------------------------------------------------- styles */
 
-  var wrap = null, panel = null, busy = false;
+  var CSS = ''
+    + '.nbc-msg{border-radius:9px;padding:9px 11px;margin:10px 0;font-size:12.5px;display:none;}'
+    + '.nbc-msg.show{display:block;}'
+    + '.nbc-msg.ok{background:rgba(40,170,100,.14);color:#7fe0a8;}'
+    + '.nbc-msg.err{background:rgba(220,70,90,.14);color:#f3a2ae;}'
+    + '.nbc-msg.info{background:rgba(90,140,220,.14);color:#a9c6ef;}'
+    + '.nbc-row{display:flex;gap:10px;align-items:center;justify-content:space-between;'
+    + 'border:1px solid var(--border,#293042);border-radius:10px;padding:9px 11px;margin-bottom:7px;}'
+    + '.nbc-row .who{min-width:0;}'
+    + '.nbc-row .who b{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}'
+    + '.nbc-row .who span{font-size:11px;opacity:.7;}'
+    + '.nbc-row .act{white-space:nowrap;}'
+    + '.nbc-in{background:rgba(0,0,0,.25);color:inherit;border:1px solid var(--border,#293042);'
+    + 'border-radius:8px;padding:9px 10px;margin:4px 0 10px;font-size:14px;width:100%;box-sizing:border-box;}'
+    + '.nbc-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;}'
+    + '@media(max-width:560px){.nbc-grid{grid-template-columns:1fr;}}'
+    + '.nbc-who{font-size:12px;opacity:.75;margin-bottom:8px;}'
+    + '.nbc-bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:4px 0 2px;}'
+    + '.nbc-chk{display:flex;gap:8px;align-items:center;font-size:12px;opacity:.85;margin-top:10px;}'
+    + '.nbc-chk input{width:auto;margin:0;}';
+
+  try {
+    if (!document.getElementById('nbc-css')) {
+      var st = document.createElement('style');
+      st.id = 'nbc-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    }
+  } catch (e) { err('css', e); }
+
+  /* -------------------------------------------------------------- utils */
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
-
   function when(ts) {
     if (!ts) return '';
     try { return new Date(ts).toLocaleString(); } catch (e) { return String(ts); }
   }
-
-  function money(v) {
-    if (v == null) return '';
-    var n = Number(v);
-    if (!isFinite(n)) return '';
-    return '$' + Math.round(n).toLocaleString();
-  }
-
-  function msg(text, kind) {
-    var el = panel && panel.querySelector('.nb-msg');
+  function say(text, kind) {
+    var el = document.querySelector('.nbc-msg');
     if (!el) return;
-    el.className = 'nb-msg ' + (kind || 'info');
+    el.className = 'nbc-msg show ' + (kind || 'info');
     el.textContent = text;
-    if (!text) el.className = 'nb-msg';
+  }
+  function repaint() {
+    try { if (typeof renderScreen === 'function') renderScreen(); } catch (e) { err('repaint', e); }
   }
 
-  function setBusy(b) {
-    busy = b;
-    if (!panel) return;
-    var bs = panel.querySelectorAll('button');
-    for (var i = 0; i < bs.length; i++) {
-      if (!bs[i].classList.contains('nb-close')) bs[i].disabled = b;
-    }
+  /* -------------------------------------------------------- saves screen */
+
+  function el(html) {
+    var d = document.createElement('div');
+    d.innerHTML = html;
+    return d.firstElementChild;
   }
 
-  function fail(e) {
-    setBusy(false);
-    var m = (e && e.message) ? e.message : 'Something went wrong.';
-    if (/Session expired/i.test(m)) { set(K_TOKEN, null); render(); }
-    msg(m, 'err');
+  function signInCard() {
+    return ''
+      + '<div class="card" data-nbc="1">'
+      + '<h3>\u2601\uFE0F Your saves live in the cloud</h3>'
+      + '<div class="muted" style="font-size:12px;margin-bottom:10px;">'
+      + 'Pick a player code and a PIN. No email, no password. Your code is how your saves find you '
+      + 'on any computer, browser or phone.</div>'
+      + '<div class="nbc-msg"></div>'
+      + '<div class="nbc-grid">'
+      +   '<div><label class="muted" style="font-size:11px;">Player code</label>'
+      +   '<input class="nbc-in" id="nbcCode" placeholder="e.g. FG01" maxlength="12" autocapitalize="characters" /></div>'
+      +   '<div><label class="muted" style="font-size:11px;">PIN (4\u20138 digits)</label>'
+      +   '<input class="nbc-in" id="nbcPin" type="password" inputmode="numeric" maxlength="8" placeholder="\u2022\u2022\u2022\u2022" /></div>'
+      + '</div>'
+      + '<div class="nbc-bar"><button class="btn small" data-nbc-act="login">Sign in</button></div>'
+      + '<h3 style="margin-top:16px;">New player</h3>'
+      + '<label class="muted" style="font-size:11px;">Display name for the leaderboard (optional)</label>'
+      + '<input class="nbc-in" id="nbcName" maxlength="40" placeholder="Your name" />'
+      + '<div class="nbc-bar"><button class="btn secondary small" data-nbc-act="register">Create my code</button></div>'
+      + '<div class="muted" style="font-size:11px;margin-top:8px;">'
+      + 'A PIN keeps other players out of your slots. It is not bank security \u2014 do not reuse a real password.</div>'
+      + '</div>';
   }
 
-  function open() {
-    injectCss();
-    if (!wrap) {
-      wrap = document.createElement('div');
-      wrap.id = 'nbCloudWrap';
-      wrap.addEventListener('click', function (e) { if (e.target === wrap) close(); });
-      panel = document.createElement('div');
-      panel.id = 'nbCloudPanel';
-      wrap.appendChild(panel);
-      document.body.appendChild(wrap);
-    }
-    wrap.style.display = 'flex';
-    render();
+  function accountCard() {
+    return ''
+      + '<div class="card" data-nbc="1">'
+      + '<h3>\u2601\uFE0F Cloud saves</h3>'
+      + '<div class="nbc-who">Signed in as <b>' + esc(code()) + '</b> \u00b7 saves follow this code on any device.</div>'
+      + '<div class="nbc-msg"></div>'
+      + '<div class="nbc-bar">'
+      +   '<button class="btn small" data-nbc-act="save"' + (hasGame() ? '' : ' disabled') + '>Save this game</button>'
+      +   '<button class="btn secondary small" data-nbc-act="refresh">Refresh</button>'
+      +   '<button class="btn secondary small" data-nbc-act="score"' + (hasGame() ? '' : ' disabled') + '>Submit score</button>'
+      +   '<button class="btn secondary small" data-nbc-act="logout">Sign out</button>'
+      + '</div>'
+      + '<label class="nbc-chk"><input type="checkbox" data-nbc-act="auto"' + (autoOn() ? ' checked' : '') + ' />'
+      + 'Autosave to the cloud every month close</label>'
+      + '<h3 style="margin-top:16px;">My saves</h3>'
+      + '<div id="nbcList"><div class="muted" style="font-size:12px;">Loading\u2026</div></div>'
+      + '</div>';
   }
 
-  function close() { if (wrap) wrap.style.display = 'none'; }
-
-  function header(title, sub) {
-    return '<button class="nb-close" data-act="close">&times;</button>'
-         + '<h2>' + esc(title) + '</h2>'
-         + '<p class="nb-sub">' + esc(sub) + '</p>'
-         + '<div class="nb-msg"></div>';
+  function legacyCard() {
+    var slots = localSlots();
+    if (!slots.length) return '';
+    var rows = slots.map(function (s) {
+      var key = s.key || s.slot || s.id || '';
+      var label = s.label || s.name || key;
+      var sub = [s.company, when(s.when || s.ts || s.updated)].filter(Boolean).join(' \u00b7 ');
+      return '<div class="nbc-row"><div class="who"><b>' + esc(label) + '</b><span>' + esc(sub) + '</span></div>'
+        + '<div class="act"><button class="btn secondary small" data-nbc-act="import" data-nbc-key="' + esc(key) + '">'
+        + 'Move to cloud</button></div></div>';
+    }).join('');
+    return ''
+      + '<div class="card mt14" data-nbc="1">'
+      + '<h3>\u{1F4E6} Old browser saves</h3>'
+      + '<div class="muted" style="font-size:12px;margin-bottom:10px;">'
+      + 'These are trapped in this browser and will vanish if site data is cleared. '
+      + 'Move them to the cloud once, then forget they existed.</div>'
+      + rows
+      + '</div>';
   }
 
-  function render() {
-    if (!panel) return;
-    panel.innerHTML = token() ? viewAccount() : viewSignIn();
-    panel.addEventListener('click', onClick);
-    if (token()) { refreshSaves(); }
+  function leaderboardCard() {
+    return ''
+      + '<div class="card mt14" data-nbc="1">'
+      + '<h3>\u{1F3C6} Leaderboard</h3>'
+      + '<div id="nbcBoard"><button class="btn secondary small" data-nbc-act="board">Show top 50</button></div>'
+      + '</div>';
   }
 
-  function viewSignIn() {
-    return header('Cloud saves',
-      'Pick a player code and a PIN. No email, no password. Your code is how your saves find you on any device.')
-      + '<h3>Sign in</h3>'
-      + '<input id="nbCode" placeholder="Player code (e.g. FG01)" maxlength="12" autocapitalize="characters" />'
-      + '<input id="nbPin" placeholder="PIN (4-8 digits)" inputmode="numeric" maxlength="8" type="password" />'
-      + '<button data-act="login">Sign in</button>'
-      + '<h3>New player</h3>'
-      + '<input id="nbName" placeholder="Display name for the leaderboard (optional)" maxlength="40" />'
-      + '<button class="nb-ghost" data-act="register">Create my code</button>';
-  }
-
-  function viewAccount() {
-    var auto = get(K_AUTO) === '1';
-    return header('Cloud saves', 'Signed in as ' + code() + '.')
-      + '<button data-act="save">Save this game to the cloud</button>'
-      + '<button class="nb-ghost" data-act="score">Submit score</button>'
-      + '<button class="nb-ghost" data-act="board">Leaderboard</button>'
-      + '<button class="nb-ghost" data-act="logout">Sign out</button>'
-      + '<label class="nb-check"><input type="checkbox" data-act="auto"' + (auto ? ' checked' : '') + ' />'
-      + 'Auto-sync every 5 minutes to a slot called "autosync"</label>'
-      + '<h3>My cloud saves</h3>'
-      + '<div id="nbSaves"><small style="color:#8e9bb0">Loading…</small></div>';
+  function buildSaves() {
+    var wrap = document.createElement('div');
+    wrap.setAttribute('data-nbc-root', '1');
+    wrap.innerHTML = (token() ? accountCard() : signInCard()) + legacyCard() + leaderboardCard();
+    if (token()) setTimeout(refreshList, 0);
+    return wrap;
   }
 
   /* ------------------------------------------------------------ actions */
 
-  function onClick(e) {
-    var el = e.target.closest ? e.target.closest('[data-act]') : null;
-    if (!el) return;
-    var act = el.getAttribute('data-act');
-
-    if (act === 'close') return close();
-    if (act === 'auto') { set(K_AUTO, el.checked ? '1' : null); return; }
-    if (busy) return;
-
-    if (act === 'login' || act === 'register') {
-      var c = (panel.querySelector('#nbCode') || {}).value || '';
-      var p = (panel.querySelector('#nbPin') || {}).value || '';
-      var n = (panel.querySelector('#nbName') || {}).value || '';
-      c = c.trim().toUpperCase();
-      if (!/^[A-Z0-9]{2,12}$/.test(c)) return msg('Player code must be 2-12 letters or numbers.', 'err');
-      if (!/^[0-9]{4,8}$/.test(p)) return msg('PIN must be 4-8 digits.', 'err');
-      setBusy(true); msg('Working…', 'info');
-      var call = act === 'login'
-        ? rpc('nb_login', { p_code: c, p_pin: p })
-        : rpc('nb_register', { p_code: c, p_pin: p, p_name: n });
-      return call.then(function (tok) {
-        set(K_TOKEN, tok); set(K_CODE, c);
-        setBusy(false); render(); msg('Signed in as ' + c + '.', 'ok');
-      }).catch(fail);
-    }
-
-    if (act === 'logout') { set(K_TOKEN, null); render(); return msg('Signed out. Your saves stay in the cloud.', 'ok'); }
-
-    if (act === 'save') {
-      var label = window.prompt('Name this save:', defaultLabel());
-      if (label === null) return;
-      setBusy(true); msg('Packing your game…', 'info');
-      return exportCode().then(function (payload) {
-        var m = meta();
-        return rpc('nb_put_save', {
-          p_token: token(),
-          p_slot: 'c' + Date.now().toString(36),
-          p_label: String(label).slice(0, 80) || defaultLabel(),
-          p_payload: String(payload),
-          p_company: m.company, p_month: m.month, p_year: m.year, p_cash: m.cash
-        });
-      }).then(function () {
-        setBusy(false); msg('Saved to the cloud.', 'ok'); refreshSaves();
-      }).catch(fail);
-    }
-
-    if (act === 'load' || act === 'delete') {
-      var slot = el.getAttribute('data-slot');
-      if (act === 'delete') {
-        if (!window.confirm('Delete this cloud save? This cannot be undone.')) return;
-        setBusy(true);
-        return rpc('nb_delete_save', { p_token: token(), p_slot: slot }).then(function () {
-          setBusy(false); msg('Deleted.', 'ok'); refreshSaves();
-        }).catch(fail);
-      }
-      if (!window.confirm('Load this save? Your current unsaved progress will be replaced.')) return;
-      setBusy(true); msg('Loading…', 'info');
-      return rpc('nb_get_save', { p_token: token(), p_slot: slot })
-        .then(function (payload) { return applyCode(String(payload)); })
-        .then(function () { setBusy(false); msg('Loaded.', 'ok'); close(); })
-        .catch(fail);
-    }
-
-    if (act === 'score') {
-      var m2 = meta();
-      var sc = m2.cash;
-      if (sc == null) return msg('No score to submit yet — start a game first.', 'err');
-      setBusy(true);
-      return rpc('nb_submit_score', {
-        p_token: token(), p_score: sc, p_company: m2.company, p_month: m2.month, p_year: m2.year
-      }).then(function () {
-        setBusy(false); msg('Score submitted: ' + money(sc) + '. Only your best is kept.', 'ok');
-      }).catch(fail);
-    }
-
-    if (act === 'board') {
-      setBusy(true); msg('Fetching…', 'info');
-      return rpc('nb_leaderboard', {}).then(function (rows) {
-        setBusy(false); msg('', '');
-        var host = panel.querySelector('#nbSaves');
-        if (!host) return;
-        panel.querySelector('h3').textContent = 'Leaderboard';
-        host.innerHTML = (!rows || !rows.length)
-          ? '<small style="color:#8e9bb0">Nobody has posted a score yet.</small>'
-          : rows.map(function (r, i) {
-              return '<div class="nb-row"><div><b>' + (i + 1) + '. ' + esc(r.display_name || '—') + '</b>'
-                + '<small>' + esc(r.company || '') + '</small></div>'
-                + '<div style="text-align:right"><b>' + money(r.score) + '</b>'
-                + '<small>' + when(r.updated_at) + '</small></div></div>';
-            }).join('') + '<button class="nb-ghost" data-act="mysaves" style="margin-top:10px">Back to my saves</button>';
-      }).catch(fail);
-    }
-
-    if (act === 'mysaves') {
-      panel.querySelector('h3').textContent = 'My cloud saves';
-      return refreshSaves();
-    }
-  }
-
-  function defaultLabel() {
-    var m = meta();
-    var bits = [];
-    if (m.company) bits.push(m.company);
-    if (m.month && m.year) bits.push('M' + m.month + ' Y' + m.year);
-    return bits.length ? bits.join(' — ') : 'Save ' + new Date().toLocaleDateString();
-  }
-
-  function refreshSaves() {
-    var host = panel && panel.querySelector('#nbSaves');
+  function refreshList() {
+    var host = document.getElementById('nbcList');
     if (!host || !token()) return;
     return rpc('nb_list_saves', { p_token: token() }).then(function (rows) {
       if (!rows || !rows.length) {
-        host.innerHTML = '<small style="color:#8e9bb0">No cloud saves yet.</small>';
+        host.innerHTML = '<div class="muted" style="font-size:12px;">No cloud saves yet. '
+          + 'Press <b>Save this game</b> above.</div>';
         return;
       }
       host.innerHTML = rows.map(function (r) {
-        var line2 = [r.company, (r.month && r.year) ? ('M' + r.month + ' Y' + r.year) : '', money(r.cash), when(r.updated_at)]
-          .filter(Boolean).join(' · ');
-        return '<div class="nb-row"><div><b>' + esc(r.label || r.slot) + '</b><small>' + esc(line2) + '</small></div>'
-          + '<div style="white-space:nowrap">'
-          + '<button data-act="load" data-slot="' + esc(r.slot) + '">Load</button>'
-          + '<button class="nb-danger" data-act="delete" data-slot="' + esc(r.slot) + '">Delete</button>'
+        var sub = [r.company, (r.month && r.year) ? ('Month ' + r.month + ', Year ' + r.year) : '',
+                   money(r.cash), when(r.updated_at)].filter(Boolean).join(' \u00b7 ');
+        return '<div class="nbc-row"><div class="who"><b>' + esc(r.label || r.slot) + '</b>'
+          + '<span>' + esc(sub) + '</span></div><div class="act">'
+          + '<button class="btn small" data-nbc-act="load" data-nbc-slot="' + esc(r.slot) + '">Load</button> '
+          + '<button class="btn danger small" data-nbc-act="del" data-nbc-slot="' + esc(r.slot) + '">Delete</button>'
           + '</div></div>';
       }).join('');
     }).catch(function (e) {
-      host.innerHTML = '<small style="color:#f0a3ae">' + esc(e.message || 'Could not load saves.') + '</small>';
-      if (/Session expired/i.test(e.message || '')) { set(K_TOKEN, null); render(); }
+      if (expired(e)) { repaint(); return; }
+      host.innerHTML = '<div class="muted" style="font-size:12px;">' + esc(e.message) + '</div>';
     });
   }
 
-  /* ------------------------------------------------------- auto-sync */
-
-  setInterval(function () {
-    if (!token() || get(K_AUTO) !== '1' || !state()) return;
-    exportCode().then(function (payload) {
-      var m = meta();
-      return rpc('nb_put_save', {
-        p_token: token(), p_slot: 'autosync', p_label: 'Auto-sync',
-        p_payload: String(payload),
-        p_company: m.company, p_month: m.month, p_year: m.year, p_cash: m.cash
-      });
-    }).catch(function () { /* silent: never interrupt play */ });
-  }, 5 * 60 * 1000);
-
-  /* -------------------------------------------------------- keep-alive */
-
-  function keepAlive() {
-    var last = Number(get(K_PING) || 0);
-    if (Date.now() - last < 12 * 60 * 60 * 1000) return;
-    rpc('nb_ping', {}).then(function () { set(K_PING, String(Date.now())); }).catch(function () {});
+  function defaultLabel() {
+    var m = meta(), bits = [];
+    if (m.company) bits.push(m.company);
+    if (m.month && m.year) bits.push('M' + m.month + ' Y' + m.year);
+    return bits.length ? bits.join(' \u2014 ') : 'Save ' + new Date().toLocaleDateString();
   }
 
-  /* -------------------------------------------------------------- boot */
+  function putSave(slot, label, payload) {
+    var m = meta();
+    return rpc('nb_put_save', {
+      p_token: token(), p_slot: slot, p_label: label, p_payload: String(payload),
+      p_company: m.company, p_month: m.month, p_year: m.year, p_cash: m.cash
+    });
+  }
 
-  function boot() {
-    injectCss();
-    if (!document.getElementById('nbCloudBtn')) {
+  function doSave() {
+    var label = window.prompt('Name this save:', defaultLabel());
+    if (label === null) return;
+    say('Packing your game\u2026', 'info');
+    exportCode().then(function (payload) {
+      return putSave('c' + Date.now().toString(36), String(label).slice(0, 80) || defaultLabel(), payload);
+    }).then(function () {
+      say('Saved to the cloud.', 'ok');
+      refreshList();
+    }).catch(function (e) {
+      if (expired(e)) { repaint(); return; }
+      say(e.message, 'err');
+    });
+  }
+
+  function doImport(key) {
+    if (!token()) return say('Sign in first, then move your old saves across.', 'err');
+    if (typeof window.loadSlot !== 'function') return say('Cannot read that browser slot.', 'err');
+    say('Reading the old save\u2026', 'info');
+    Promise.resolve().then(function () {
+      var st = window.loadSlot(key);
+      if (!st) throw new Error('That browser slot is empty.');
+      if (typeof window.v28ExportCode !== 'function') throw new Error('No export path in this build.');
+      return window.v28ExportCode(st);
+    }).then(function (payload) {
+      return rpc('nb_put_save', {
+        p_token: token(), p_slot: 'imp' + Date.now().toString(36),
+        p_label: 'Imported \u2014 ' + String(key).slice(-12), p_payload: String(payload),
+        p_company: null, p_month: null, p_year: null, p_cash: null
+      });
+    }).then(function () {
+      say('Moved to the cloud.', 'ok');
+      refreshList();
+    }).catch(function (e) {
+      if (expired(e)) { repaint(); return; }
+      say(e.message, 'err');
+    });
+  }
+
+  function doLoad(slot) {
+    if (!window.confirm('Load this save? Anything unsaved in the current run is replaced.')) return;
+    say('Loading\u2026', 'info');
+    rpc('nb_get_save', { p_token: token(), p_slot: slot })
+      .then(function (payload) { return applyCode(String(payload)); })
+      .then(function () { say('Loaded.', 'ok'); repaint(); })
+      .catch(function (e) { if (!expired(e)) say(e.message, 'err'); else repaint(); });
+  }
+
+  function doDelete(slot) {
+    if (!window.confirm('Delete this cloud save? This cannot be undone.')) return;
+    rpc('nb_delete_save', { p_token: token(), p_slot: slot })
+      .then(function () { say('Deleted.', 'ok'); refreshList(); })
+      .catch(function (e) { if (!expired(e)) say(e.message, 'err'); else repaint(); });
+  }
+
+  function doAuth(kind) {
+    var c = (document.getElementById('nbcCode') || {}).value || '';
+    var p = (document.getElementById('nbcPin') || {}).value || '';
+    var n = (document.getElementById('nbcName') || {}).value || '';
+    c = c.trim().toUpperCase();
+    if (!/^[A-Z0-9]{2,12}$/.test(c)) return say('Player code must be 2\u201312 letters or numbers.', 'err');
+    if (!/^[0-9]{4,8}$/.test(p)) return say('PIN must be 4\u20138 digits.', 'err');
+    say('Working\u2026', 'info');
+    var call = kind === 'login'
+      ? rpc('nb_login', { p_code: c, p_pin: p })
+      : rpc('nb_register', { p_code: c, p_pin: p, p_name: n });
+    call.then(function (tok) {
+      set(K_TOKEN, tok); set(K_CODE, c);
+      repaint();
+      setTimeout(function () { say('Signed in as ' + c + '.', 'ok'); }, 30);
+    }).catch(function (e) { say(e.message, 'err'); });
+  }
+
+  function doScore() {
+    var m = meta();
+    if (m.cash == null) return say('No score to submit yet.', 'err');
+    rpc('nb_submit_score', {
+      p_token: token(), p_score: m.cash, p_company: m.company, p_month: m.month, p_year: m.year
+    }).then(function () {
+      say('Score submitted: ' + money(m.cash) + '. Only your best is kept.', 'ok');
+    }).catch(function (e) { if (!expired(e)) say(e.message, 'err'); else repaint(); });
+  }
+
+  function doBoard() {
+    var host = document.getElementById('nbcBoard');
+    if (!host) return;
+    host.innerHTML = '<div class="muted" style="font-size:12px;">Loading\u2026</div>';
+    rpc('nb_leaderboard', {}).then(function (rows) {
+      host.innerHTML = (!rows || !rows.length)
+        ? '<div class="muted" style="font-size:12px;">Nobody has posted a score yet.</div>'
+        : rows.map(function (r, i) {
+            return '<div class="nbc-row"><div class="who"><b>' + (i + 1) + '. ' + esc(r.display_name || '\u2014')
+              + '</b><span>' + esc(r.company || '') + '</span></div>'
+              + '<div class="act"><b>' + money(r.score) + '</b></div></div>';
+          }).join('');
+    }).catch(function (e) {
+      host.innerHTML = '<div class="muted" style="font-size:12px;">' + esc(e.message) + '</div>';
+    });
+  }
+
+  /* ------------------------------------------------- delegated handlers */
+
+  document.addEventListener('click', function (ev) {
+    try {
+      var t = ev.target;
+      if (!t || !t.closest) return;
+      var b = t.closest('[data-nbc-act]');
+      if (!b) return;
+      var act = b.getAttribute('data-nbc-act');
+      if (act === 'auto') return;   /* handled on change */
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      if (act === 'login' || act === 'register') return doAuth(act);
+      if (act === 'logout') {
+        set(K_TOKEN, null);
+        repaint();
+        return setTimeout(function () { say('Signed out. Your saves stay in the cloud.', 'ok'); }, 30);
+      }
+      if (act === 'save')    return doSave();
+      if (act === 'refresh') return refreshList();
+      if (act === 'score')   return doScore();
+      if (act === 'board')   return doBoard();
+      if (act === 'load')    return doLoad(b.getAttribute('data-nbc-slot'));
+      if (act === 'del')     return doDelete(b.getAttribute('data-nbc-slot'));
+      if (act === 'import')  return doImport(b.getAttribute('data-nbc-key'));
+    } catch (e) { err('click', e); }
+  }, true);
+
+  document.addEventListener('change', function (ev) {
+    try {
+      var t = ev.target;
+      if (!t || !t.getAttribute || t.getAttribute('data-nbc-act') !== 'auto') return;
+      set(K_AUTO, t.checked ? '1' : '0');
+      say(t.checked ? 'Cloud autosave on.' : 'Cloud autosave off.', 'ok');
+    } catch (e) { err('change', e); }
+  }, true);
+
+  /* ------------------------------------------ take over the Saves tab */
+
+  function install() {
+    try {
+      if (typeof window.renderSaves === 'function') {
+        window.renderSaves = buildSaves;
+        return true;
+      }
+      if (typeof renderSaves === 'function') {   /* bare global */
+        renderSaves = buildSaves;
+        window.renderSaves = buildSaves;
+        return true;
+      }
+    } catch (e) { err('install', e); }
+    return false;
+  }
+
+  var installed = install();
+  if (!installed) {
+    var tries = 0;
+    var iv = setInterval(function () {
+      tries++;
+      if (install() || tries > 40) clearInterval(iv);
+    }, 250);
+  }
+
+  /* fallback: if the Saves tab never appears, give a corner button */
+  setTimeout(function () {
+    try {
+      if (window.renderSaves === buildSaves) return;
+      if (document.getElementById('nbCloudBtn')) return;
       var b = document.createElement('button');
       b.id = 'nbCloudBtn';
       b.type = 'button';
-      b.textContent = '\u2601 Cloud';
-      b.title = 'Cloud saves and leaderboard';
-      b.addEventListener('click', open);
+      b.textContent = '\u2601 Cloud saves';
+      b.style.cssText = 'position:fixed;right:14px;bottom:14px;z-index:99998;border:1px solid #3a4150;'
+        + 'background:#1b1f27;color:#e8ecf3;font:600 13px system-ui,sans-serif;padding:10px 13px;'
+        + 'border-radius:999px;cursor:pointer;';
+      b.onclick = function () {
+        var host = document.getElementById('screen') || document.body;
+        var old = host.querySelector('[data-nbc-root]');
+        if (old) { old.parentNode.removeChild(old); return; }
+        host.insertBefore(buildSaves(), host.firstChild);
+      };
       document.body.appendChild(b);
+    } catch (e) { err('fallback', e); }
+  }, 3000);
+
+  /* --------------------------------------------- autosave on month close */
+
+  try {
+    if (typeof window.advanceMonth === 'function') {
+      var prevAdv = window.advanceMonth;
+      window.advanceMonth = function () {
+        var out = prevAdv.apply(this, arguments);
+        try {
+          if (token() && autoOn() && hasGame()) {
+            exportCode().then(function (payload) {
+              return putSave('auto', 'Autosave \u2014 ' + defaultLabel(), payload);
+            }).catch(function () { /* silent: never interrupt play */ });
+          }
+        } catch (e) { err('autosave', e); }
+        return out;
+      };
     }
-    keepAlive();
-  }
+  } catch (e) { err('wrapAdvance', e); }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot);
-  } else {
-    boot();
-  }
+  /* -------------------------------------------------------- keep-alive */
 
-  window.NBCloud = { open: open, close: close, rpc: rpc, signedInAs: code };
+  try {
+    var last = Number(get(K_PING) || 0);
+    if (Date.now() - last > 12 * 60 * 60 * 1000) {
+      rpc('nb_ping', {}).then(function () { set(K_PING, String(Date.now())); }).catch(function () {});
+    }
+  } catch (e) { err('ping', e); }
+
+  /* -------------------------------------------------------------- api */
+
+  window.NBCloud = {
+    rpc: rpc,
+    signedInAs: code,
+    build: buildSaves,
+    refresh: refreshList,
+    errs: function () { return ERR.slice(); }
+  };
 })();
