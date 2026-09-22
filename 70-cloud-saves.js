@@ -9,6 +9,12 @@
    Talks to the Supabase RPCs in supabase-schema.sql.
    The key below is the PUBLIC anon key. Never put a secret here.
    Exports window.NBCloud.
+
+   v4.53 — "Start a new game" added to the button bar. The panel had
+   no way to begin a fresh company, so the only route was to sign out
+   and back in again. The work is delegated to NBGate.newGame(), which
+   pushes the current run to the cloud first and reloads into the
+   game's own onboarding.
    ============================================================ */
 (function () {
   'use strict';
@@ -22,6 +28,7 @@
   var K_CODE  = 'besim2_cloud_code';
   var K_AUTO  = 'besim2_cloud_autosync';
   var K_PING  = 'besim2_cloud_lastping';
+  var S_NEW   = 'nbgate_newgame';   /* read by the gate on the next boot */
 
   var ERR = [];
   function err(w, e) { if (ERR.length < 50) ERR.push(w + ': ' + ((e && e.message) || e)); }
@@ -148,7 +155,8 @@
     + '.nbc-who{font-size:12px;opacity:.75;margin-bottom:8px;}'
     + '.nbc-bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:4px 0 2px;}'
     + '.nbc-chk{display:flex;gap:8px;align-items:center;font-size:12px;opacity:.85;margin-top:10px;}'
-    + '.nbc-chk input{width:auto;margin:0;}';
+    + '.nbc-chk input{width:auto;margin:0;}'
+    + '.nbc-note{font-size:11.5px;opacity:.65;margin-top:8px;}';
 
   try {
     if (!document.getElementById('nbc-css')) {
@@ -190,12 +198,15 @@
       + '<div class="nbc-msg"></div>'
       + '<div class="nbc-bar">'
       +   '<button class="btn small" data-nbc-act="save"' + (hasGame() ? '' : ' disabled') + '>Save this game</button>'
+      +   '<button class="btn secondary small" data-nbc-act="newgame">\u2795 Start a new game</button>'
       +   '<button class="btn secondary small" data-nbc-act="refresh">Refresh</button>'
       +   '<button class="btn secondary small" data-nbc-act="score"' + (hasGame() ? '' : ' disabled') + '>Submit score</button>'
       +   '<button class="btn secondary small" data-nbc-act="logout">Sign out</button>'
       + '</div>'
       + '<label class="nbc-chk"><input type="checkbox" data-nbc-act="auto"' + (autoOn() ? ' checked' : '') + ' />'
       + 'Autosave to the cloud as you play</label>'
+      + '<div class="nbc-note">Starting a new game keeps everything above \u2014 your existing companies stay in the list '
+      + 'and you can load any of them again.</div>'
       + '<h3 style="margin-top:16px;">My saves</h3>'
       + '<div id="nbcList"><div class="muted" style="font-size:12px;">Loading\u2026</div></div>'
       + '</div>';
@@ -304,6 +315,40 @@
     });
   }
 
+  /* Start a fresh company. The heavy lifting belongs to the gate: it pushes
+     the current run to the cloud autosave slot, sets the session flag that
+     tells the gate to stand aside on the next boot, and reloads into the
+     game's own onboarding. We only warn and delegate.
+
+     The gate only pushes the current run when cloud autosave is ON, so when
+     it is off we say plainly that unsaved progress will be lost. */
+  function doNewGame() {
+    var question;
+    if (!hasGame()) {
+      question = 'Start a new game? You will be taken through setting up a fresh company.';
+    } else if (token() && autoOn()) {
+      question = 'Start a new game?\n\nYour current run is saved to the cloud first, so you can load it '
+               + 'again from this list at any time.';
+    } else {
+      question = 'Start a new game?\n\nCloud autosave is OFF, so this run will NOT be saved automatically. '
+               + 'Cancel and press "Save this game" first if you want to keep it.';
+    }
+    if (!window.confirm(question)) return;
+
+    say('Starting a new game\u2026', 'info');
+    try {
+      if (window.NBGate && typeof window.NBGate.newGame === 'function') {
+        window.NBGate.newGame();
+        return;
+      }
+    } catch (e) { err('newgame', e); }
+
+    /* Fallback: the gate reads this flag on boot and stands aside so the
+       game's own onboarding runs. */
+    try { sessionStorage.setItem(S_NEW, '1'); } catch (e) { err('newgameFlag', e); }
+    try { location.reload(); } catch (e) { err('newgameReload', e); }
+  }
+
   function doImport(key) {
     if (!token()) return say('Sign in first.', 'err');
     say('Reading the old save\u2026', 'info');
@@ -393,6 +438,7 @@
         return location.reload();
       }
       if (act === 'save')    return doSave();
+      if (act === 'newgame') return doNewGame();
       if (act === 'refresh') return refreshList();
       if (act === 'score')   return doScore();
       if (act === 'board')   return doBoard();
@@ -468,6 +514,7 @@
     signedInAs: code,
     build: buildSaves,
     refresh: refreshList,
+    newGame: doNewGame,
     errs: function () { return ERR.slice(); }
   };
 })();
