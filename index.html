@@ -13,43 +13,58 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="NAVigating" />
-<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="base.css?v=448">
 </head>
 <body>
 <div id="app"></div>
 <div id="onboard"></div>
 <div id="modalOverlay"><div id="modalBox"></div></div>
-<script src="00-scheduler.js"></script>
-<script src="art-core.js"></script>
 
-<link rel="stylesheet" href="facilities.css">
-<script src="art-merge.js"></script>
+<!-- Every script carries ?v=<build>. Safari caches scripts aggressively and
+     ignores a great deal of persuasion; changing the URL is the only reliable
+     way to guarantee a new release is actually executed. Bump the number on
+     every release, alongside CACHE_VERSION in sw.js. -->
+<script>window.NB_BUILD = '4.48';</script>
 
-<script src="10-core-v40-v46.js"></script>
+<script src="00-scheduler.js?v=448"></script>
+<script src="art-core.js?v=448"></script>
 
-<script src="art-v47.js"></script>
-<script src="20-v47-v49.js"></script>
+<link rel="stylesheet" href="facilities.css?v=448">
+<script src="art-merge.js?v=448"></script>
 
-<script src="30-v410-v427.js"></script>
+<script src="10-core-v40-v46.js?v=448"></script>
 
-<script src="40-v428-trucking.js"></script>
+<script src="art-v47.js?v=448"></script>
+<script src="20-v47-v49.js?v=448"></script>
 
-<script src="50-v429-v432.js"></script>
+<script src="30-v410-v427.js?v=448"></script>
 
-<script src="60-v433-v437.js"></script>
+<script src="40-v428-trucking.js?v=448"></script>
 
-<script src="70-cloud-saves.js"></script>
-<script src="80-account-gate.js"></script>
-<script src="85-save-codes.js"></script>
-<script src="90-hq-stages.js"></script>
-<script src="94-flags.js"></script>
-<script src="95-tidy.js"></script>
+<script src="50-v429-v432.js?v=448"></script>
+
+<script src="60-v433-v437.js?v=448"></script>
+
+<script src="70-cloud-saves.js?v=448"></script>
+<script src="80-account-gate.js?v=448"></script>
+<script src="85-save-codes.js?v=448"></script>
+<script src="90-hq-stages.js?v=448"></script>
+<script src="94-flags.js?v=448"></script>
+<script src="95-tidy.js?v=448"></script>
 
 <script>
+/* Build stamp, so "which version am I actually running?" is never a mystery. */
+try {
+  console.log('%cNAVigating Business build ' + window.NB_BUILD,
+              'background:#2a6df4;color:#fff;padding:2px 6px;border-radius:4px;');
+} catch (e) {}
+
 /* Register the service worker last so it never delays game startup. */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
-    navigator.serviceWorker.register('sw.js').catch(function () { /* non-fatal */ });
+    navigator.serviceWorker.register('sw.js').then(function (reg) {
+      try { reg.update(); } catch (e) {}
+    }).catch(function () { /* non-fatal */ });
   });
 }
 </script>
