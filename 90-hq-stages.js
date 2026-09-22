@@ -6,9 +6,22 @@
    v4.42: the HQ tab is now a showroom, not a line item. A large hero shot of
    the current HQ with what was paid for it, and large cards for what comes
    next. Art slots are drawn at full size even before the images exist, so
-   the layout does not jump around when they land. */
+   the layout does not jump around when they land.
+
+   v4.47: kill switch and onboarding safety.
+     ?nohq=1   — disable this layer entirely
+     ?safe=1   — disable this layer and the tidy layer together
+   The sweep also now refuses to run while the sign-in gate or the onboarding
+   overlay is on screen, so it can never interfere with a form. */
 (function(){
   "use strict";
+
+  var OFF = false;
+  try{
+    var q = new URLSearchParams(location.search);
+    OFF = q.get("nohq") === "1" || q.get("safe") === "1";
+  }catch(e){}
+  if(OFF){ try{ console.log("[v4.47] HQ stage layer disabled by URL flag"); }catch(e){} return; }
 
   var STAGES = [
     { key:"hq_0", name:"Garage & Home Office",      cap:8,     rent:0,       cost:0,         blurb:"A desk in the garage and a lot of ambition. No rent, no privacy, a hard cap on seats." },
@@ -34,6 +47,16 @@
   function node(html){
     try{ return el(html); }catch(e){}
     var d = document.createElement("div"); d.innerHTML = html; return d.firstElementChild || d;
+  }
+
+  /* True while the gate or the onboarding flow owns the screen. */
+  function handsOff(){
+    try{ if(document.getElementById("nbGate")) return true; }catch(e){}
+    try{
+      var ob = document.getElementById("onboard");
+      if(ob && ob.childNodes.length && ob.style.display !== "none" && ob.offsetParent !== null) return true;
+    }catch(e){}
+    return false;
   }
 
   /* ---- 0. find whichever global holds the art, without guessing its name ---- */
@@ -141,7 +164,7 @@
     if(s >= MAX){ toast("You are already in the final HQ. There is nothing bigger to buy."); return; }
     var cost = STAGES[s + 1].cost;
     try{ if(typeof affordOrAlert === "function" && !affordOrAlert(cost, "the HQ upgrade")) return; }catch(e){}
-    var label = "Move HQ — " + STAGES[s + 1].name;
+    var label = "Move HQ \u2014 " + STAGES[s + 1].name;
     try{
       queueAdd({
         id: (typeof uid === "function" ? uid() : "v440" + Date.now()),
@@ -149,7 +172,7 @@
         cost: cost,
         run: function(report){
           var cc = co(); if(!cc) return;
-          if(cc.cash < cost){ report.push("Skipped the HQ move — insufficient cash."); return; }
+          if(cc.cash < cost){ report.push("Skipped the HQ move \u2014 insufficient cash."); return; }
           cc.cash -= cost;
           cc.hqStage = Math.min(MAX, (cc.hqStage | 0) + 1);
           /* remember what this HQ cost and when it was bought */
@@ -159,8 +182,8 @@
           (cc.employees || []).forEach(function(e){
             try{ e.morale = clamp(e.morale + 5, 0, 100); }catch(err){}
           });
-          report.push("🏢 Moved into the " + STAGES[cc.hqStage].name +
-            " — " + STAGES[cc.hqStage].cap.toLocaleString() + " seats, " +
+          report.push("\uD83C\uDFE2 Moved into the " + STAGES[cc.hqStage].name +
+            " \u2014 " + STAGES[cc.hqStage].cap.toLocaleString() + " seats, " +
             money(STAGES[cc.hqStage].rent) + "/mo rent. Morale improved.");
         }
       });
@@ -224,14 +247,14 @@
       shot(st.key, "hq-hero-img", st.name) +
       '<div class="hq-hero-body">' +
         '<div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;">Stage ' + (s + 1) + ' of ' + STAGES.length + '</div>' +
-        '<h2>🏢 ' + st.name + '</h2>' +
+        '<h2>\uD83C\uDFE2 ' + st.name + '</h2>' +
         '<div class="blurb">' + st.blurb + '</div>' +
         '<div class="hq-facts">' +
           '<div class="hq-fact"><span class="k">Seats</span><span class="v' + (seats >= cap ? " bad" : "") + '">' +
             seats.toLocaleString() + ' / ' + cap.toLocaleString() + '</span></div>' +
           '<div class="hq-fact"><span class="k">Rent</span><span class="v bad">' + money(st.rent) + '<span style="font-size:11px;font-weight:400;opacity:.7;">/mo</span></span></div>' +
           '<div class="hq-fact"><span class="k">Paid for this HQ</span><span class="v">' +
-            (paid === 0 ? "Nothing — it is your garage" : (paid == null ? "—" : money(paid))) + '</span>' +
+            (paid === 0 ? "Nothing \u2014 it is your garage" : (paid == null ? "\u2014" : money(paid))) + '</span>' +
             (bought ? '<span class="k" style="margin-top:2px;">Moved in ' + bought + '</span>' : '') + '</div>' +
           '<div class="hq-fact"><span class="k">Invested in HQ to date</span><span class="v">' + money(Number(c.hqPaidTotal) || 0) + '</span></div>' +
         '</div>' +
@@ -249,12 +272,12 @@
         '<div class="muted" style="font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;">Stage ' + (i + 1) + '</div>' +
         '<h4>' + st.name + '</h4>' +
         '<div class="line">' + st.blurb + '</div>' +
-        '<div class="line"><b>' + st.cap.toLocaleString() + '</b> seats (+' + deltaSeats.toLocaleString() + ') · rent ' +
+        '<div class="line"><b>' + st.cap.toLocaleString() + '</b> seats (+' + deltaSeats.toLocaleString() + ') \u00b7 rent ' +
           money(st.rent) + '/mo (+' + money(deltaRent) + ')</div>' +
         '<div class="price">' + money(st.cost) + '</div>' +
         (immediate
           ? (queued()
-              ? '<div class="line"><b>Move already queued</b> — it completes at month close.</div>'
+              ? '<div class="line"><b>Move already queued</b> \u2014 it completes at month close.</div>'
               : '<button class="btn small" data-v440up="1">Queue this move</button>')
           : '<div class="line">Unlocks after the moves before it.</div>') +
       '</div></div>';
@@ -263,12 +286,12 @@
   function nextHtml(){
     var s = stage();
     if(s >= MAX){
-      return '<div class="card mt14"><h3>🏁 Final stage</h3><div class="muted" style="font-size:12px;">' +
+      return '<div class="card mt14"><h3>\uD83C\uDFC1 Final stage</h3><div class="muted" style="font-size:12px;">' +
         'Fifty thousand seats and nowhere left to grow. Everything from here is people, not property.</div></div>';
     }
     var out = "";
     for(var i = s + 1; i <= Math.min(MAX, s + 3); i++) out += optionHtml(i, i === s + 1);
-    return '<div class="card mt14" data-v442next="1"><h3>📦 Where you could move next</h3>' +
+    return '<div class="card mt14" data-v442next="1"><h3>\uD83D\uDCE6 Where you could move next</h3>' +
       '<div class="muted" style="font-size:12px;">One HQ at a time, one step at a time. Moves complete when the month closes and lift morale by 5.</div>' +
       '<div class="hq-next-grid">' + out + '</div></div>';
   }
@@ -277,11 +300,11 @@
     var s = stage();
     var steps = STAGES.map(function(st, i){
       var cls = i < s ? "done" : (i === s ? "now" : "");
-      return '<div class="v410-step ' + cls + '"><div class="n">' + (i < s ? "✓ " : "") + (i + 1) + ". " + st.name + '</div>' +
-        '<div class="m">seats ' + st.cap.toLocaleString() + " · " + money(st.rent) + "/mo" +
-        (i === s ? " · you are here" : (i > s ? " · move-in " + money(st.cost) : "")) + '</div></div>';
+      return '<div class="v410-step ' + cls + '"><div class="n">' + (i < s ? "\u2713 " : "") + (i + 1) + ". " + st.name + '</div>' +
+        '<div class="m">seats ' + st.cap.toLocaleString() + " \u00b7 " + money(st.rent) + "/mo" +
+        (i === s ? " \u00b7 you are here" : (i > s ? " \u00b7 move-in " + money(st.cost) : "")) + '</div></div>';
     }).join("");
-    return '<div class="card mt14" data-v440ladder="1"><h3>🏢 The whole ladder</h3>' +
+    return '<div class="card mt14" data-v440ladder="1"><h3>\uD83C\uDFE2 The whole ladder</h3>' +
       '<div class="v410-ladder">' + steps + '</div></div>';
   }
 
@@ -295,9 +318,9 @@
     var src = art(st.key);
     return '<div class="card v47-hqcard" data-v440hq="' + s + '">' +
       (src ? '<span class="v47-hqshot"><img class="hq-photo" src="' + src + '" alt=""></span>' : "") +
-      '<div><h3 style="margin:0 0 2px;">🏢 ' + st.name + '</h3>' +
+      '<div><h3 style="margin:0 0 2px;">\uD83C\uDFE2 ' + st.name + '</h3>' +
       '<div class="muted" style="font-size:11.5px;">' + seats.toLocaleString() + ' of ' + cap.toLocaleString() +
-        ' seats · ' + money(st.rent) + '/mo' + (nxt ? ' · next: ' + nxt.name + ' for ' + money(nxt.cost) : '') + '</div>' +
+        ' seats \u00b7 ' + money(st.rent) + '/mo' + (nxt ? ' \u00b7 next: ' + nxt.name + ' for ' + money(nxt.cost) : '') + '</div>' +
       '<button class="btn secondary small" data-v442go="1" style="margin-top:7px;">Open HQ</button></div>' +
     '</div>';
   }
@@ -317,7 +340,7 @@
     var s = stage();
     if(s >= MAX) return null;
     var nxt = STAGES[s + 1];
-    var box = node('<div class="v18-banner"><span>🏢 You are at <b>' + used.toLocaleString() + "/" + cap.toLocaleString() +
+    var box = node('<div class="v18-banner"><span>\uD83C\uDFE2 You are at <b>' + used.toLocaleString() + "/" + cap.toLocaleString() +
       '</b> seats. The next HQ (<b>' + nxt.name + '</b>) holds ' + nxt.cap.toLocaleString() + ' for ' + money(nxt.cost) + '.</span>' +
       '<button class="btn small" data-v442go="1">Open HQ</button></div>');
     return box;
@@ -326,7 +349,7 @@
   window.renderFacilitiesTab = function(){
     migrate();
     var wrap = node('<div data-v442hqtab="1">' +
-      '<div class="window-title"><h2>🏢 HQ</h2><span class="sub">One headquarters, ten stages, from the garage to a global campus</span></div>' +
+      '<div class="window-title"><h2>\uD83C\uDFE2 HQ</h2><span class="sub">One headquarters, ten stages, from the garage to a global campus</span></div>' +
       '</div>');
     try{ var b = facilitiesBanner(); if(b) wrap.appendChild(b); }catch(e){}
     var body = document.createElement("div");
@@ -352,7 +375,7 @@
   /* ---- 8. sweep the retired UI out of whatever rendered it ---- */
   function sweep(){
     try{
-      if(document.getElementById("nbGate")) return;   /* never touch the gate */
+      if(handsOff()) return;   /* never touch the gate or the onboarding form */
       document.querySelectorAll("[data-v436space]").forEach(function(n){ n.remove(); });
       document.querySelectorAll("[data-v47hq]").forEach(function(n){ n.remove(); });
       document.querySelectorAll(".ladder-card").forEach(function(n){
@@ -381,7 +404,7 @@
   document.addEventListener("click", function(ev){
     var t = ev.target && ev.target.closest ? ev.target.closest("[data-v440up],[data-v442go]") : null;
     if(!t) return;
-    if(document.getElementById("nbGate")) return;
+    if(handsOff()) return;
     ev.preventDefault();
     if(t.hasAttribute("data-v442go")){
       try{ G.ui.activeTab = "facilities"; renderAll(); }catch(e){}
@@ -394,7 +417,7 @@
   try{
     if(typeof DOCK_ITEMS !== "undefined" && DOCK_ITEMS){
       DOCK_ITEMS.forEach(function(d){
-        if(d && d.id === "facilities"){ d.label = "HQ"; d.icon = "🏢"; }
+        if(d && d.id === "facilities"){ d.label = "HQ"; d.icon = "\uD83C\uDFE2"; }
       });
     }
   }catch(e){}
@@ -404,5 +427,5 @@
   document.addEventListener("DOMContentLoaded", function(){ try{ migrate(); sweep(); }catch(e){} });
   setTimeout(function(){ try{ migrate(); sweep(); }catch(e){} }, 0);
 
-  window.v440Version = "v4.42";
+  window.v440Version = "v4.47";
 })();
