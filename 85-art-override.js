@@ -17,10 +17,17 @@
    A key is only overridden once its image has actually decoded, so a
    404 or a corrupt file can never blank out working art.
 
+   Two classes of key exist:
+     - bundle keys, shipped inside an art map (starter, sedan, ...)
+     - declared keys, published by a layer with no embedded art at all
+       (hq_0..hq_9, from 90-hq-stages.js). Those have nothing to
+       override, so they are created in window.HQ_IMG, which that layer
+       already reads as its last-resort lookup.
+
    On boot this logs a coverage report. The important line is
    "in manifest but not a real art key" — that means a filename in the
-   manifest does not match any key the game actually uses, which would
-   otherwise fail silently.
+   manifest matches neither a bundle key nor a declared key, which
+   would otherwise fail silently.
    ================================================================= */
 (function () {
   "use strict";
@@ -56,9 +63,33 @@
     return seen;
   }
 
+  /* Keys a layer has declared but shipped no embedded art for. */
+  var declaredCache = null;
+  function declared() {
+    if (declaredCache) return declaredCache;
+    var out = {};
+    try {
+      var stages = window.HQ_STAGES || [];
+      for (var i = 0; i < stages.length; i++) {
+        if (stages[i] && stages[i].key) out[stages[i].key] = true;
+      }
+    } catch (e) {}
+    declaredCache = out;
+    return out;
+  }
+
   var applied = [];   /* key -> url, actually swapped in */
+  var created = [];   /* declared key, published into HQ_IMG */
   var missing = [];   /* manifest entry with no file at any base path */
   var unknown = [];   /* file exists, but the key is not a real art key */
+
+  function announce(key, url) {
+    try {
+      window.dispatchEvent(new CustomEvent("nb:art-override", {
+        detail: { key: key, url: url }
+      }));
+    } catch (e) {}
+  }
 
   function place(key, url) {
     var hit = false;
@@ -70,14 +101,20 @@
     }
     if (hit) {
       applied.push(key);
-      try {
-        window.dispatchEvent(new CustomEvent("nb:art-override", {
-          detail: { key: key, url: url }
-        }));
-      } catch (e) {}
-    } else {
-      unknown.push(key);
+      announce(key, url);
+      return;
     }
+    if (declared()[key]) {
+      try {
+        if (!window.HQ_IMG || typeof window.HQ_IMG !== "object") window.HQ_IMG = {};
+        window.HQ_IMG[key] = url;
+        applied.push(key);
+        created.push(key);
+        announce(key, url);
+        return;
+      } catch (e) { /* fall through to unknown */ }
+    }
+    unknown.push(key);
   }
 
   /* Try each base path in order; first one that decodes wins. */
@@ -95,6 +132,18 @@
     };
     probe.onerror = function () { resolve(key, file, index + 1, done); };
     probe.src = url;
+  }
+
+  /* A layer that rendered before the manifest resolved is showing its
+     "Art pending" placeholder. Nudge one repaint, but never while the
+     sign-in gate or the onboarding form owns the screen. */
+  function repaint() {
+    try {
+      if (document.getElementById("nbGate")) return;
+      var ob = document.getElementById("onboard");
+      if (ob && ob.childNodes.length && ob.style.display !== "none" && ob.offsetParent !== null) return;
+      if (typeof window.renderAll === "function") window.renderAll();
+    } catch (e) {}
   }
 
   function report(manifest, total) {
@@ -115,6 +164,7 @@
                              " manifest assets live — " + embedded.length +
                              " game keys still embedded");
       console.log("overridden:", applied.slice().sort());
+      if (created.length) console.log("published for layer-declared keys (no embedded art):", created.slice().sort());
       if (missing.length) console.warn("in manifest but no file found:", missing);
       if (unknown.length) console.error("in manifest but NOT a real art key (check the filename):", unknown);
       if (held.length)    console.log("held back by review:", held);
@@ -126,12 +176,15 @@
     try {
       window.NB_ART_COVERAGE = {
         applied: applied.slice().sort(),
+        created: created.slice().sort(),
         missing: missing.slice(),
         unknown: unknown.slice(),
         held: held,
         embedded: embedded
       };
     } catch (e) {}
+
+    if (created.length) repaint();
   }
 
   function apply(manifest) {
