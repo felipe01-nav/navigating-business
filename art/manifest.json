@@ -1,6 +1,6 @@
 {
-  "_comment": "Single source of truth for external art. Key = the art key used by the game's art maps (ART_IMG, FAC_IMG, ...) or declared by a layer (hq_* from 90-hq-stages.js). Value = filename, resolved against art/ first and the repo root second. Add an entry only after the asset has passed prompt review, or after an explicit decision to ship it anyway — see accepted_with_defects. 85-art-override.js reads this file at boot and reports coverage to the console.",
-  "version": 3,
+  "_comment": "Single source of truth for external art. Key = the art key used by the game's art maps (ART_IMG, IMG, FAC_IMG, ...) or declared by a layer (hq_* from 90-hq-stages.js). Value = filename, resolved against art/ first and the repo root second. Two keys may point at the same file when different bundles name the same subject differently — see the aliases section. Add an entry only after the asset has passed prompt review, or after an explicit decision to ship it anyway — see accepted_with_defects. 85-art-override.js reads this file at boot and reports coverage to the console.",
+  "version": 4,
 
   "assets": {
     "beachhouse": "beachhouse.webp",
@@ -42,8 +42,17 @@
     "hq_6": "hq_6.webp",
     "hq_7": "hq_7.webp",
     "hq_8": "hq_8.webp",
-    "hq_9": "hq_9.webp"
+    "hq_9": "hq_9.webp",
+
+    "house_starter": "starter.webp",
+    "house_family": "family.webp",
+    "house_mansion": "mansion.webp",
+    "car_sedan": "sedan.webp",
+    "car_sports": "sports.webp",
+    "car_suv": "suv.webp"
   },
+
+  "_aliases_comment": "house_* and car_* are the legacy IMG bundle's names for subjects that ART_IMG calls starter, family, mansion, sedan, sports and suv. Both keys are listed so a screen reading either map gets the new art. IMG's remaining keys — jet, vac_beach, vac_cabin, vac_paris — have no external asset yet.",
 
   "accepted_with_defects": {
     "_comment": "Live in assets by explicit decision, but they violate their prompt's strict exclusions. Regenerate these first when image credits allow.",
