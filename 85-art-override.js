@@ -17,17 +17,33 @@
    A key is only overridden once its image has actually decoded, so a
    404 or a corrupt file can never blank out working art.
 
-   Two classes of key exist:
-     - bundle keys, shipped inside an art map (starter, sedan, ...)
-     - declared keys, published by a layer with no embedded art at all
-       (hq_0..hq_9, from 90-hq-stages.js). Those have nothing to
-       override, so they are created in window.HQ_IMG, which that layer
-       already reads as its last-resort lookup.
+   ---- finding a map -------------------------------------------------
+   ART_IMG and IMG are declared with const at the top level of their
+   bundle. A top-level const is a global LEXICAL binding: it is visible
+   to any code that names it, but it is NOT a property of window. Every
+   earlier version of this file probed window[name] only, so the 78-key
+   ART_IMG — which is to say very nearly all of the game's art — was
+   invisible, and its keys were reported as though they did not exist.
+   maps() therefore tries window first and falls back to an indirect
+   Function lookup, which resolves against the global declarative
+   record. Mutating the object works normally; we are changing a
+   property of the object, not rebinding the const.
+
+   ---- one key, one map ----------------------------------------------
+   The same name can appear in more than one map: 'tower' is a mansion
+   in ART_IMG and a retired facility in FAC_IMG. Writing to both put a
+   luxury high-rise into the facilities UI. A key is now applied to the
+   first map in MAP_NAMES order that owns it, and any further owners are
+   reported as shadowed.
+
+   ---- declared keys --------------------------------------------------
+   hq_0..hq_9 are published by 90-hq-stages.js and have no embedded art
+   to override. Keys listed in window.HQ_STAGES are created in
+   window.HQ_IMG, which that layer already reads as its last resort.
 
    On boot this logs a coverage report. The important line is
-   "in manifest but not a real art key" — that means a filename in the
-   manifest matches neither a bundle key nor a declared key, which
-   would otherwise fail silently.
+   "in manifest but not a real art key" — a filename matching neither a
+   map key nor a declared key, which would otherwise fail silently.
    ================================================================= */
 (function () {
   "use strict";
@@ -35,18 +51,27 @@
   var MANIFEST = "art/manifest.json";
   var BASES = ["art/", ""];
 
-  /* Every global the art bundles are known to publish. 90-hq-stages.js
-     probes a similar list; keep them in sync if a new map appears. */
-  var MAP_NAMES = ["ART_IMG", "FAC_IMG", "ART", "ARTS", "IMAGES", "IMG",
-                   "ART47", "ART_V47", "ARTMAP", "HQ_IMG"];
+  /* Priority order. The first map owning a key is the one that gets it. */
+  var MAP_NAMES = ["ART_IMG", "ART47", "ART_V47", "ARTMAP", "ART", "ARTS",
+                   "IMAGES", "IMG", "FAC_IMG", "HQ_IMG"];
+
+  /* Resolve a global lexical binding (top-level const/let), which never
+     appears on window. Returns null for anything undeclared. */
+  function lexical(name) {
+    try {
+      return (new Function("try { return " + name + "; } catch (e) { return null; }"))();
+    } catch (e) { return null; }
+  }
 
   function maps() {
     var out = [];
     for (var i = 0; i < MAP_NAMES.length; i++) {
-      try {
-        var m = window[MAP_NAMES[i]];
-        if (m && typeof m === "object") out.push({ name: MAP_NAMES[i], map: m });
-      } catch (e) { /* undefined; ignore */ }
+      var m = null;
+      try { m = window[MAP_NAMES[i]]; } catch (e) { m = null; }
+      if (!m || typeof m !== "object") m = lexical(MAP_NAMES[i]);
+      if (m && typeof m === "object") {
+        out.push({ name: MAP_NAMES[i], map: m, onWindow: window[MAP_NAMES[i]] === m });
+      }
     }
     return out;
   }
@@ -69,7 +94,7 @@
     if (declaredCache) return declaredCache;
     var out = {};
     try {
-      var stages = window.HQ_STAGES || [];
+      var stages = window.HQ_STAGES || lexical("HQ_STAGES") || [];
       for (var i = 0; i < stages.length; i++) {
         if (stages[i] && stages[i].key) out[stages[i].key] = true;
       }
@@ -78,42 +103,52 @@
     return out;
   }
 
-  var applied = [];   /* key -> url, actually swapped in */
-  var created = [];   /* declared key, published into HQ_IMG */
-  var missing = [];   /* manifest entry with no file at any base path */
-  var unknown = [];   /* file exists, but the key is not a real art key */
+  var applied = [];    /* key -> url, actually swapped in */
+  var created = [];    /* declared key, published into HQ_IMG */
+  var shadowed = [];   /* key also present in a lower-priority map, left alone */
+  var missing = [];    /* manifest entry with no file at any base path */
+  var unknown = [];    /* file exists, but the key is not a real art key */
 
-  function announce(key, url) {
+  function announce(key, url, where) {
     try {
       window.dispatchEvent(new CustomEvent("nb:art-override", {
-        detail: { key: key, url: url }
+        detail: { key: key, url: url, map: where }
       }));
     } catch (e) {}
   }
 
   function place(key, url) {
-    var hit = false;
     var found = maps();
+    var owners = [];
     for (var i = 0; i < found.length; i++) {
-      if (Object.prototype.hasOwnProperty.call(found[i].map, key)) {
-        try { found[i].map[key] = url; hit = true; } catch (e) {}
-      }
+      if (Object.prototype.hasOwnProperty.call(found[i].map, key)) owners.push(found[i]);
     }
-    if (hit) {
+
+    if (owners.length) {
+      var target = owners[0];
+      try { target.map[key] = url; } catch (e) {
+        unknown.push(key + " (" + target.name + " not writable)");
+        return;
+      }
       applied.push(key);
-      announce(key, url);
+      for (var j = 1; j < owners.length; j++) {
+        shadowed.push(key + ": applied to " + target.name + ", also present in " + owners[j].name);
+      }
+      announce(key, url, target.name);
       return;
     }
+
     if (declared()[key]) {
       try {
         if (!window.HQ_IMG || typeof window.HQ_IMG !== "object") window.HQ_IMG = {};
         window.HQ_IMG[key] = url;
         applied.push(key);
         created.push(key);
-        announce(key, url);
+        announce(key, url, "HQ_IMG (created)");
         return;
       } catch (e) { /* fall through to unknown */ }
     }
+
     unknown.push(key);
   }
 
@@ -134,9 +169,9 @@
     probe.src = url;
   }
 
-  /* A layer that rendered before the manifest resolved is showing its
-     "Art pending" placeholder. Nudge one repaint, but never while the
-     sign-in gate or the onboarding form owns the screen. */
+  /* A layer that rendered before the manifest resolved is showing stale
+     or placeholder art. Nudge one repaint, but never while the sign-in
+     gate or the onboarding form owns the screen. */
   function repaint() {
     try {
       if (document.getElementById("nbGate")) return;
@@ -158,16 +193,22 @@
     embedded.sort();
 
     var held = manifest.held ? Object.keys(manifest.held) : [];
+    var where = maps().map(function (m) {
+      return m.name + " (" + Object.keys(m.map).length + " keys, " +
+             (m.onWindow ? "window" : "lexical") + ")";
+    });
 
     try {
       console.groupCollapsed("[art-override] " + applied.length + "/" + total +
                              " manifest assets live — " + embedded.length +
                              " game keys still embedded");
+      console.log("maps found:", where);
       console.log("overridden:", applied.slice().sort());
-      if (created.length) console.log("published for layer-declared keys (no embedded art):", created.slice().sort());
-      if (missing.length) console.warn("in manifest but no file found:", missing);
-      if (unknown.length) console.error("in manifest but NOT a real art key (check the filename):", unknown);
-      if (held.length)    console.log("held back by review:", held);
+      if (created.length)  console.log("published for layer-declared keys (no embedded art):", created.slice().sort());
+      if (shadowed.length) console.log("name collisions, lower-priority map left untouched:", shadowed);
+      if (missing.length)  console.warn("in manifest but no file found:", missing);
+      if (unknown.length)  console.error("in manifest but NOT a real art key (check the filename):", unknown);
+      if (held.length)     console.log("held back by review:", held);
       console.log("still using embedded base64:", embedded);
       console.groupEnd();
     } catch (e) {}
@@ -175,8 +216,10 @@
     /* Expose for ad-hoc inspection: NB_ART_COVERAGE in the console. */
     try {
       window.NB_ART_COVERAGE = {
+        maps: where,
         applied: applied.slice().sort(),
         created: created.slice().sort(),
+        shadowed: shadowed.slice(),
         missing: missing.slice(),
         unknown: unknown.slice(),
         held: held,
@@ -184,7 +227,7 @@
       };
     } catch (e) {}
 
-    if (created.length) repaint();
+    if (applied.length) repaint();
   }
 
   function apply(manifest) {
