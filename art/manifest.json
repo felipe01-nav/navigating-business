@@ -1,6 +1,6 @@
 {
-  "_comment": "Single source of truth for external art. Key = the art key used by the game's art maps (ART_IMG, FAC_IMG, ...). Value = filename, resolved against art/ first and the repo root second. Add an entry only after the asset has passed prompt review. 85-art-override.js reads this file at boot and reports coverage to the console.",
-  "version": 1,
+  "_comment": "Single source of truth for external art. Key = the art key used by the game's art maps (ART_IMG, FAC_IMG, ...) or declared by a layer (hq_* from 90-hq-stages.js). Value = filename, resolved against art/ first and the repo root second. Add an entry only after the asset has passed prompt review. 85-art-override.js reads this file at boot and reports coverage to the console.",
+  "version": 2,
 
   "assets": {
     "beachhouse": "beachhouse.webp",
@@ -28,7 +28,17 @@
     "muscle": "muscle.webp",
     "sedan": "sedan.webp",
     "sports": "sports.webp",
-    "suv": "suv.webp"
+    "suv": "suv.webp",
+
+    "hq_0": "hq_0.webp",
+    "hq_2": "hq_2.webp",
+    "hq_3": "hq_3.webp",
+    "hq_4": "hq_4.webp",
+    "hq_5": "hq_5.webp",
+    "hq_6": "hq_6.webp",
+    "hq_7": "hq_7.webp",
+    "hq_8": "hq_8.webp",
+    "hq_9": "hq_9.webp"
   },
 
   "held": {
@@ -36,6 +46,7 @@
     "ski": "Translucent inset border roughly 3% in from each edge. Borders are excluded.",
     "studio": "Isometric dollhouse cutaway on a flat dark background. Flat backgrounds are excluded.",
     "compound": "Helipad marked with the letter H. Lettering is excluded. Arguably a pictogram; awaiting a call.",
-    "pickup": "Translucent vertical bands overlaying the left and right edges, same artifact class as ski."
+    "pickup": "Translucent vertical bands overlaying the left and right edges, same artifact class as ski.",
+    "hq_1": "Isometric cutaway office floor on a flat green/blue background. Same failure mode as studio. File is in art/ and ships the moment this line moves up to assets."
   }
 }
