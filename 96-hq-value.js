@@ -1,4 +1,4 @@
-/* 96-hq-value.js — v4.51
+/* 96-hq-value.js — v4.51 (v4.54 hardening)
    Values HQ on the real ten-stage ladder.
 
    The bug: v23AssetStatement contains a function-local constant
@@ -14,8 +14,15 @@
    and the host function is a large template-literal renderer that is not
    worth retyping. So this layer rewrites the expression in place: it scans
    global functions for that exact table indexed by hqStage and recompiles
-   each match with a call to NBHQValue. Top-level function declarations are
-   window properties with global scope, so recompiling one loses nothing.
+   each match with a call to NBHQValue.
+
+   v4.54 — the recompile is no longer a one-way door. new Function() builds
+   in global scope, so a rewritten function loses any closure it relied on,
+   and that failure surfaces when the function is CALLED, not when it is
+   rewritten — which means `failures` stayed empty while a tab died. We now
+   keep the original and install a wrapper that falls back to it if the
+   rebuilt version throws. Worst case the figure is the old one; the screen
+   still renders.
 
    Disabled by ?safe=1 or ?nohqvalue=1. */
 (function () {
@@ -64,18 +71,24 @@
   }
 
   /* The greater of what the ladder says it costs and whatever the game has
-     actually recorded as invested. v4.42 began recording a purchase price
-     on move-in; older saves have nothing, hence the fallback rather than a
-     hard dependency. */
+     actually recorded as invested.
+
+     v4.54: 90-hq-stages.js records the move-in price as hqPaidTotal (running
+     total) and hqPaid (the last move). The original list here — hqInvested,
+     hqTotalInvested, hqSpend, hq.invested — matched nothing this build ever
+     writes, so the recorded branch was dead and every save fell through to
+     the ladder sum. That over-bills any save where migrate() folded old
+     facilities into a higher stage without a payment ever happening, so the
+     recorded figure now wins outright when one exists. */
   function hqValue(c) {
     c = company(c);
     var recorded = 0;
     try {
-      recorded = Number(c.hqInvested || c.hqTotalInvested || c.hqSpend ||
+      recorded = Number(c.hqPaidTotal || c.hqInvested || c.hqTotalInvested || c.hqSpend ||
                         (c.hq && (c.hq.invested || c.hq.totalInvested))) || 0;
     } catch (e) { recorded = 0; }
-    var byLadder = cumulativeCost(c.hqStage | 0);
-    return Math.max(0, Math.round(Math.max(recorded, byLadder)));
+    if (recorded > 0) return Math.max(0, Math.round(recorded));
+    return Math.max(0, Math.round(cumulativeCost(c.hqStage | 0)));
   }
 
   window.NBHQValue = hqValue;
@@ -88,6 +101,7 @@
 
   var patched = [];
   var failed = [];
+  var fellBack = [];
 
   function attempt(name) {
     var fn;
@@ -119,8 +133,27 @@
       return;
     }
 
+    /* The safety net. A recompiled function runs in global scope, so any
+       closure the original captured is gone — and that only shows up when
+       it runs. If it throws, use the original and carry on. */
+    var safe = function () {
+      try {
+        return rebuilt.apply(this, arguments);
+      } catch (err) {
+        if (fellBack.indexOf(name) < 0) {
+          fellBack.push(name);
+          try {
+            console.warn("[v4.54] " + name + " threw after the HQ value rewrite (" +
+                         ((err && err.message) || err) + "). Using the original.");
+          } catch (e2) {}
+        }
+        return fn.apply(this, arguments);
+      }
+    };
+    try { safe.toString = function () { return rewritten; }; } catch (e) {}
+
     try {
-      window[name] = rebuilt;
+      window[name] = safe;
       patched.push(name);
     } catch (e) {
       failed.push(name + " (not writable)");
@@ -144,11 +177,14 @@
     var c = company(null);
     var L = ladder();
     return {
-      version: "4.51",
+      version: "4.54",
       patchedFunctions: patched,
+      fellBackToOriginal: fellBack,
       failures: failed,
       ladderStages: L ? L.length : "HQ_STAGES unavailable (legacy fallback in use)",
       currentStage: (c && (c.hqStage | 0)) || 0,
+      recordedSpend: Number(c && c.hqPaidTotal) || 0,
+      ladderWouldSay: cumulativeCost((c && c.hqStage) | 0),
       currentHqValue: hqValue(c),
       legacyWouldHaveSaid: [0, 8000, 33000, 93000][Math.min(3, (c && c.hqStage) | 0)] || 0
     };
@@ -156,12 +192,12 @@
 
   try {
     if (patched.length) {
-      console.log("[v4.51] HQ valuation corrected in: " + patched.join(", ") +
+      console.log("[v4.54] HQ valuation corrected in: " + patched.join(", ") +
                   ". NBHQValue.report() for detail.");
     } else {
-      console.log("[v4.51] HQ valuation layer found no legacy table to rewrite. " +
+      console.log("[v4.54] HQ valuation layer found no legacy table to rewrite. " +
                   "NBHQValue(company) is available regardless.");
     }
-    if (failed.length) console.warn("[v4.51] HQ valuation rewrite skipped: " + failed.join("; "));
+    if (failed.length) console.warn("[v4.54] HQ valuation rewrite skipped: " + failed.join("; "));
   } catch (e) {}
 })();
