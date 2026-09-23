@@ -1,6 +1,6 @@
 # introspect report
-# generated: 2026-09-23 00:41:50Z
-# commit: 74dea8c4a3979e5e1f69b344d428e1bcde356854
+# generated: 2026-09-23 01:12:28Z
+# commit: 7ff48be912310d467cef8548926b457f98afa3fa
 
 ## file sizes
 2333 00-scheduler.js
@@ -28,215 +28,73 @@
 2054 sw.js
 
 === FILE: art-core.js
-=== PATTERN: qualit
-3208:    desc:"Open restaurants, set your menu price, keep quality up. Covers drive revenue; food cost and rent eat it. Health inspections are real.",
-3433:  if(industryKey==="restaurant") return { type:"restaurant", locations:[], priceTier:1, quality:62, inspectionFails:0, lastNet:0, lastGross:0 };
-3506:    const c = Math.round(l.baseCovers * service * (0.65 + o.quality/150) * (1+marketingBoost()) * elasticity * randf(0.88,1.12));
-3512:  o.quality = clamp(o.quality + qDrift, 0, 100);
-3514:  if(o.quality < 42 && Math.random() < 0.35){
-3518:    report.push(`\u{1F6A8} Health inspection failed (quality ${Math.round(o.quality)}) \u2014 ${fmt$(penalty)} in fines and remediation. Invest in the kitchen.`);
-3522:  report.push(`\u{1F37D}\uFE0F Served ${covers.toLocaleString()} covers for ${fmt$(gross)} (food cost ${fmt$(food)}, rent ${fmt$(rent)}) \u2192 ${fmt$(net)} restaurant contribution. Quality ${Math.round(o.quality)}/100.`);
-3894:      <div class="muted mb8" style="font-size:12px;">Covers scale with front-of-house servers, kitchen staff, marketing and food quality. Quality decays about 4/month without chefs. Below 42 you risk a health inspection.</div>
-3895:      <div class="barrow"><span class="lbl">Food Quality</span><div class="track"><div class="fill" style="width:${o.quality}%;background:${o.quality>60?"var(--good)":o.quality>42?"var(--warn)":"var(--bad)"};"></div></div><span>${Math.round(o.quality)}</span></div>
-3899:        <button class="btn small" data-ops-quality="12000">\u{1F468}\u200D\u{1F373} Menu R&D + Staff Training (${fmt$(12000)}, +14 quality)</button>
-3900:        <button class="btn secondary small" data-ops-quality="3500">\u{1F9FC} Deep Clean & Prep Audit (${fmt$(3500)}, +6 quality)</button>
-3907:          <button class="btn secondary small" data-ops-remodel="${l.id}">Remodel (${fmt$(Math.round(l.cost*0.15))}, +8 quality)</button>
-4009:  wrap.querySelectorAll("[data-ops-quality]").forEach(b=> b.onclick=()=>{
-4010:    const amt = Number(b.getAttribute("data-ops-quality"));
-4012:    o.quality = clamp(o.quality + (amt>=12000?14:6), 0, 100);
-4020:    o.quality = clamp(o.quality+8,0,100);
-4672:    else if((ops.quality||0) < 50) add(82, "\u{1F9EA}", `Food quality is ${Math.round(ops.quality)}/100`, "Below 42 you risk a failed health inspection. Hire kitchen staff, run training, or remodel.", "industry");
-4778:      restaurant:"add a location, but only after quality is above 60 \u2014 bad inspections are expensive",
-7736:    const c = Math.round(l.baseCovers * service * (0.65 + o.quality/150) * (1+marketingBoost()) * elasticity * randf(0.88,1.12));
-7742:  o.quality = clamp(o.quality + qDrift, 0, 100);
-7744:  if(o.quality < 42 && Math.random() < 0.35){
-7748:    report.push(`\u{1F6A8} Health inspection failed (quality ${Math.round(o.quality)}) \u2014 ${fmt$(penalty)} in fines and remediation. Invest in the kitchen.`);
-7753:  report.push(`\u{1F37D}\uFE0F Served ${covers.toLocaleString()} covers for ${fmt$(gross)} (food cost ${fmt$(food)}, rent ${fmt$(rent)}) \u2192 ${fmt$(net)} restaurant contribution. Quality ${Math.round(o.quality)}/100.`);
-7833:  const land = (quality)=>{
-7834:    const mrrVal = Math.round(rand(150,450) * quality);
-7847:    const quality = specs.length ? 1.15 : 0.8;   // specialists convert better
-7848:    const expected = Math.min(45, Math.pow(budget/3500, 0.85) * quality * chanceMod);
-8092:      <b>1. Operating lines inside ${c.name}</b> \u2014 the ${ind && ind.opsType ? "stores, kitchens and production lines on this tab" : "capacity you build on this tab"}. You feed them with <b>cash</b> (open/build), <b>crew</b> (Line Staffing above), and <b>inputs</b> \u2014 inventory restocks for retail, food quality for restaurants, a released model plus assembly techs for robotics.<br>
-8253:    rep:"Recruiters raise the quality of everyone you hire and slow down attrition. Without them, new hires arrive with lower starting performance.",
-8784:  const CLICKY = "button,select,option,a,input[type=checkbox],input[type=radio],.radio-chip,.chip,.pill.clickable,.qi,.shop-card,.ladder-card,.dock-btn,.tab,.tabbtn,.stat.clickable,[data-tab],[data-group],[data-ops-open],[data-ops-price],[data-ops-quality],[data-toggledept],[data-qremove],[role=button],[onclick]";
-8943:    { key:"v18_loanpitch", label:"\u{1F4CB} Originate a Loan Yourself", desc:"Write one good-quality loan by hand." },
-10899:      <div class="lg"><div class="k">Avg performance</div><div class="v">${execs.length?Math.round(execs.reduce((s,e)=>s+e.performance,0)/execs.length):"\u2014"}</div><div class="n">Leadership quality</div></div>
-16348:  { key:"northwind", name:"Northwind Labs",     color:"#60a5fa", persona:"engineering-led", product:62, price:1.05, aggression:0.45, cash:2200000, revenue:52000, note:"Ships fast, sells badly. Product quality climbs every quarter." },
-16404:  queueAdd({ id:uid(), label:`Product push (+quality)`, cost, run:(report)=>{
-16411:    report.push(`\u{1F527} Product push shipped \u2014 quality now ${Math.round(st.product)}.`);
-16494:    // organic growth, scaled by their own product quality and the market
-16513:        v33Feed(`${r.name} shipped a headline feature (quality ${Math.round(r.product)}).`);
-16628:    <div class="window-title"><h2>\u2694\uFE0F Market & Rivals</h2><span class="sub">Your share ${Math.round(v33MyShare()*100)}% \u00b7 product quality ${v33Product()} \u00b7 pricing ${Math.round(st.price*100)}%</span></div>
-16655:        <div class="muted mt8" style="font-size:11px;">Outcome weighs product quality, price and your sales relationships against theirs.</div>
-16661:        <button class="btn small" data-v33ship>\u{1F527} Product push (+quality)</button>
-18319:      <div class="lg"><div class="k">Avg performance</div><div class="v">${execs.length?Math.round(execs.reduce((s,e)=>s+e.performance,0)/execs.length):"\u2014"}</div><div class="n">Leadership quality</div></div>
+=== PATTERN: DOCK_ITEMS|DOCK_GROUPS
+1466:const DOCK_ITEMS = [
+1498:  dock.innerHTML = DOCK_ITEMS.map(it=>`
+4520:const DOCK_GROUPS = [
+4529:function dockItem(id){ return DOCK_ITEMS.find(i=>i.id===id) || { id, icon:"\u{1F4C4}", label:id }; }
+4530:function groupOfTab(tabId){ return DOCK_GROUPS.find(g=>g.items.indexOf(tabId)>=0) || DOCK_GROUPS[0]; }
+4545:  dock.innerHTML = DOCK_GROUPS.map(g=>`
+4552:    const g = DOCK_GROUPS.find(x=>x.id===b.getAttribute("data-group"));
+5960:  dock.innerHTML = DOCK_GROUPS.map(g=>`
+5966:    const g = DOCK_GROUPS.find(x=>x.id===b.getAttribute("data-group"));
+5997:DOCK_ITEMS.push({ id:"log", icon:"\u{1F9FE}", label:"Activity Log" });
+5999:  const run = DOCK_GROUPS.find(g=>g.id==="run");
+7088:    const g = DOCK_GROUPS.find(x=> x.id==="life" || x.key==="life");
+9143:DOCK_ITEMS.push({ id:"leaderboard", icon:"\u{1F3C6}", label:"Leaderboard" });
+9145:  const g = DOCK_GROUPS.find(x=>x.id==="empire") || DOCK_GROUPS[0];
+9352:DOCK_ITEMS.push({ id:"facilities", icon:"\u{1F3D7}\uFE0F", label:"Facilities" });
+9354:  const people = DOCK_GROUPS.find(g=>g.id==="people");
+9356:  DOCK_GROUPS.forEach(g=>{ const i = g.items.indexOf("leaderboard"); if(i>=0) g.items.splice(i,1); });
+9357:  const sys = DOCK_GROUPS.find(g=>g.id==="system");
+9424:  const item = DOCK_ITEMS.find(i=>i.id==="assistant");
+9544:DOCK_ITEMS.push({ id:"hq", icon:"\u{1F3E2}", label:"Business HQ" });
+9546:  const run = DOCK_GROUPS.find(g=>g.id==="run");
+9752:DOCK_ITEMS.push({ id:"board", icon:"\u{1F3DB}\uFE0F", label:"Boardroom" });
+9768:  DOCK_GROUPS.length = 0;
+9769:  next.forEach(x=>DOCK_GROUPS.push(x));
+10187:DOCK_ITEMS.push({ id:"people", icon:"\u{1F9D1}\u200D\u{1F4BC}", label:"People" });
+10189:  const l = DOCK_ITEMS.find(i=>i.id==="log"); if(l) l.label = "Log";
+10190:  const h = DOCK_ITEMS.find(i=>i.id==="hq"); if(h) h.label = "HQ";
+10206:  DOCK_GROUPS.length = 0;
+10207:  next.forEach(x=>DOCK_GROUPS.push(x));
+10212:  if(v22IsPeopleTab(tabId)) return DOCK_GROUPS.find(g=>g.id==="hq") || DOCK_GROUPS[0];
+10213:  return DOCK_GROUPS.find(g=>g.items.indexOf(tabId)>=0) || DOCK_GROUPS[0];
+10270:          const g = DOCK_GROUPS.find(x=>x.id===b.getAttribute("data-group"));
+10582:      const g = DOCK_GROUPS.find(x=>x.id===btn.getAttribute("data-group"));
+10634:  const it = DOCK_ITEMS.find(i=>i.id==="assistant");
+10655:  DOCK_ITEMS.push({ id:"csuite", icon:"\u{1F454}", label:"C-Suite" });
+10656:  DOCK_ITEMS.push({ id:"expansion", icon:"\u{1F30D}", label:"Expansion" });
+10660:  DOCK_GROUPS.forEach(g=>{
+10678:  const g = DOCK_GROUPS.find(x=>x.id==="hq");
+15976:    if(typeof DOCK_ITEMS !== "undefined" && !DOCK_ITEMS.some(d=>d.id==="sponsor")){
+15977:      DOCK_ITEMS.push({ id:"sponsor", label:"Sponsorships", icon:"\u{1F3DF}\uFE0F", group:"personal" });
+16698:    if(typeof DOCK_ITEMS !== "undefined" && !DOCK_ITEMS.some(d=>d.id==="rivals")){
+16699:      DOCK_ITEMS.push({ id:"rivals", label:"Market & Rivals", icon:"\u2694\uFE0F", group:"company" });
 
 === FILE: art-core.js
-=== PATTERN: velocit|devSpeed|shipSpeed|buildSpeed|featureSpeed
+=== PATTERN: dock-label|class="dock"|id="dock"
+1494:    main.innerHTML = `<div id="dock"></div><div id="screen"></div>`;
+1502:      <div class="dock-label">${it.label}</div>
+4540:    main.innerHTML = `<div id="dock"></div><div id="screen"></div>`;
+4549:      <div class="dock-label">${g.label}</div>
+5716:  .dock-label{display:none;}
+5955:    main.innerHTML = `<div id="dock"></div><div id="screen"></div>`;
+10114:  .dock-label{text-align:center;}
 
 === FILE: art-core.js
-=== PATTERN: function (monthEnd|endMonth|closeMonth|advanceMonth|nextMonth|endTurn|tick)
-1159:function advanceMonthCore(){
-3726:function advanceMonthV8(){
-4509:function advanceMonthV9(){
-5569:function advanceMonthV11(){
-6223:function advanceMonth(){
+=== PATTERN: data-tab=|function renderDock|function buildDock|function dock\(
+1489:function renderDock(){
+1500:      <div class="dock-btn ${G.ui.activeTab===it.id?"active":""}" data-tab="${it.id}">${it.icon}
+4535:function renderDock(){
+5950:function renderDock(){
 
 === FILE: art-core.js
-=== PATTERN: churn
-100:      desc:"Major churn reduction + steady inbound lead flow." },
-113:      desc:"Major churn reduction from product excellence." },
-591:function churnMultiplier(){
-1022:          else { G.company.successScore=clamp(G.company.successScore-8,0,100); const mrrHit=Math.round(G.company.mrr*0.05); G.company.baseMrr=Math.max(0,(G.company.baseMrr||0)-mrrHit); G.company.clients.forEach(c=>{ const cut=Math.round(c.mrr*0.05); c.mrr=Math.max(0,c.mrr-cut); }); report.push(`Lost the PR fight — Success Score down, ${fmt$(mrrHit)} MRR churned in the fallout.`); }
-1196:  // churn pass — pricing reacts here: premium pricing on a segment stresses that segment's clients
-1197:  let churned=0, churnedMrr=0;
-1198:  const cm = churnMultiplier();
-1205:    if(Math.random() < baseChance*cm*priceChanceMod){ churned++; churnedMrr+=c.mrr; G.company.mrr -= c.mrr; return false; }
-1208:  if(churned>0) report.push(`Lost ${churned} client(s) to churn (${fmt$(churnedMrr)} MRR).`);
-1368:  if(/client|churn/.test(t)){
-1370:    if(risky.length) return `${risky.length} client(s) at churn risk: ${risky.map(r=>r.name).join(", ")}. Consider a retention offer.`;
-1386:  return `Snapshot: Cash ${fmt$(c.cash)}, MRR ${fmt$(c.mrr)}, ${c.employees.length} employees, ${c.clients.length} clients. Ask about runway, hiring, churn, competitors, loans, investing, or product.`;
-1800:        <div class="desc">+25 health, suppresses churn risk this month.</div>
-1903:    <div class="desc">Premium pricing wins bigger deals but raises churn risk for this segment; discount pricing is stickier but smaller.</div></div>
-2554:      <div class="muted mt8" style="font-size:11.5px;">Higher maturity reduces churn and supports premium pricing.</div>
-3112:      <input id="assistantInput" style="flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 11px;font-size:12.5px;" placeholder="Ask about runway, hiring, churn, competitors, loans, investing, product..." />
-4655:    if(risky.length) add(74, "\u{1F91D}", `${risky.length} client(s) about to churn`, risky.slice(0,3).map(r=>r.name).join(", ") + ". A retention offer costs far less than replacing the revenue.", "clients");
-4659:    add(60, "\u{1F4E6}", `Product maturity is ${c.product.maturity}/100`, "Thin product means high churn. Ship a planned feature or add engineers.", "product");
-6850:  { key:"pricing", label:"a pricing insight", apply:(c)=>{ c.priceTier = clamp((c.priceTier||1)+0.05, 0.5, 3); return "You spotted a pricing gap. Price tier nudged up with no churn hit."; } },
-7542:        <div class="desc">+25 health, suppresses churn risk this month.</div>
-8218:    cmo:"+12% demand lift and a major cut to churn from brand strength."
-8221:    rep:"Engineers are the gate on everything you ship. Features need 2-4 of them each, and they can now run in parallel: 9 engineers = three 3-engineer projects at once. Shipping features raises maturity, cuts churn, and permanently raises what you can charge.",
-8226:    cto:"Major churn reduction from product excellence."
-8229:    rep:"Each agent covers about 3 client relationships per month for check-ins, retention saves and upsells. Direct driver of client health, which is what stops churn.",
-8377:      <div class="muted mt8" style="font-size:11.5px;">Higher maturity reduces churn and supports premium pricing.</div>
-10978:  const churned = (c.clients||[]).length ? 0 : 0;
-10980:    arpa: (c.clients||[]).length ? Math.round(c.mrr/(c.clients||[]).length) : 0, churned };
-11653:      c.churnedAccounts = (c.churnedAccounts||0)+1;
-11655:      v24Toast(`${cl.name} churned at renewal`);
-12110:          <div class="muted mb8" style="font-size:11.5px;">Every account is on a term. At renewal, health decides whether they stay, expand, or walk. ${c.churnedAccounts? `${c.churnedAccounts} account(s) lost at renewal so far.`:""}</div>
-14526:      ${c.churnedAccounts? `<span class="k">Lost at renewal<b>${c.churnedAccounts}</b></span>`:""}
-14900:    if(atRisk) out.push({ k:"churn", cls: atRisk>2?"bad":"warn", icon:"\u26A0\uFE0F", text:`${atRisk} churn risk`, tab:"clients" });
-15085:      { key:"v32_zero_churn", name:"Nobody Leaves", icon:"\u{1F512}", desc:"Go 6 months without losing an account.", check:(c)=> (c.noChurnStreak||0)>=6 },
-15806:        if(/client|account|renewal|churn|contract|deal/i.test(t)) return "clients";
-15938:      <div class="muted" style="font-size:11.5px;">Brand lift raises inbound lead flow and slows churn. Team ownership is a personal purchase \u2014 it pays out to you, not the company, but the halo still helps recruiting.</div>
-16509:        report.push(`\u2694\uFE0F ${r.name} cut prices \u2014 your churn risk rises until you answer.`);
-17172:  { key:"small",      label:"Small",       min:0,     blurb:"High churn, low touch" }
-17845:  if((c.churnedThisMonth||0) > 0) return true;
-
-=== FILE: art-core.js
-=== PATTERN: (product|feature)s? *[:=]
-102:  product: { label:"Product & Engineering", icon:"🛠️", rungs:[
-225:      product:{ maturity:5, features:[], inProgress:null, shipped:[] },
-228:      orders:{ sales:null, marketing:null, product:null, support:null, finance:null, operations:null, hr:null },
-566:    report.push(`🚀 Shipped major feature: ${def.name}! Client health +${def.impact.clientHealth}, maturity +${def.impact.maturity}, pricing power +${Math.round(priceBoost*100)}% (built with ${def.reqEngineers} engineer(s) over ${def.months} month(s)).`);
-1312:  G.company.orders = { sales:null, marketing:null, product:null, support:null, finance:null, operations:null, hr:null };
-1512:    clients:renderClients, product:renderProduct, research:renderResearch, zoom:renderZoom,
-1779:  product:[ {key:"fast",label:"Ship Fast"}, {key:"stabilize",label:"Stabilize"}, {key:"innovate",label:"Innovate"} ],
-2567:        <button class="btn small" data-start-feature="${f.key}" ${meetsFeatureReqs(f)?'':'disabled'}>${meetsFeatureReqs(f)?'Start Building':'Understaffed'}</button>
-3192:    deptLabels:{ sales:"Store Sales", marketing:"Brand & Promotions", product:"Merchandising", support:"Customer Service", operations:"Supply Chain" },
-3199:      product:["Merchandiser","Category Buyer","Senior Buyer","Merchandising Manager","Director of Merchandising","Chief Merchandising Officer"],
-3210:    deptLabels:{ sales:"Catering & Events", marketing:"Marketing & Social", product:"Kitchen & Menu", support:"Front of House", operations:"Purchasing & Facilities" },
-3217:      product:["Line Cook","Sous Chef","Head Chef","Kitchen Manager","Culinary Director","Executive Chef"],
-3228:    deptLabels:{ sales:"Enterprise Sales", marketing:"Marketing", product:"Robotics R&D", support:"Field Service", operations:"Manufacturing Ops" },
-3235:      product:["Robotics Engineer","Lead Engineer","Principal Engineer","Engineering Manager","Director of Robotics","Chief Technology Officer"],
-3246:    deptLabels:{ sales:"Lending", marketing:"Deposit Growth", product:"Risk & Underwriting", support:"Client Services", finance:"Treasury", operations:"Back Office" },
-3253:      product:["Underwriter","Senior Underwriter","Risk Lead","Risk Manager","Director of Risk","Chief Risk Officer"],
-3855:    clients:renderClients, product:renderProduct, research:renderResearch, zoom:renderZoom,
-8220:  product: {
-8278:  if(!c.product) c.product = { maturity:5, features:[], inProgress:null, shipped:[] };
-8355:      report.push(`\u{1F680} Shipped major feature: ${def.name}! Client health +${def.impact.clientHealth}, maturity +${def.impact.maturity}, pricing power +${Math.round(priceBoost*100)}%.`);
-8397:        <button class="btn small" data-start-feature="${f.key}" ${canStartFeature(f)?'':'disabled'}>${canStartFeature(f)?'Start Building':`Need ${f.reqEngineers} free engineer(s)`}</button>
-15378:  product:    ["Core Product", "Growth", "Design", "Research"],
-16348:  { key:"northwind", name:"Northwind Labs",     color:"#60a5fa", persona:"engineering-led", product:62, price:1.05, aggression:0.45, cash:2200000, revenue:52000, note:"Ships fast, sells badly. Product quality climbs every quarter." },
-16349:  { key:"aperture",  name:"Aperture Group",     color:"#f59e0b", persona:"sales-led",       product:48, price:0.92, aggression:0.72, cash:4800000, revenue:86000, note:"Outsells everyone. Will undercut you to win a logo." },
-16350:  { key:"halcyon",   name:"Halcyon Systems",    color:"#a78bfa", persona:"enterprise",      product:71, price:1.35, aggression:0.38, cash:9500000, revenue:180000, note:"Premium incumbent. Slow, expensive, trusted by big logos." },
-16351:  { key:"brightline",name:"Brightline Co.",     color:"#34d399", persona:"discounter",      product:35, price:0.68, aggression:0.60, cash:900000,  revenue:28000, note:"Cheap and cheerful. Eats the low end of the market." }
-16358:      product: 50,
-16360:      rivals: V33_RIVAL_DEFS.map(r=>({ key:r.key, name:r.name, product:r.product, price:r.price, cash:r.cash, revenue:r.revenue, aggression:r.aggression, alive:true, acquiredBy:null })),
-16370:    c.v33.rivals = V33_RIVAL_DEFS.map(r=>({ key:r.key, name:r.name, product:r.product, price:r.price, cash:r.cash, revenue:r.revenue, aggression:r.aggression, alive:true, acquiredBy:null }));
-16410:    st.product = clamp(st.product + gain, 1, 100);
-16500:      r.product = clamp(r.product + (def.persona==="engineering-led" ? 2.2 : 1.1), 1, 100);
-16512:        r.product = clamp(r.product + 4, 1, 100);
-16545:      buyer.product = Math.round((buyer.product + target.product)/2 + 3);
-16740:  st.product = clamp(st.product - 0.35, 1, 100);
-16795:              product:50, price:1,
-16796:              rivals: V33_RIVAL_DEFS.map(r=>({ key:r.key, name:r.name, product:r.product, price:r.price, cash:r.cash, revenue:r.revenue, aggression:r.aggression, alive:true, acquiredBy:null })),
-16802:          if(c.v33.product === undefined) c.v33.product = 50;
-18476:        <div class="ct">Share ${Math.round((r.share||0)*100)}%${r.product?" \u00b7 "+r.product:""}</div>
-
-=== FILE: art-core.js
-=== PATTERN: function renderScreen|activeTab *===? *"industry"|renderIndustry
-1507:function renderScreenBase(){
-3850:function renderScreenBase(){
-3858:    industry:renderIndustryOps, orgchart:renderOrgChart, empire:renderEmpire };
-3863:function renderIndustryOps(){
-4577:function renderScreenV11(){
-6025:function renderScreen(){
-8098:const _v16RenderIndustryOps = renderIndustryOps;
-8099:renderIndustryOps = function(){
-12810:    if(typeof renderIndustryOps !== "function") return;
-12811:    const prev = renderIndustryOps;
-12812:    renderIndustryOps = function(){
-14003:    if(typeof renderIndustryOps !== "function") return;
-14004:    const prev = renderIndustryOps;
-14005:    renderIndustryOps = function(){
-
-=== FILE: art-core.js
-=== PATTERN: cash *:|company *= *\{
-201:      cash: 30000,
-247:      cash: 6000,
-282:    month:state.company.month, year:state.company.year, cash:state.company.cash });
-1271:  G.company.financialHistory.push({ month:G.company.month, year:G.company.year, revenue, expenses, netProfit, cash:G.company.cash, mrr:G.company.mrr });
-1410:        <span class="muted" style="font-size:11px;">Starting cash: $30,000</span>
-3623:  co.financialHistory.push({ month:co.month, year:co.year, revenue, expenses, netProfit:profit, cash:co.cash, mrr:co.mrr });
-3775:        <span class="muted" style="font-size:11px;">Starting cash: ${fmt$(INDUSTRIES[window.__obIndustry].startCash)}</span>
-4234:    const amtStr = window.prompt(`How much total cash should ${co.name} distribute? Your ${(founderPct(co)*100).toFixed(1)}% share comes to you. Company cash: ${fmt$(co.cash)}`, "10000");
-4308:  { key:"ff",     name:"Friends & Family", cash:75000,   pct:8,  minRev:0,     note:"No traction required. Cheap money, awkward Thanksgivings." },
-4309:  { key:"angel",  name:"Angel Round",      cash:400000,  pct:12, minRev:8000,  note:"Needs early revenue proof." },
-4310:  { key:"seed",   name:"Seed Round",       cash:1500000, pct:15, minRev:25000, note:"Institutional money. Real dilution." },
-4311:  { key:"a",      name:"Series A",         cash:6000000, pct:18, minRev:90000, note:"Growth capital, board pressure included." },
-5273:  const list = [{ id:"personal", icon:"\u{1F464}", name:`${G.meta.playerName} (Personal)`, cash:p.cash,
+=== PATTERN: industry.*(label|name) *:|label *: *"Industry
+1484:  {id:"industry", icon:"🏭", label:"Industry Ops"},
 5275:  G.companies.forEach((co,i)=> list.push({ id:"co:"+i, icon:industryOf(co).icon, name:co.name, cash:co.cash,
-5293:  const availRaw = from.kind==="personal" ? G.personal.cash : from.obj.cash;
-5296:  const destRaw = Number(to.kind==="personal" ? G.personal.cash : to.obj.cash);
-5335:  const cash = isPersonal ? p.cash : co.cash;
-8827:  return { income, expenses, rentals, net: income-expenses, worth: p.netWorth||0, cash: p.cash||0 };
-8894:  const raw = window.prompt(`Invest personal cash into ${G.company.name}.\n\nPersonal cash available: ${fmt$(p.cash)}\nCompany cash: ${fmt$(G.company.cash)}\n\nHow much do you want to put in?`, "25000");
-9212:  return { revenue: c.mrr + opsRev, expenses, net: (c.mrr+opsRev) - expenses, worth: c.netWorth||0, cash: c.cash||0 };
-9561:  const ps = (typeof personalSnapshot==="function") ? personalSnapshot() : { cash:p.cash, income:0, expenses:0, net:0, worth:p.netWorth||0 };
-9890:  const ps = (typeof personalSnapshot==="function") ? personalSnapshot() : { cash:p.cash, income:0, expenses:0, net:0, worth:p.netWorth||0 };
-11820:      { label:"Reach $50,000 MRR", test:(c)=> c.mrr>=50000, reward:{cash:25000, note:"$25,000 growth grant"} },
-11822:      { label:"Reach $250,000 MRR", test:(c)=> c.mrr>=250000, reward:{cash:150000, note:"$150,000 strategic reserve"} },
-11828:      { label:"Success score 75+", test:(c)=> c.successScore>=75, reward:{cash:20000, note:"$20,000 employer-brand award"} },
-11830:      { label:"Success score 90+", test:(c)=> c.successScore>=90, reward:{cash:100000, note:"$100,000 in inbound demand"} },
-11834:      { label:"Acquire your first competitor", test:(c)=> (c.acquisitions||[]).length>=1, reward:{cash:30000, note:"$30,000 synergy release"} },
-11837:      { label:"Hold 50% market share", test:(c)=> (typeof computeYourMarketShare==="function" ? computeYourMarketShare() : 0) >= 50, reward:{cash:250000, note:"$250,000 dominance dividend"} },
-11843:      { label:"$250,000 personal net worth", test:(c,p)=> v24PersonalWorth() >= 250000, reward:{cash:0, morale:4, note:"+4 morale — you sleep better"} },
-11845:      { label:"$5,000,000 personal net worth", test:()=> v24PersonalWorth() >= 5000000, reward:{cash:100000, note:"$100,000 personal liquidity into the business"} },
-11851:      { label:"Own 8 personal assets", test:()=> v24AssetCount() >= 8, reward:{cash:40000, note:"$40,000 — you sold one at a profit"} },
-12603:    <div class="row"><span>Cash on hand</span><b>${money(c?c.cash:0)}</b></div>
-13340:          savedAt: Date.now(), month: state.company.month, year: state.company.year, cash: state.company.cash });
-13670:  const cs = (typeof corporateSnapshot==="function") ? corporateSnapshot() : { revenue:c.mrr||0, expenses:0, net:0, worth:c.netWorth||0, cash:c.cash||0 };
-13671:  const ps = (typeof personalSnapshot==="function") ? personalSnapshot() : { cash:0, net:0, worth:0, expenses:0 };
-13674:    cash: c.cash||0, rev: cs.revenue||0, exp: cs.expenses||0, net: cs.net||0,
-13676:    pcash: ps.cash||0, pnet: ps.net||0, pworth: ps.worth||0, pexp: ps.expenses||0
-13743:  const ps = (typeof personalSnapshot==="function") ? personalSnapshot() : { cash:0, net:0, worth:0, expenses:0 };
-14114:  cash:      { label:"Cash", scope:"company", tab:"financials", key:"cash",
-14137:  pcash:     { label:"Personal cash", scope:"personal", tab:"personal", key:"pcash", get:(c,cs,ps)=>ps.cash },
-14203:        const ps = (typeof personalSnapshot==="function") ? personalSnapshot() : { cash:0, net:0, worth:0, expenses:0, income:0 };
-14573:    (t)=>({ label:`Reach ${fmt$(500000*t)} MRR`, test:(c)=> (c.mrr||0) >= 500000*t, reward:{cash:200000*t, note:`${fmt$(200000*t)} expansion war chest`} }),
-14575:    (t)=>({ label:`Reach ${fmt$(1500000*t)} MRR`, test:(c)=> (c.mrr||0) >= 1500000*t, reward:{cash:750000*t, note:`${fmt$(750000*t)} strategic reserve`} }),
-14580:    (t)=>({ label:`Hold success score 90+ for the ${t>1?(t+"th"):"first"} time this tier`, test:(c)=> (c.successScore||0) >= 90, reward:{cash:150000*t, note:`${fmt$(150000*t)} in inbound demand`} }),
-14585:    (t)=>({ label:`Acquire ${5+3*t} competitors total`, test:(c)=> (c.acquisitions||[]).length >= 5+3*t, reward:{cash:200000*t, note:`${fmt$(200000*t)} synergy release`} }),
-14588:    (t)=>({ label:`Group revenue above ${fmt$(2000000*t)}/mo`, test:()=> (G.companies||[]).reduce((a,co)=>a+(co.mrr||0),0) >= 2000000*t, reward:{cash:1000000*t, note:`${fmt$(1000000*t)} dominance dividend`} })
-14593:    (t)=>({ label:`${fmt$(500000000*t)} personal net worth`, test:()=> v24PersonalWorth() >= 500000000*t, reward:{cash:500000*t, note:`${fmt$(500000*t)} liquidity into the business`} }),
-14599:    (t)=>({ label:`Own ${35+15*t} personal assets`, test:()=> v24AssetCount() >= 35+15*t, reward:{cash:250000*t, note:`${fmt$(250000*t)} \u2014 you flipped one`} }),
-14789:        const ps = (typeof personalSnapshot==="function") ? personalSnapshot() : { cash:0, net:0, worth:0, expenses:0, income:0 };
-16348:  { key:"northwind", name:"Northwind Labs",     color:"#60a5fa", persona:"engineering-led", product:62, price:1.05, aggression:0.45, cash:2200000, revenue:52000, note:"Ships fast, sells badly. Product quality climbs every quarter." },
-16349:  { key:"aperture",  name:"Aperture Group",     color:"#f59e0b", persona:"sales-led",       product:48, price:0.92, aggression:0.72, cash:4800000, revenue:86000, note:"Outsells everyone. Will undercut you to win a logo." },
-16350:  { key:"halcyon",   name:"Halcyon Systems",    color:"#a78bfa", persona:"enterprise",      product:71, price:1.35, aggression:0.38, cash:9500000, revenue:180000, note:"Premium incumbent. Slow, expensive, trusted by big logos." },
-16351:  { key:"brightline",name:"Brightline Co.",     color:"#34d399", persona:"discounter",      product:35, price:0.68, aggression:0.60, cash:900000,  revenue:28000, note:"Cheap and cheerful. Eats the low end of the market." }
-16360:      rivals: V33_RIVAL_DEFS.map(r=>({ key:r.key, name:r.name, product:r.product, price:r.price, cash:r.cash, revenue:r.revenue, aggression:r.aggression, alive:true, acquiredBy:null })),
-16370:    c.v33.rivals = V33_RIVAL_DEFS.map(r=>({ key:r.key, name:r.name, product:r.product, price:r.price, cash:r.cash, revenue:r.revenue, aggression:r.aggression, alive:true, acquiredBy:null }));
-16796:              rivals: V33_RIVAL_DEFS.map(r=>({ key:r.key, name:r.name, product:r.product, price:r.price, cash:r.cash, revenue:r.revenue, aggression:r.aggression, alive:true, acquiredBy:null })),
+
+=== FILE: art-core.js
+=== PATTERN: function renderScreen\(\)
+6025:function renderScreen(){
 
