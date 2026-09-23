@@ -1,2 +1,1 @@
-art-core.js|DOCK_ITEMS\s*=\s*\[
-art-core.js|id:\s*"(decisions|bank|financials|industry|team|hr|orgchart|slack|zoom|product|clients|research|empire|invest|milestones|personal|market|life|assistant|saves)"
+113-icons.js@58-200
