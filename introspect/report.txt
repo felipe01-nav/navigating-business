@@ -1,66 +1,210 @@
 # introspect report
-# generated: 2026-09-23 14:29:13Z
-# commit: 93cf05e0b7e7fc757f73c9803c787655ce8e4e52
+# generated: 2026-09-23 14:33:47Z
+# commit: e36b6262a6930dca971053b9e3ea546c17ce520e
 
-=== FILE: 113-icons.js  LINES 1-60
-1 /* 113-icons.js — v4.67 "Emoji retire, icons report for duty"
-2
-3 Sheet 1 of the custom icon set. Twelve flat-vector icons, generated as a
-4 4x3 magenta-keyed grid, cut to transparent PNG, recoloured for the dark
-5 rail (navy ink -> paper, paper -> deep slate, amber untouched) and inlined
-6 here as 48px WebP data URIs. Inlined rather than committed as binaries so
-7 there is no missing-asset window and the service worker caches them with
-8 the script itself.
-9
-10 Applies to DOCK_GROUPS (the seven rail buttons) and the DOCK_ITEMS that
-11 have a genuine match in sheet 1. Anything without a match keeps its emoji
-12 until sheet 2 arrives — a mixed rail is preferable to a wrong icon.
-13
-14 Both constants are top-level `const`, so they are NOT on window; they are
-15 reached by indirect eval and mutated in place.
-16
-17 Escape hatch: ?noicons=1 restores every emoji.
-18 Console: NBIcons.report(), NBIcons.apply(), NBIcons.revert()
-19 */
-20 (function () {
-21 "use strict";
-22
-23 var OFF = /[?&]noicons=1/.test(location.search);
-24
-25 /* ---------- payload: semantic key -> 48px WebP, base64 ---------- */
-26 var D = {
-27 money: "UklGRtIEAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSFECAAABoLRtmyHJXtD7fV+MbRzbO9u2ba1s27Zt2zZXWNm2URHxvYvMrMyKcyJiAvB/KmpmplKIBkWjBBucCYDR8yy9/PJLzzMWAGxACix54rNf/kuSva9ePGUZQAeiWOtFVj1nZ/WVdaADUOxNekzuJOmeopP7QztTLMGc2DJlLg7tKmA/77F1zw9E6G5fxnaR+3dnWPJvb+X+1xLQrgD9gLlN5qdDIV0Z1vTM1ombwFqImoVgpkNwAGO76Ach9CNB0RzCIZ1w/37EAIxacK1N9txx/WVnNUz5yb2N+8/zQxsEmL7Xg58n1v7x9mUbf8x2/GY8pE4w9PjvSTKnmJKz4
-28 growth: "UklGRroEAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSO4CAAABoEVtmyFJ+uKPyNHu2FY11hwbl2vbtm3btjer1rZtG2PblZEZ8V1kIZvXETEBaI2KksahtJRqlEqMRmnBxI/3hTSI0gYA2owdAQVoPM8foRoEgGx25NN/8xqY1HPJN2jYgTvd9asj6XeALsFvG0TjDpJMYhfXQxqDknYPMiYd528M1RigFB5i7BN+AoXGYfC4Jy3vhmkUyuBWcjWdOyEjMUZXFuAK+qU1uxU5GToLAQBVSYCz6VaNAKbMGALJQKHm6vv3gipncASTDdNgNLobpFPfl9MYvZLktZBSBru7xO0OAILSGs/yQ6hSIh+zGCfcTCRlMDVKeCiw3bkQ
-29 hq: "UklGRnwDAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSD4BAAABkHNb27E51/3c39j2TGzb/ANWnS6V/4dts006p02VFpVtv893X+N53mfiKiImAP3bRRe5oHRbMSSqmmetkVXd64WoOk3Lac2DAdpFVNFVJR0g/341IKoAalZfujwb0BQElRevfr55tgJAzZrzL0na7jqIC+Ywgl3rKtaee0nSe298tA5woVRH/PDmv155StJ7I0lPXp8OCaNAQ5ZGkt4bezRPvxQaBKVLLpqR9Mbef+NBZAI4t/UhAye2O4TDQDLxgbgnzPAfWWNUwzx/Xbs1L7L9ADISj9n7owsAqIul2zsbWgDp3Yg0zBv57tgESC8UM2hMM5uQ7xrE9WZmSqQl
-30 people: "UklGRuQDAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSM4CAAABoEPblmnbmqtqv2/btm3btm37Z7Zt27Zt20b0zFNVawQbF9EPI2IC9H+52aCyyqQYB0+QNFElxThAFoLVgmY78+2fv3tsE8lqFkP/REmKpqBN/qPxwS0VZEFSDP2hyRZeeHIpavlx9HIp2WFrVdLMK84mWV8s2Cm/pfT74VMHPUePxgn+SaVZ7xrKyIsXl6xb0FU0/j7jtKPcm9zHzTrVj+DgD08SrEvUCqTinnOabnE6LzIXueA5s5eqLpVO9QQ4PvucCW9y0hxzgwO9cltfzqZW+GmyBXve5mPnmuIvCpB5UrHbaQ2JG3UNidbEFbqT1PC8QgfTpD9RGm6w
-31 ops: "UklGRqwEAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSBQDAAABoCzZtmnb6mPMdZ9t27Zt27Zt26/2X9m2bdu2bb+995pztML2jvsBETEBGgd7SjZao53cfI41Vp/GLKWRcCnpcbhAYyQfBe22jBb6KecXptWO28qG5mNO49/H/yOC7x6HncyH5FqEDEQQUPPbpGbDUTXmcuocGXLkHIelSkM/nBpoBkFhLQ3ZNPXaH1OC8+Za9DpK4dlVJ5cNwSy9CGRulmQfEMAVSsPQeF+0amqOHzPB+HYDmUb9gLw/l2TeoXoLyNwiSW9QgBuU+uvVbPbtvokSceoc819KKby8wfSyXkyS67y3Xn/jlQ2VJJl0ODXQqAky66h3VzJLU/0DcH0
-32 research: "UklGRvgDAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSCsBAAABkFtteyo23y+Z2SV2vAMz8wCueAR2UjF0tABnAVfhpM3JAjwAk3T1Vb5X+kNtREwAfltjTVQxNpYgvolj0HbjwYOHxR88OF6FlQgi1a8Y/TSsFLMY5U8f2fEMSiTCQvCMHBzPwEqxOUYjHc/DiiY63oARTXS8ASOa+IsXYAosJAqZb4XJJeOp6DsLYCddey4jPd9D0GRxn56KDDp+haCpBDt01GRwTK9JUP6aQZNB00dtLZ91Cao+6ILgBb2qElwJTpXFIDNVkJKXwauyWKEuGNylV2UxqW5e3dz/T6e6FquKWVhFiaqQ+TUYTQwZt2HzzCZjFj5UQHIshG
-33 idea: "UklGRl4FAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSI8CAAABoLVtmyFJntDzfREza9u2be+Rd49s27Zt27Zt27Ztb0VkvKuOzKprImICGBF6jME9xGCD4U5l8P5ZgMnXOe6mO+647shVx4NgfXJY9KqfNOSXp88KDniYeekQuwiMd46knHLOOTXS74cOwwH2uJYuA/O8pZKLhixJemQSgo+/4hd5wwljK2f+75RUX3p6ZRLGPiZLungKszq3Kb5UVuuenho5MP0bvy/rtHV/QEkd9nQiw9nibEKbwHpK6rKkspCFKWYP3sJspHdK04mSbiLQPrCCGnVcejMQDG91dkldJW1HNPA67EU13V1OZNQNsRpjvO9Uusp62nzcK7RD9A
-34 decide: "UklGRugDAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSOoBAAABoLNte6FBH9D9JFnbNn+AvZ1tV7Zts9puSxuVbdv2ZxszyV3MO/NushExAfjSleSlxI8CJA8FiBfULgHJhprFIZ9PY8o/LxuJyqAx4a9njUR9HjHGFPuOXK0L61RjinwkV+nC2qj8BMmPzq5EZvW1s4uRVPkICo7bsm33P+STbTu2p2/b8zf5ZNv27WsaQ7KJKnGGfn9vLjqTwQz+G0UxSRtljknaKIr/5UmoTApHbEyf1n0sAskgME9pvTj+VSOPqn/QeaFjU+gMGq3p6Ddmr0wGIxl7ijgeJtNGRt7WZFI4zNhTzF3QaYICr2i9XYBKU6j7L50nyxcFICka
-35 reports: "UklGRqwDAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSGQBAAABkGNtmyIr319V14BoYAFO5LAAUg2J3B0yd1uEO5lL5q7XF4AtwaVPyYdWd/13AxExARjqrkkp06wUELP22NGjx7KPHtsxAqYZ61yHO8ImX42EbULw94Pw09eu2N2CrSeYv2f3nt1vmFjfs7sFU8diFQt6drcgtW7Fn9771Aw9u0cZqXOFgQUrnoGtc7VMiK8geU5K8WmeheBKqWdZAgxru65IsKT/w7tvLJpnMZvl8xwupirFVOq5/M/iOgNLBz6GybiqIKbBdsj/rilg5O12I5oYuBBOlY/7tXGHdCg7DIimxI/dS2EU/XMBrKZUxeu6GNIlZZ5b4DQl/hg
-36 trophy: "UklGRtYEAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSEUCAAABoHNr27E9Oq/rfmLbVmXbtu2ksvUPnJR2xrYr27YVGw+us3h139/M9BExAfgf1Sig8yIIKh4E/fft2+953/4RkJIETW8yYNoWWopDLyb+73A8omJEAZVuRv+ZjRAHqOTL341Bu6FIlSaPfvThRx98G+abDz768KNHm4oCEY6yzJ5ABDg8lsbXzp27HObS+XNX4/RxOCDCfnJFzdotz9F8Gc+3rlVzCXkAUc5achOAb5j5yvgdgDXkuhyHQeQDKC+vM/WV8h0pJ2fI4XCAoNY5/lxJ8VCIx6HlvuWlehAAikeNY4GdTHwlPAAZbPYsFAAiTCZfgS4LsVrwGDkH
-37 market: "UklGRigEAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSIACAAABoERtm2Hb+f6/6pija9u2FdvW6CQj27btzIyRbdvOPrFxjcIX9Omqvde684iYAGwWVaW2BIBaq1IzmDS8Dv9XqQmDo/3qzx88f98pnahNi3tY6H9+YoRoDYj0u/z5bzfx/1fC1kBh2/hdT7p7nX9bpSbECv7/NNcNs/XWWlOsqio9lgMgahrNKeSeqKYYLQHAYCn5UtdhXYfuv9MuOy+aN3/+pNFjR/Tq1atXS1OzQUZBx69MdWHTypUrV37X/e2n77z77qv3joaWgeIRbnLOOe+9DzEGpt8NW8riZDqWj8WheKO/OcFgKWNCqmNXgqDzd8ZqRM6HKQXF4/RV
-38 dashboard: "UklGRugCAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSO8AAAABgFtre/LmFdhOMgMzdTmZg2rOCjgE8xBmGiHMI0CbjlHSF5B+MFUpImICUJNywUpScAdDyTILw2D89PQs9NPTxBA4AM56H6hEHwcYByT26F2rEtTvtAsJCBSNopJUJg/xJ0ulQjlb7t+DbOlkbQVdKqbwR2KD3pRn7UUrz2+0DQkw1nxLJXrfyTgAhsbldCrtzKSuydgMXacyaWcqvdkBhr8MPufoy/ZFS/DJYOdSuKMNkSwpm6JCpCEq3JIj4BvSNk13CJvxybnVL+VRr8+Ng4UgMUMBzkIGJzB8vH90eub1aP94DCK4cmSBhlMLAgBWUDgg0gEAADAKA
-39 };
-40
-41 /* ---------- reach the lexical constants ---------- */
-42 function ev(name) {
-43 try { return (0, eval)("typeof " + name + "!=='undefined'?" + name + ":null"); }
-44 catch (e) { return null; }
-45 }
-46
-47 /* ---------- who gets which icon ----------
-48 Only genuine matches. Unmatched tabs keep their emoji: life, personal,
-49 assistant, saves, slack, zoom, clients, hr, orgchart. Sheet 2 will cover
-50 a house, a robot, a floppy disk, a handshake, a graduate, a medal, a
-51 chat bubble, a camera, a magnifier and a star. */
-52 var GROUP_ICON = {
-53 run: "dashboard", // 🧭 -> dashboard monitor
-54 people: "people", // 🧑‍💼 -> three figures
-55 market: "idea", // 📦 -> lightbulb (this group is Product)
-56 empire: "hq" // 🏗️ -> office block
-57 };
-58 var ITEM_ICON = {
-59 bank: "money", // 🏦 -> coin stacks
-60 decisions: "decide", // 🧭 -> calendar with a tick
+=== FILE: art-core.js  LINES 4500-4640
+4500 function queueAdd(item){
+4501 if(!item) return;
+4502 if(G.ui.queue.length >= 40){
+4503 alert("That's 40 queued actions \u2014 the plan is full for this month. Advance the month or remove something first.");
+4504 return;
+4505 }
+4506 if(item.hireDept && !hireGateAllows(item)) return;
+4507 G.ui.queue.push(item);
+4508 }
+4509 function advanceMonthV9(){
+4510 try {
+4511 advanceMonthV8();
+4512 } catch(err){
+4513 console.error(err);
+4514 alert(`Something went wrong while closing the month:\n${err && err.message ? err.message : err}\n\nThe month was rolled back to a safe state and your save is intact. Try removing the last queued action.`);
+4515 G.ui.queue = [];
+4516 }
+4517 }
+4518
+4519 /* ---------------- Grouped dock ---------------- */
+4520 const DOCK_GROUPS = [
+4521 { id:"run", icon:"\u{1F9ED}", label:"Run", items:["decisions","bank","financials","industry"] },
+4522 { id:"people", icon:"\u{1F9D1}\u200D\u{1F4BC}", label:"People", items:["team","hr","orgchart","slack","zoom"] },
+4523 { id:"market", icon:"\u{1F4E6}", label:"Product", items:["product","clients","research"] },
+4524 { id:"empire", icon:"\u{1F3D7}\uFE0F", label:"Empire", items:["empire","invest","milestones"] },
+4525 { id:"life", icon:"\u{1F3E1}", label:"Life", items:["personal","market","life"] },
+4526 { id:"jarvis", icon:"\u{1F916}", label:"F.E.L.I.P.E AI", items:["assistant"] },
+4527 { id:"system", icon:"\u{1F4BE}", label:"System", items:["saves"] },
+4528 ];
+4529 function dockItem(id){ return DOCK_ITEMS.find(i=>i.id===id) || { id, icon:"\u{1F4C4}", label:id }; }
+4530 function groupOfTab(tabId){ return DOCK_GROUPS.find(g=>g.items.indexOf(tabId)>=0) || DOCK_GROUPS[0]; }
+4531 function groupNeedsAttention(g){
+4532 if(g.items.indexOf("decisions")>=0 && G.company.pendingEvent) return true;
+4533 return false;
+4534 }
+4535 function renderDock(){
+4536 let dock = document.getElementById("dock");
+4537 if(!dock){
+4538 const main = document.createElement("div");
+4539 main.id = "main";
+4540 main.innerHTML = `<div id="dock"></div><div id="screen"></div>`;
+4541 document.getElementById("app").appendChild(main);
+4542 dock = document.getElementById("dock");
+4543 }
+4544 const active = groupOfTab(G.ui.activeTab);
+4545 dock.innerHTML = DOCK_GROUPS.map(g=>`
+4546 <div>
+4547 <div class="dock-btn ${active.id===g.id?"active":""}" data-group="${g.id}" title="${g.items.map(i=>dockItem(i).label).join(" \u00b7 ")}">${g.icon}
+4548 <span class="dot ${groupNeedsAttention(g)?"show":""}"></span></div>
+4549 <div class="dock-label">${g.label}</div>
+4550 </div>`).join("");
+4551 dock.querySelectorAll("[data-group]").forEach(b=> b.onclick = ()=>{
+4552 const g = DOCK_GROUPS.find(x=>x.id===b.getAttribute("data-group"));
+4553 if(!g) return;
+4554 G.ui.lastTabByGroup = G.ui.lastTabByGroup || {};
+4555 G.ui.activeTab = G.ui.lastTabByGroup[g.id] && g.items.indexOf(G.ui.lastTabByGroup[g.id])>=0
+4556 ? G.ui.lastTabByGroup[g.id] : g.items[0];
+4557 renderDock(); renderScreen();
+4558 });
+4559 }
+4560 function subTabBar(){
+4561 const g = groupOfTab(G.ui.activeTab);
+4562 if(g.items.length<2) return null;
+4563 const bar = el(`<div class="card mb8" style="padding:8px 10px;">
+4564 <div class="flexrow" style="flex-wrap:wrap;gap:6px;">
+4565 <span class="muted" style="font-size:11.5px;margin-right:4px;">${g.icon} ${g.label}</span>
+4566 ${g.items.map(id=>{ const it = dockItem(id);
+4567 return `<button class="btn ${G.ui.activeTab===id?"":"secondary"} small" data-subtab="${id}">${it.icon} ${it.label}</button>`; }).join("")}
+4568 </div></div>`);
+4569 bar.querySelectorAll("[data-subtab]").forEach(b=> b.onclick = ()=>{
+4570 G.ui.activeTab = b.getAttribute("data-subtab");
+4571 G.ui.lastTabByGroup = G.ui.lastTabByGroup || {};
+4572 G.ui.lastTabByGroup[groupOfTab(G.ui.activeTab).id] = G.ui.activeTab;
+4573 renderDock(); renderScreen();
+4574 });
+4575 return bar;
+4576 }
+4577 function renderScreenV11(){
+4578 const screen = document.getElementById("screen");
+4579 try {
+4580 renderScreenBase();
+4581 } catch(err){
+4582 console.error(err);
+4583 screen.innerHTML = `<div class="card"><h3 class="bad">That tab hit an error</h3><div class="muted">${(err && err.message)||err}</div><div class="muted mt8" style="font-size:11.5px;">Your save is fine \u2014 switch tabs and try again.</div></div>`;
+4584 }
+4585 const bar = subTabBar();
+4586 if(bar) screen.insertBefore(bar, screen.firstChild);
+4587 G.ui.lastTabByGroup = G.ui.lastTabByGroup || {};
+4588 G.ui.lastTabByGroup[groupOfTab(G.ui.activeTab).id] = G.ui.activeTab;
+4589 }
+4590
+4591 /* ---------------- Collapsible sections ---------------- */
+4592 function collapseSection(wrap, label, openByDefault){
+4593 const heads = Array.from(wrap.querySelectorAll("h3.section-divider"));
+4594 const h = heads.find(x=>x.textContent.indexOf(label)>=0);
+4595 if(!h) return null;
+4596 const card = h.nextElementSibling;
+4597 if(!card) return null;
+4598 const det = document.createElement("details");
+4599 det.className = "v9-collapse";
+4600 det.style.cssText = "margin:14px 0 8px;";
+4601 if(openByDefault) det.open = true;
+4602 const sum = document.createElement("summary");
+4603 sum.textContent = h.textContent;
+4604 sum.style.cssText = "cursor:pointer;list-style:revert;font-weight:600;font-size:13px;color:var(--muted);padding:6px 0;border-top:1px solid var(--border);";
+4605 h.replaceWith(det);
+4606 det.appendChild(sum);
+4607 det.appendChild(card);
+4608 return det;
+4609 }
+4610 function renderHR(){
+4611 const wrap = renderHRBase();
+4612 collapseSection(wrap, "Board of Directors", false);
+4613 collapseSection(wrap, "Benefits & Perks", false);
+4614 return wrap;
+4615 }
+4616
+4617 /* ---------------- Jarvis advisor ---------------- */
+4618 function cashRunway(){
+4619 const c = G.company;
+4620 const exp = Object.values(c.expensesBreakdown||{}).reduce((a,b)=>a+(b||0),0);
+4621 const rev = monthlyRevenue(c);
+4622 const burn = exp - rev;
+4623 if(burn <= 0) return Infinity;
+4624 return Math.max(0, Math.floor(c.cash / burn));
+4625 }
+4626 function jarvisAdvice(){
+4627 const c = G.company, p = G.personal, out = [];
+4628 const add = (pri, icon, title, text, tab)=> out.push({ pri, icon, title, text, tab });
+4629 const rev = monthlyRevenue(c);
+4630 const runway = cashRunway();
+4631
+4632 if(c.cash < 0 || (c.distressMonths||0) > 0)
+4633 add(100, "\u{1F6A8}", "You are in financial distress", `Cash is ${fmt$(c.cash)} and you've had ${c.distressMonths} month(s) of overdrafts. Borrowing capacity right now is ${fmt$(Math.max(0, debtCapacity()-c.debt.loanBalance))}. Take a term loan or cut queued spend before advancing.`, "bank");
+4634 else if(runway !== Infinity && runway <= 2)
+4635 add(95, "\u26A0\uFE0F", `About ${runway} month(s) of runway left`, `Burn is outpacing ${fmt$(Math.round(rev))}/mo of revenue. Either borrow (${fmt$(Math.max(0, debtCapacity()-c.debt.loanBalance))} available), raise a round in My Empire, or trim payroll.`, "bank");
+4636
+4637 if(c.pendingEvent)
+4638 add(92, "\u26A1", "An event needs your decision", `"${c.pendingEvent.title}" is waiting. Unresolved events keep compounding.`, "decisions");
+4639
+4640 const cap = headcountCap(), room = cap - c.employees.length;
+
+=== FILE: art-core.js
+=== PATTERN: icon:\s*"\\u
+3179:    key:"ai_saas", label:"AI Dashboard (SaaS)", icon:"\u{1F916}", startCash:30000, opsType:null,
+3189:    key:"retail", label:"Retail Chain", icon:"\u{1F6CD}\uFE0F", startCash:45000, opsType:"retail",
+3207:    key:"restaurant", label:"Restaurant Group", icon:"\u{1F37D}\uFE0F", startCash:40000, opsType:"restaurant",
+3225:    key:"robotics", label:"Robotics Manufacturer", icon:"\u{1F9BE}", startCash:60000, opsType:"robotics",
+3243:    key:"finance", label:"Bank & Insurance", icon:"\u{1F3E6}", startCash:150000, opsType:"finance",
+4521:  { id:"run",    icon:"\u{1F9ED}", label:"Run",     items:["decisions","bank","financials","industry"] },
+4522:  { id:"people", icon:"\u{1F9D1}\u200D\u{1F4BC}", label:"People", items:["team","hr","orgchart","slack","zoom"] },
+4523:  { id:"market", icon:"\u{1F4E6}", label:"Product", items:["product","clients","research"] },
+4524:  { id:"empire", icon:"\u{1F3D7}\uFE0F", label:"Empire", items:["empire","invest","milestones"] },
+4525:  { id:"life",   icon:"\u{1F3E1}", label:"Life",    items:["personal","market","life"] },
+4526:  { id:"jarvis", icon:"\u{1F916}", label:"F.E.L.I.P.E AI",  items:["assistant"] },
+4527:  { id:"system", icon:"\u{1F4BE}", label:"System",  items:["saves"] },
+4529:function dockItem(id){ return DOCK_ITEMS.find(i=>i.id===id) || { id, icon:"\u{1F4C4}", label:id }; }
+4852:  { key:"jetski",    name:"Jet Ski",                  icon:"\u{1F30A}", price:18000,    minNetWorth:15000,   cls:"sea", feat:"Weekend chaos on the lake." },
+4853:  { key:"bassboat",  name:"Bass Boat",                icon:"\u{1F6E5}\uFE0F", price:45000, minNetWorth:40000, cls:"sea", feat:"Early mornings and terrible coffee." },
+4854:  { key:"pontoon",   name:"Party Pontoon",            icon:"\u26F5", price:85000,    minNetWorth:70000,   cls:"sea", feat:"Slow, loud, and universally loved." },
+4855:  { key:"sailboat",  name:"Ocean Sailboat",           icon:"\u26F5", price:320000,   minNetWorth:300000,  cls:"sea", feat:"40 feet of wind-powered independence." },
+4856:  { key:"cabin_cruiser", name:"Cabin Cruiser",        icon:"\u{1F6A4}", price:750000, minNetWorth:600000,  cls:"sea", feat:"Sleeps six. Burns fuel like it's free." },
+4857:  { key:"sportfish", name:"Sportfishing Yacht",       icon:"\u{1F41F}", price:2400000, minNetWorth:2000000, cls:"sea", feat:"Tournament-ready, tower and all." },
+4858:  { key:"catamaran", name:"Luxury Catamaran",         icon:"\u{1F6F3}\uFE0F", price:4200000, minNetWorth:3500000, cls:"sea", feat:"Crewed, chartered, and endlessly stable." },
+4859:  { key:"superyacht",name:"250-ft Superyacht",        icon:"\u{1F6F3}\uFE0F", price:48000000, minNetWorth:40000000, cls:"sea", feat:"Helipad, submarine garage, 22 crew." },
+4860:  { key:"ultralight",name:"Ultralight Aircraft",      icon:"\u{1FA82}", price:38000,   minNetWorth:30000,   cls:"air", feat:"Basically a lawn chair with wings." },
+4861:  { key:"cessna",    name:"Single-Engine Prop",       icon:"\u{1F6E9}\uFE0F", price:420000, minNetWorth:350000, cls:"air", feat:"Your first real set of wings." },
+4862:  { key:"twin",      name:"Twin-Engine Turboprop",    icon:"\u2708\uFE0F", price:2900000, minNetWorth:2500000, cls:"air", feat:"Six seats, short runways, real range." },
+4863:  { key:"heli",      name:"Executive Helicopter",     icon:"\u{1F681}", price:5500000, minNetWorth:5000000, cls:"air", feat:"Rooftop to rooftop in eleven minutes." },
+4864:  { key:"lightjet",  name:"Very Light Jet",           icon:"\u{1F6E9}\uFE0F", price:9500000, minNetWorth:8000000, cls:"air", feat:"Single pilot, coast to coast with one stop." },
+4865:  { key:"midjet",    name:"Midsize Business Jet",     icon:"\u2708\uFE0F", price:22000000, minNetWorth:18000000, cls:"air", feat:"Eight passengers, stand-up cabin." },
+4866:  { key:"heavyjet",  name:"Heavy Intercontinental Jet",icon:"\u{1F6EB}", price:68000000, minNetWorth:55000000, cls:"air", feat:"Bedroom, shower, and a 7,000-mile range." },
+4867:  { key:"airliner",  name:"Converted Airliner",       icon:"\u{1F6EC}", price:180000000, minNetWorth:150000000, cls:"air", feat:"A flying house. Absolutely unreasonable." },
+4868:  { key:"watch",     name:"Grand Complication Watch", icon:"\u231A", price:850000,   minNetWorth:700000,  cls:"lux", feat:"Perpetual calendar, minute repeater, waiting list." },
+4869:  { key:"art",       name:"Blue-Chip Art Collection", icon:"\u{1F5BC}\uFE0F", price:12000000, minNetWorth:10000000, cls:"lux", feat:"Appreciating assets you can hang on a wall." },
+4870:  { key:"vault",     name:"Private Wine Vault",       icon:"\u{1F377}", price:1600000, minNetWorth:1400000, cls:"lux", feat:"800 bottles, climate-controlled, mostly unopened." },
+4871:  { key:"racing",    name:"Pro Racing Team",          icon:"\u{1F3C1}", price:35000000, minNetWorth:30000000, cls:"lux", feat:"Two cars, twenty staff, one very expensive hobby." },
+4903:  { key:"gym",      name:"Hit the Gym",          icon:"\u{1F3CB}\uFE0F", price:60,   happiness:3, wellbeing:9,  desc:"Monthly membership. Energy, focus, fewer sick days." },
+4904:  { key:"run",      name:"Morning Run Club",     icon:"\u{1F3C3}", price:0,    happiness:3, wellbeing:7,  desc:"Free, social, and brutally early." },
+4905:  { key:"library",  name:"Afternoon at the Library", icon:"\u{1F4DA}", price:0, happiness:4, wellbeing:4, insight:true, desc:"Quiet hours with a stack of books. Occasionally sparks a real idea." },
+4906:  { key:"therapy",  name:"Therapy Session",      icon:"\u{1F9E0}", price:220,  happiness:8, wellbeing:12, desc:"The highest-ROI hour on your calendar." },
+4907:  { key:"meditate", name:"Meditation Retreat Day", icon:"\u{1F9D8}", price:150, happiness:6, wellbeing:10, desc:"Silence, breathing, and a surprisingly hard chair." },
+4908:  { key:"cooking",  name:"Cooking Class",        icon:"\u{1F373}", price:180,  happiness:7, wellbeing:5,  desc:"You learn three dishes and burn one." },
+4909:  { key:"hike",     name:"All-Day Hike",         icon:"\u{1F97E}", price:40,   happiness:6, wellbeing:9,  desc:"Twelve miles and no phone signal." },
+4910:  { key:"volunteer",name:"Volunteer Shift",      icon:"\u{1F91D}", price:0,    happiness:9, wellbeing:6,  desc:"Food bank on a Saturday. Perspective is free." },
+4911:  { key:"concert",  name:"Live Show",            icon:"\u{1F3B8}", price:260,  happiness:9, wellbeing:3,  desc:"Loud, sweaty, and worth it." },
+4912:  { key:"museum",   name:"Museum & Coffee",      icon:"\u{1F5BC}\uFE0F", price:45, happiness:5, wellbeing:4, insight:true, desc:"Slow morning, good espresso, unexpected ideas." },
+4913:  { key:"class",    name:"Night Class",          icon:"\u{1F393}", price:900,  happiness:5, wellbeing:5,  insight:true, desc:"Finance, design, or a language. Compounds quietly." },
+4914:  { key:"coach",    name:"Executive Coach",      icon:"\u{1F3AF}", price:1800, happiness:4, wellbeing:8,  insight:true, desc:"Expensive, blunt, and usually right." },
+4915:  { key:"friends",  name:"Dinner With Friends",  icon:"\u{1F37D}\uFE0F", price:140, happiness:8, wellbeing:6, desc:"The people who knew you before the company." },
+4916:  { key:"sabbath",  name:"Unplugged Weekend",    icon:"\u{1F4F5}", price:0,    happiness:7, wellbeing:11, desc:"48 hours off the grid. Nothing exploded." },
+4917:  { key:"golf",     name:"Round of Golf",        icon:"\u26F3", price:190,  happiness:6, wellbeing:5,  desc:"Four hours, two good shots, one new contact." },
+4918:  { key:"spa",      name:"Spa Day",              icon:"\u{1F486}", price:400,  happiness:7, wellbeing:9,  desc:"You resisted this for years. You were wrong." },
+5273:  const list = [{ id:"personal", icon:"\u{1F464}", name:`${G.meta.playerName} (Personal)`, cash:p.cash,
+5902:              <div class="folder-icon">${open?i.icon:"\u{1F512}"}</div>
+5997:DOCK_ITEMS.push({ id:"log", icon:"\u{1F9FE}", label:"Activity Log" });
+8268:  { key:"annex",  name:"Office Annex",           cost:150000,   rent:9000,   cap:150,  icon:"\u{1F3E2}" },
+8269:  { key:"campus", name:"Corporate Campus",       cost:750000,   rent:38000,  cap:900,  icon:"\u{1F3DB}\uFE0F" },
+8270:  { key:"tower",  name:"Headquarters Tower",     cost:3200000,  rent:135000, cap:3000, icon:"\u{1F3EC}" },
+8271:  { key:"global", name:"Global Campus Network",  cost:12000000, rent:430000, cap:9000, icon:"\u{1F30D}" }
+9143:DOCK_ITEMS.push({ id:"leaderboard", icon:"\u{1F3C6}", label:"Leaderboard" });
+9352:DOCK_ITEMS.push({ id:"facilities", icon:"\u{1F3D7}\uFE0F", label:"Facilities" });
+9544:DOCK_ITEMS.push({ id:"hq", icon:"\u{1F3E2}", label:"Business HQ" });
+9752:DOCK_ITEMS.push({ id:"board", icon:"\u{1F3DB}\uFE0F", label:"Boardroom" });
 
