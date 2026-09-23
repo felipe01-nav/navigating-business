@@ -1,4 +1,4 @@
 # <file>|<regex> for grep, <file>@<start>-<end> for a line range.
 art-core.js|inProgress
-art-core.js|FEATURES *=|reqEngineers|monthsLeft
-art-core.js@8330-8360
+art-core.js|reqEngineers|FEATURE_DEFS|const FEATURES
+art-core.js@8320-8365
