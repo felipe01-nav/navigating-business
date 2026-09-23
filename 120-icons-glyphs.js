@@ -1,7 +1,7 @@
-/* 120-icons-glyphs.js — v4.72
+/* 120-icons-glyphs.js — v4.73
    =====================================================================
-   Sheets 3-6 of the custom icon set: 48 files living in art/, applied by
-   GLYPH rather than by key.
+   Sheets 1 and 3-6 of the custom icon set, applied by GLYPH rather than
+   by key.
 
    WHY BY GLYPH
    ------------
@@ -14,8 +14,17 @@
    per bundle. Matching the rendered glyph instead costs one sweep and
    reaches all of them at once, including any a later layer adds.
 
-   Unmapped emoji are counted, never touched, and listed by report() —
-   that is the input for the next sheet's mapping.
+   NEW IN 4.73
+   -----------
+   The v4.72 report showed the heaviest unmapped glyphs already had art:
+   sheet 1's twelve icons were locked to the dock, where they serve seven
+   rail buttons and twelve sub-tabs and nothing else. The same payload now
+   answers the glyph sweep too, at no download cost — it is inline base64
+   on window.NBIcons. Roughly 130 further nodes on the screens measured.
+
+   Sheet 1 keys resolve through NBIcons.uri(); sheets 3-6 resolve to files
+   in art/. If sheet 1 is absent or disabled, its glyphs are left alone
+   rather than rendered broken.
 
    Off with ?noicons2=1, ?noicons=1 or ?safe=1.
    Diagnostics: NBIcons2.report() / .apply() / .revert()
@@ -33,6 +42,24 @@
   window.__nbIcons472 = true;
 
   var BASE = "art/";
+
+  /* Sheet 1, inline base64 on window.NBIcons. Keys confirmed against
+     113-icons.js: compass, people, box, crane, house, robot, save, bank,
+     chart, handshake, bag, factory. "robot" is not listed here — sheet 5's
+     robotarm already answers \uD83E\uDD16 and reads better at 21px. */
+  var SHEET1 = {
+    compass:   ["\uD83E\uDDED"],
+    people:    ["\uD83D\uDC65"],
+    handshake: ["\uD83E\uDD1D"],
+    save:      ["\uD83D\uDCBE"],
+    bank:      ["\uD83C\uDFE6"],
+    chart:     ["\uD83D\uDCC8", "\uD83D\uDCB9"],
+    crane:     ["\uD83C\uDFD7\uFE0F", "\uD83C\uDFD7"],
+    house:     ["\uD83C\uDFE0", "\uD83C\uDFE1"],
+    factory:   ["\uD83C\uDFED"],
+    box:       ["\uD83D\uDCE6"],
+    bag:       ["\uD83D\uDECD\uFE0F", "\uD83D\uDECD", "\uD83D\uDED2"]
+  };
 
   /* key -> one or more glyphs. Longest match wins, so ZWJ sequences are
      listed before the bare figure they are built from. "tower" is absent
@@ -57,8 +84,8 @@
     newspaper: ["\uD83D\uDCF0", "\uD83D\uDDDE\uFE0F"],
     books:     ["\uD83D\uDCDA", "\uD83D\uDCD6", "\uD83D\uDCD8"],
     receipt:   ["\uD83E\uDDFE"],
-    banknote:  ["\uD83D\uDCB5", "\uD83D\uDCB4", "\uD83D\uDCB6", "\uD83D\uDCB7"],
-    building:  ["\uD83C\uDFE2", "\uD83C\uDFEC"],
+    banknote:  ["\uD83D\uDCB5", "\uD83D\uDCB4", "\uD83D\uDCB6", "\uD83D\uDCB7", "\uD83D\uDCB0"],
+    building:  ["\uD83C\uDFE2", "\uD83C\uDFEC", "\uD83C\uDFDB\uFE0F", "\uD83C\uDFDB"],
     truck:     ["\uD83D\uDE9A", "\uD83D\uDE9B"],
     pin:       ["\uD83D\uDCCD", "\uD83D\uDCCC"],
     chain:     ["\uD83D\uDD17", "\u26D3\uFE0F"],
@@ -68,7 +95,7 @@
     robotarm:  ["\uD83E\uDDBE", "\uD83E\uDD16"],
     salon:     ["\uD83D\uDC85", "\uD83D\uDC87"],
     party:     ["\uD83C\uDF89", "\uD83C\uDF8A"],
-    graduate:  ["\uD83C\uDF93"],
+    graduate:  ["\uD83C\uDF93", "\uD83C\uDFEB"],
     dumbbell:  ["\uD83C\uDFCB\uFE0F\u200D\u2642\uFE0F", "\uD83C\uDFCB\uFE0F", "\uD83C\uDFCB", "\uD83D\uDCAA"],
     runner:    ["\uD83C\uDFC3\u200D\u2642\uFE0F", "\uD83C\uDFC3\u200D\u2640\uFE0F", "\uD83C\uDFC3"],
     brain:     ["\uD83E\uDDE0"],
@@ -88,8 +115,15 @@
     wave:      ["\uD83C\uDF0A"],
     sailboat:  ["\u26F5"],
     arrowup:   ["\u2B06\uFE0F", "\u2B06", "\uD83D\uDD3C"],
-    arrowdown: ["\u2B07\uFE0F", "\u2B07", "\uD83D\uDD3D"]
+    arrowdown: ["\u2B07\uFE0F", "\u2B07", "\uD83D\uDD3D", "\uD83D\uDCC9"]
   };
+
+  /* Merge sheet 1 in, remembering which side each key came from. */
+  var FROM_SHEET1 = {};
+  Object.keys(SHEET1).forEach(function (k) {
+    FROM_SHEET1[k] = true;
+    MAP[k] = SHEET1[k];
+  });
 
   /* Flattened, longest first, so "runner + ZWJ + male sign" is consumed
      whole instead of leaving an orphan gender sign behind. */
@@ -109,10 +143,22 @@
   var GLYPH_RE = new RegExp(RE_SRC, "g");
 
   var loaded = {};
-  function src(key) { return BASE + key + ".webp"; }
+  var deferred = {};
+
+  function src(key) {
+    if (!FROM_SHEET1[key]) return BASE + key + ".webp";
+    var A = window.NBIcons;
+    if (!A || typeof A.uri !== "function") return "";
+    try { return A.uri(key) || ""; } catch (e) { return ""; }
+  }
+
+  /* Returns "" when a sheet 1 icon is not available yet; the caller then
+     leaves the original glyph in place and tries again on a later pass. */
   function tag(key) {
+    var u = src(key);
+    if (!u) { deferred[key] = (deferred[key] || 0) + 1; return ""; }
     loaded[key] = (loaded[key] || 0) + 1;
-    return '<img class="nb-ico" data-nb-ico="' + key + '" src="' + src(key) + '" alt="" />';
+    return '<img class="nb-ico" data-nb-ico="' + key + '" src="' + u + '" alt="" />';
   }
 
   function esc(s) {
@@ -162,8 +208,10 @@
       if (!it || !it.id) continue;
       var key = DOCK_ITEM_ICON[String(it.id)];
       if (!key || isTagged(it.icon)) continue;
+      var t = tag(key);
+      if (!t) continue;
       if (!(it.id in origItems)) origItems[it.id] = it.icon;
-      it.icon = tag(key);
+      it.icon = t;
       n++;
     }
     if (n) { try { if (typeof window.renderDock === "function") window.renderDock(); } catch (e) {} }
@@ -184,7 +232,14 @@
     GLYPH_RE.lastIndex = 0;
     if (!GLYPH_RE.test(text)) return null;
     GLYPH_RE.lastIndex = 0;
-    return esc(text).replace(GLYPH_RE, function (m) { return tag(BY_GLYPH[m]); });
+    var any = false;
+    var html = esc(text).replace(GLYPH_RE, function (m) {
+      var t = tag(BY_GLYPH[m]);
+      if (!t) return esc(m);
+      any = true;
+      return t;
+    });
+    return any ? html : null;
   }
 
   function sweep(root) {
@@ -287,15 +342,17 @@
   }
 
   window.NBIcons2 = {
-    version: "4.72",
+    version: "4.73",
     keys: Object.keys(MAP),
+    sheet1: Object.keys(SHEET1),
     apply: run,
     revert: revert,
     sweep: sweep,
     report: function () {
       var placed = [], zero = [];
       Object.keys(MAP).forEach(function (k) {
-        (loaded[k] ? placed : zero).push(k + (loaded[k] ? " x" + loaded[k] : ""));
+        var label = k + (FROM_SHEET1[k] ? " [s1]" : "");
+        (loaded[k] ? placed : zero).push(label + (loaded[k] ? " x" + loaded[k] : ""));
       });
       var rest = Object.keys(unmapped).map(function (g) {
         return g + " x" + unmapped[g] + " (" + g.split("").map(function (c) {
@@ -303,12 +360,13 @@
         }).join("") + ")";
       });
       var out = {
-        version: "4.72",
+        version: "4.73",
         files: BASE,
         mapped: Object.keys(MAP).length,
         nodesReplaced: swept,
         placed: placed,
         neverSeen: zero,
+        unresolvedSheet1: Object.keys(deferred),
         unmappedGlyphs: rest
       };
       try { console.log(JSON.stringify(out, null, 2)); } catch (e) { console.log(out); }
@@ -316,5 +374,5 @@
     }
   };
 
-  try { console.log("[v4.72] icon sheets 3-6 live: 47 keys, 96 glyph variants, art/ files. NBIcons2.report()"); } catch (e) {}
+  try { console.log("[v4.73] icon sheets 1+3-6 live by glyph. NBIcons2.report()"); } catch (e) {}
 })();
