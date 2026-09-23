@@ -1,42 +1,99 @@
 # introspect report
-# generated: 2026-09-23 13:48:16Z
-# commit: c20f2197d951102b4d739b397be6570eb56388e6
+# generated: 2026-09-23 13:51:24Z
+# commit: bc49d4f7269e6dbda3567f0444b82fb60a788d20
 
-=== FILE: base.css
-=== PATTERN: (#dock|--bg|--panel|--ink|body\s*\{)
-2:    --bg:#15171c; --panel:#1b1e25; --panel2:#20242c; --border:#2a2f3a;
-7:  html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--text);
-14:  .ob-card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:32px;
-20:    width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:8px;
-25:  .btn.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--border);}
-32:  .saveslot{display:flex;justify-content:space-between;align-items:center;background:var(--panel2);
-50:  #dock{width:64px;background:var(--panel);border-right:1px solid var(--border);
-52:  .dock-btn{width:44px;height:44px;border-radius:12px;background:var(--panel2);border:1px solid var(--border);
-68:  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;}
-82:  .opt-card{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;
-91:  #customInput{flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:8px;
-94:  #queuedList .qi{background:var(--panel2);border-radius:6px;padding:4px 8px;margin-bottom:4px;display:inline-block;margin-right:6px;}
-98:  #slackList{width:190px;background:var(--panel);border-right:1px solid var(--border);overflow:auto;}
-100:  .slack-item.active{background:var(--panel2);}
-103:  #slackChat{flex:1;display:flex;flex-direction:column;background:var(--panel2);}
-107:  .msg.them{align-self:flex-start;background:var(--panel);border:1px solid var(--border);}
-109:  #slackInputRow input{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:8px;
-113:  .emp-card{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;}
-125:  #modalBox{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px;
-132:  .feed-item{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:12.5px;}
-143:  select{width:100%;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px;font-size:12px;}
-150:  .stepper button{width:24px;height:24px;border-radius:6px;background:var(--panel);border:1px solid var(--border);color:var(--text);cursor:pointer;font-size:13px;}
-152:  .ladder-card{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;}
-157:  .dept-section{background:var(--panel);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;}
-158:  .dept-header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;background:var(--panel2);}
-160:  .dept-body{padding:12px 14px;display:none;}
-162:  .folder-tile{background:var(--panel);border:2px solid var(--border);border-radius:14px;padding:16px 12px;text-align:center;cursor:pointer;transition:all 0.15s ease;}
-164:  .folder-tile.active{border-color:var(--good);background:var(--panel2);box-shadow:0 0 0 1px var(--good) inset;}
-168:  .folder-panel{background:var(--panel2);border:2px solid var(--good);border-radius:14px;padding:16px;margin:2px 0 14px;
-181:    #dock{width:100%;height:auto;flex-direction:row;overflow-x:auto;padding:6px 4px;gap:4px;
-183:    #dock > div{flex:0 0 auto;}
-201:  .shop-card{background:var(--panel2);border:1px solid var(--border);border-radius:12px;overflow:hidden;position:relative;}
-207:  .invest-row{display:flex;justify-content:space-between;align-items:center;background:var(--panel2);border:1px solid var(--border);
-212:  .radio-chip{background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:11.5px;cursor:pointer;}
-214:  .slack-topic{display:block;width:100%;text-align:left;background:var(--panel);border:1px solid var(--border);color:var(--text);
+=== FILE: art-core.js
+=== PATTERN: (superyacht|sportfish|cabin_cruiser|bassboat|jetski|pontoon)
+2833:  { key:"yacht", name:"Yacht", icon:"🛥️", price:9500000, minNetWorth:6000000, feat:"A 150-foot superyacht for weekends on the water." },
+4852:  { key:"jetski",    name:"Jet Ski",                  icon:"\u{1F30A}", price:18000,    minNetWorth:15000,   cls:"sea", feat:"Weekend chaos on the lake." },
+4853:  { key:"bassboat",  name:"Bass Boat",                icon:"\u{1F6E5}\uFE0F", price:45000, minNetWorth:40000, cls:"sea", feat:"Early mornings and terrible coffee." },
+4854:  { key:"pontoon",   name:"Party Pontoon",            icon:"\u26F5", price:85000,    minNetWorth:70000,   cls:"sea", feat:"Slow, loud, and universally loved." },
+4856:  { key:"cabin_cruiser", name:"Cabin Cruiser",        icon:"\u{1F6A4}", price:750000, minNetWorth:600000,  cls:"sea", feat:"Sleeps six. Burns fuel like it's free." },
+4857:  { key:"sportfish", name:"Sportfishing Yacht",       icon:"\u{1F41F}", price:2400000, minNetWorth:2000000, cls:"sea", feat:"Tournament-ready, tower and all." },
+4859:  { key:"superyacht",name:"250-ft Superyacht",        icon:"\u{1F6F3}\uFE0F", price:48000000, minNetWorth:40000000, cls:"sea", feat:"Helipad, submarine garage, 22 crew." },
+6562:  jetski: ()=> seaScene(pth("M60 74 l14 -10 l38 0 l24 8 l0 8 l-76 0 z","#e05a4e")
+6565:  bassboat: ()=> seaScene(pth("M44 72 l112 0 l-12 14 l-88 0 z","#2f6a9a")
+6569:  pontoon: ()=> seaScene(rct(40,74,122,8,"#9aa3b4",3)
+6578:  cabin_cruiser: ()=> seaScene(pth("M36 72 l130 0 l-16 16 l-100 0 z","#eef2f8")
+6582:  sportfish: ()=> seaScene(pth("M30 70 l140 0 l-18 20 l-104 0 z","#f2f5fa")
+6591:  superyacht: ()=> seaScene(pth("M12 70 l176 0 l-20 22 l-136 0 z","#f4f7fb")
+6796:  if(kind==="toy") return item.cls==="air" ? TOY_ART.lightjet() : item.cls==="sea" ? TOY_ART.cabin_cruiser() : TOY_ART.watch();
+7422:const ART_IMG = {"bassboat": "data:image/webp;base64,UklGRt4wAABXRUJQVlA4INIwAADQLQGdASowAkABPmEqkUWkJKGhLrPaeJAMCWVt59daf7fEI/N6dv7e8t6KubwpmYhzBSGcJwLzs+vJ/quqKc27U/jfXSTgdStOTvuLcPWWzmPUcQn/2zD7Q319/wD17uYu8kvzDsD/NOvfwz/O+DG1cPLPH8aw/9OHvqGZIHn76Lf+roS/IT+WEM63sOwaJMElg6em45PNMqzk18eviVcOpDewQi1SOW943WskjA2DqYXPlzKldyTwWbeq0SKlZfez72fcLAi/xfOzZC9z9R1wy/AAvjp0tQXPP/r69X+RAMwJenqAmDLToagLj1
+
+=== FILE: art-core.js
+=== PATTERN: (ultralight|heavyjet|lightjet|midjet)
+4860:  { key:"ultralight",name:"Ultralight Aircraft",      icon:"\u{1FA82}", price:38000,   minNetWorth:30000,   cls:"air", feat:"Basically a lawn chair with wings." },
+4864:  { key:"lightjet",  name:"Very Light Jet",           icon:"\u{1F6E9}\uFE0F", price:9500000, minNetWorth:8000000, cls:"air", feat:"Single pilot, coast to coast with one stop." },
+4865:  { key:"midjet",    name:"Midsize Business Jet",     icon:"\u2708\uFE0F", price:22000000, minNetWorth:18000000, cls:"air", feat:"Eight passengers, stand-up cabin." },
+4866:  { key:"heavyjet",  name:"Heavy Intercontinental Jet",icon:"\u{1F6EB}", price:68000000, minNetWorth:55000000, cls:"air", feat:"Bedroom, shower, and a 7,000-mile range." },
+6598:  ultralight: ()=> airScene(rct(78,62,44,7,"#d9e0ea",3)
+6619:  lightjet: ()=> airScene(pth("M28 68 q14 -14 44 -14 l58 0 q24 2 34 12 l18 4 l-6 10 l-134 0 z","#f4f7fb")
+6623:  midjet: ()=> airScene(pth("M18 68 q14 -16 48 -16 l70 0 q28 2 38 12 l22 4 l-6 12 l-160 0 z","#f6f8fc")
+6628:  heavyjet: ()=> airScene(pth("M10 66 q16 -18 54 -18 l80 0 q32 2 42 14 l14 4 l-8 14 l-176 0 z","#f8fafd")
+6796:  if(kind==="toy") return item.cls==="air" ? TOY_ART.lightjet() : item.cls==="sea" ? TOY_ART.cabin_cruiser() : TOY_ART.watch();
+7422:const ART_IMG = {"bassboat": "data:image/webp;base64,UklGRt4wAABXRUJQVlA4INIwAADQLQGdASowAkABPmEqkUWkJKGhLrPaeJAMCWVt59daf7fEI/N6dv7e8t6KubwpmYhzBSGcJwLzs+vJ/quqKc27U/jfXSTgdStOTvuLcPWWzmPUcQn/2zD7Q319/wD17uYu8kvzDsD/NOvfwz/O+DG1cPLPH8aw/9OHvqGZIHn76Lf+roS/IT+WEM63sOwaJMElg6em45PNMqzk18eviVcOpDewQi1SOW943WskjA2DqYXPlzKldyTwWbeq0SKlZfez72fcLAi/xfOzZC9z9R1wy/AAvjp0tQXPP/r69X+RAMwJenqAmDLToagLj1
+7428:  jet:"jet", lightjet:"jet", midjet:"jet",
+
+=== FILE: art-core.js
+=== PATTERN: (netWorth\s*[><]=?|minNet|unlockNet|requireNet)
+1453:    <div class="stat"><div class="label">Net Worth</div><div class="value ${c.netWorth<0?'bad':''}">${fmt$(c.netWorth)}</div></div>
+2799:  { key:"starter", name:"Starter Home", price:180000, mortgage:1400, minNetWorth:0, img:"house_starter",
+2801:  { key:"family", name:"Family House", price:650000, mortgage:3800, minNetWorth:80000, img:"house_family",
+2803:  { key:"mansion", name:"Luxury Estate", price:6500000, mortgage:32000, minNetWorth:1200000, img:"house_mansion",
+2811:  { key:"sedan", name:"Used Sedan", price:22000, minNetWorth:0, img:"car_sedan", feat:"Reliable, practical, cheap to maintain" },
+2812:  { key:"suv", name:"Sport SUV", price:65000, minNetWorth:40000, img:"car_suv", feat:"Comfortable, confident, room for the family" },
+2813:  { key:"sports", name:"Luxury Sports Car", price:420000, minNetWorth:600000, img:"car_sports", feat:"Turns heads. Terrible gas mileage. Worth it." },
+2814:  { key:"jet", name:"Private Jet", price:14000000, minNetWorth:10000000, img:"jet", feat:"Skip the airport. Fly on your own schedule." },
+2817:  { key:"cabin", name:"Cabin Weekend", price:600, minNetWorth:0, img:"vac_cabin", feat:"Quiet lakeside cabin getaway with ${spouseName()}" },
+2818:  { key:"beach", name:"Tropical Beach Resort", price:3500, minNetWorth:40000, img:"vac_beach", feat:"All-inclusive beach resort, a week of doing nothing" },
+2819:  { key:"paris", name:"Paris, France", price:9000, minNetWorth:150000, img:"vac_paris", feat:"Romantic trip to France with ${spouseName()} — you might just be doing great" },
+2828:  { key:"jewelry", name:"Fine Jewelry", icon:"💍", price:5000, kenzie:22, minNetWorth:50000 },
+2829:  { key:"bag", name:"Designer Bag", icon:"👜", price:2200, kenzie:14, minNetWorth:20000 },
+2830:  { key:"car_gift", name:"Surprise Car for Her", icon:"🚗", price:35000, kenzie:35, minNetWorth:300000 },
+2833:  { key:"yacht", name:"Yacht", icon:"🛥️", price:9500000, minNetWorth:6000000, feat:"A 150-foot superyacht for weekends on the water." },
+2834:  { key:"island", name:"Private Island", icon:"🏝️", price:45000000, minNetWorth:35000000, feat:"Your own slice of paradise, fully private." },
+2841:  const locked = item.minNetWorth>0 && p.netWorth<item.minNetWorth;
+2844:    ${locked?`<div class="locked-badge">Requires ${fmt$(item.minNetWorth)} net worth</div>`:""}
+2996:      <div class="grid cols-3">${GIFTS.map(g=>{ const locked = g.minNetWorth>0 && p.netWorth<g.minNetWorth;
+2997:        return `<div class="shop-card ${locked?'locked-overlay':''}">${locked?`<div class="locked-badge">Requires ${fmt$(g.minNetWorth)} net worth</div>`:""}
+3003:      <div class="grid cols-3">${TOYS.map(t=>{ const owned = p.assets.toys.some(x=>x.key===t.key); const locked = !owned && p.netWorth<t.minNetWorth;
+3004:        return `<div class="shop-card ${locked?'locked-overlay':''}">${locked?`<div class="locked-badge">Requires ${fmt$(t.minNetWorth)} net worth</div>`:""}
+3830:    <div class="stat"><div class="label">Net Worth</div><div class="value ${c.netWorth<0?"bad":""}">${fmt$(c.netWorth)}</div></div>
+4813:  { key:"loft",      name:"Converted Warehouse Loft", price:780000, minNetWorth:120000, emoji:"\u{1F3ED}", feat:"Exposed brick, 16-ft ceilings, zero privacy." },
+4814:  { key:"lakehouse", name:"Lake House",           price:950000,   minNetWorth:180000, emoji:"\u{1F6F6}", feat:"Private dock, morning fog, loons at sunrise." },
+4815:  { key:"ranch",     name:"Working Ranch",        price:1400000,  minNetWorth:300000, emoji:"\u{1F40E}", feat:"40 acres, barn, and a truck that never quite starts." },
+4816:  { key:"brownstone",name:"Historic Brownstone",  price:1900000,  minNetWorth:400000, emoji:"\u{1F3DB}\uFE0F", feat:"Four floors of old money energy." },
+4817:  { key:"ski",       name:"Ski-In Ski-Out Chalet",price:2600000,  minNetWorth:600000, emoji:"\u{1F3D4}\uFE0F", feat:"Heated driveway. Powder days out the back door." },
+4818:  { key:"beachhouse",name:"Oceanfront Beach House",price:3400000, minNetWorth:800000, emoji:"\u{1F3D6}\uFE0F", feat:"Salt air, outdoor shower, permanent vacation." },
+4819:  { key:"vineyard",  name:"Vineyard Estate",      price:4800000,  minNetWorth:1000000, emoji:"\u{1F347}", feat:"12 acres of vines and a label with your name on it." },
+4820:  { key:"penthouse", name:"Skyline Penthouse",    price:7200000,  minNetWorth:1500000, emoji:"\u{1F306}", feat:"Top floor, private elevator, the whole city below you." },
+4821:  { key:"villa",     name:"Mediterranean Villa",  price:9500000,  minNetWorth:2500000, emoji:"\u{1F3DD}\uFE0F", feat:"Cliffside, infinity pool, olive grove." },
+4822:  { key:"modern",    name:"Glass Hillside Modern",price:13000000, minNetWorth:4000000, emoji:"\u{1FA9F}", feat:"Architect-designed. Featured in three magazines." },
+4823:  { key:"chateau",   name:"French Ch\u00e2teau",  price:21000000, minNetWorth:8000000, emoji:"\u{1F3F0}", feat:"1700s stonework, 30 rooms, a moat you don't need." },
+4824:  { key:"compound",  name:"Coastal Compound",     price:38000000, minNetWorth:15000000, emoji:"\u{1F30A}", feat:"Three houses, a helipad, and total seclusion." },
+4825:  { key:"tower",     name:"Private Residential Tower", price:85000000, minNetWorth:40000000, emoji:"\u{1F307}", feat:"You didn't buy a unit. You bought the building." },
+4827:HOUSES.forEach(h=>{ if(h.mortgage===undefined) h.mortgage = Math.round(h.price*0.0058/10)*10; if(h.minNetWorth===undefined) h.minNetWorth = 0; });
+4835:  { key:"muscle",   name:"American Muscle Coupe", price:74000,    minNetWorth:50000, emoji:"\u{1F3C1}", feat:"Loud on purpose. No apologies." },
+4836:  { key:"german",   name:"German Executive Sedan",price:98000,    minNetWorth:80000, emoji:"\u{1F3AF}", feat:"The default car of people who just exited." },
+4837:  { key:"landrover",name:"Luxury Off-Roader",     price:135000,   minNetWorth:120000, emoji:"\u{1F3D4}\uFE0F", feat:"Conquers mountains, mostly conquers school pickup." },
+4838:  { key:"gt",       name:"Grand Tourer",          price:230000,   minNetWorth:250000, emoji:"\u{1F6E3}\uFE0F", feat:"Built to cross a continent in one sitting." },
+4839:  { key:"restomod", name:"Classic Restomod",      price:310000,   minNetWorth:350000, emoji:"\u{1F576}\uFE0F", feat:"1967 body, modern everything underneath." },
+4840:  { key:"supercar", name:"Mid-Engine Supercar",   price:650000,   minNetWorth:900000, emoji:"\u{1F3CE}\uFE0F", feat:"Doors go up. Neighbors go quiet." },
+4841:  { key:"track",    name:"Track-Only Race Car",   price:900000,   minNetWorth:1200000, emoji:"\u{1F3C6}", feat:"Not street legal. That's the point." },
+4842:  { key:"hyper",    name:"Hypercar",              price:3200000,  minNetWorth:5000000, emoji:"\u{1F680}", feat:"Under 300 built. Waiting list handled by invitation." },
+4843:  { key:"classic",  name:"Auction-Grade Classic", price:6500000,  minNetWorth:9000000, emoji:"\u{1F3FA}", feat:"Appreciates faster than your portfolio." },
+4844:  { key:"chauffeur",name:"Armored Chauffeur Car", price:1100000,  minNetWorth:2000000, emoji:"\u{1F572}\uFE0F", feat:"Bulletproof glass and a driver named Sal." },
+4845:  { key:"rv",       name:"Luxury Motorcoach",     price:1800000,  minNetWorth:2500000, emoji:"\u{1F68C}", feat:"A penthouse that does 65 mph." },
+4846:  { key:"moto",     name:"Superbike",             price:28000,    minNetWorth:20000, emoji:"\u{1F3CD}\uFE0F", feat:"Fastest thing you'll ever regret buying." },
+4848:CARS.forEach(c=>{ if(c.minNetWorth===undefined) c.minNetWorth = 0; });
+4852:  { key:"jetski",    name:"Jet Ski",                  icon:"\u{1F30A}", price:18000,    minNetWorth:15000,   cls:"sea", feat:"Weekend chaos on the lake." },
+4853:  { key:"bassboat",  name:"Bass Boat",                icon:"\u{1F6E5}\uFE0F", price:45000, minNetWorth:40000, cls:"sea", feat:"Early mornings and terrible coffee." },
+4854:  { key:"pontoon",   name:"Party Pontoon",            icon:"\u26F5", price:85000,    minNetWorth:70000,   cls:"sea", feat:"Slow, loud, and universally loved." },
+4855:  { key:"sailboat",  name:"Ocean Sailboat",           icon:"\u26F5", price:320000,   minNetWorth:300000,  cls:"sea", feat:"40 feet of wind-powered independence." },
+4856:  { key:"cabin_cruiser", name:"Cabin Cruiser",        icon:"\u{1F6A4}", price:750000, minNetWorth:600000,  cls:"sea", feat:"Sleeps six. Burns fuel like it's free." },
+4857:  { key:"sportfish", name:"Sportfishing Yacht",       icon:"\u{1F41F}", price:2400000, minNetWorth:2000000, cls:"sea", feat:"Tournament-ready, tower and all." },
+4858:  { key:"catamaran", name:"Luxury Catamaran",         icon:"\u{1F6F3}\uFE0F", price:4200000, minNetWorth:3500000, cls:"sea", feat:"Crewed, chartered, and endlessly stable." },
+4859:  { key:"superyacht",name:"250-ft Superyacht",        icon:"\u{1F6F3}\uFE0F", price:48000000, minNetWorth:40000000, cls:"sea", feat:"Helipad, submarine garage, 22 crew." },
+4860:  { key:"ultralight",name:"Ultralight Aircraft",      icon:"\u{1FA82}", price:38000,   minNetWorth:30000,   cls:"air", feat:"Basically a lawn chair with wings." },
+4861:  { key:"cessna",    name:"Single-Engine Prop",       icon:"\u{1F6E9}\uFE0F", price:420000, minNetWorth:350000, cls:"air", feat:"Your first real set of wings." },
 
