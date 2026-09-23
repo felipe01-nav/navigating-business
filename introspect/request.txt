@@ -1,11 +1,10 @@
 # <file>|<regex> for grep, <file>@<start>-<end> for a line range.
-# v4.61 audit, pass 2: what each industry actually defines.
-art-core.js@3177-3262
-art-core.js@7635-7700
-art-core.js@8267-8300
-art-core.js@8900-8950
-art-core.js@4770-4790
-art-core.js|(nail_salon|agency|trucking)
-50-v429-v432.js|(nail_salon|agency|INDUSTRIES\[|INDUSTRIES\.)
-60-v433-v437.js|(nail_salon|agency|INDUSTRIES\[|INDUSTRIES\.)
-40-v428-trucking.js|(INDUSTRIES\[|INDUSTRIES\.|roles\s*:)
+# pass 3: exact hooks for the four-item build.
+art-core.js@8950-9000
+art-core.js|(case\s*"(network|negotiate|content|outreach|consulting)"|key\s*===\s*"(network|negotiate)")
+art-core.js@4700-4776
+art-core.js|(HEADCOUNT_CAP\s*=|function\s+headcountCap|function\s+hrSection|function\s+renderHR|function\s+peopleSection)
+art-core.js|(\.rungs\.map|rungs\.forEach)
+art-core.js|function\s+(founderActionsForIndustry|runFounderAction|resolveFounderAction|doFounderAction)
+40-v428-trucking.js|(ops\s*=\s*\{|type\s*:\s*"trucking"|\.ops\.type|opsType)
+50-v429-v432.js@1025-1040
