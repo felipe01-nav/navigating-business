@@ -1,124 +1,199 @@
 # introspect report
-# generated: 2026-09-23 12:49:41Z
-# commit: 3270701e3a8d3b62bdd1477a10f2364c71a9a053
+# generated: 2026-09-23 12:50:45Z
+# commit: 265bd6746803e76a153f8cf6048b208a5690375b
+
+=== FILE: art-core.js  LINES 5845-5880
+5845
+5846 /* ---------- Industry progression: start with the AI company, earn the rest ---------- */
+5847 const INDUSTRY_UNLOCK = { ai_saas:0, retail:150000, restaurant:300000, robotics:750000, finance:2000000 };
+5848 function empireScore(){
+5849 const p = pInit();
+5850 const co = (G.companies||[]).reduce((s,c)=> s + (c.netWorth||0) + (c.cash||0), 0);
+5851 return Math.round((p.netWorth||0) + co);
+5852 }
+5853 function unlockReq(key){ return INDUSTRY_UNLOCK[key]!==undefined ? INDUSTRY_UNLOCK[key] : 0; }
+5854 function syncIndustryUnlocks(){
+5855 if(!G || !G.playerMeta) return [];
+5856 if(!G.playerMeta.unlockedIndustries) G.playerMeta.unlockedIndustries = ["ai_saas"];
+5857 const list = G.playerMeta.unlockedIndustries;
+5858 const score = empireScore();
+5859 const fresh = [];
+5860 INDUSTRY_KEYS.forEach(k=>{
+5861 const owned = (G.companies||[]).some(c=>c.industry===k);
+5862 if(list.indexOf(k)<0 && (owned || score >= unlockReq(k))){ list.push(k); fresh.push(k); }
+5863 });
+5864 return fresh;
+5865 }
+5866 function industryUnlocked(key){
+5867 if(!G || !G.playerMeta) return unlockReq(key)===0;
+5868 syncIndustryUnlocks();
+5869 return G.playerMeta.unlockedIndustries.indexOf(key) >= 0;
+5870 }
+5871 function industryLockNote(key){
+5872 return `Unlocks at ${fmt$(unlockReq(key))} total net worth \u2014 you're at ${fmt$(empireScore())}.`;
+5873 }
+5874
+5875 /* ---------- Onboarding: you, your company, your industry — in that order ---------- */
+5876 function renderOnboard(){
+5877 const ob = document.getElementById("onboard");
+5878 const slots = listSlots();
+5879 ob.style.display = "flex";
+5880 window.__obIndustry = "ai_saas";
+
+=== FILE: art-core.js  LINES 5600-5645
+5600 p2.monthEvents.push(`Auto-drew ${fmt$(need)} from your personal credit line to cover a shortfall.`);
+5601 }
+5602 }
+5603
+5604
+5605 function mrrWord(){ return opsBasedIndustry() ? "monthly contract revenue" : "MRR"; }
+5606 /* =========================================================
+5607 v11 — Earn Your Empire
+5608 - Founding new companies is locked until you've proven the first one
+5609 - Clearer active tab + per-tab attention dots
+5610 - Retail/restaurant no longer talk MRR or founder-led SaaS selling
+5611 ========================================================= */
+5612
+5613 const EMPIRE_REQ = { revenue: 25000, months: 12, cashMultiple: 1.25 };
+5614 function opsBasedIndustry(key){ return ["retail","restaurant"].indexOf(key || G.company.industry) >= 0; }
+5615 function monthsRun(co){ co = co || G.company; return ((co.year-1)*12) + co.month; }
+5616 function empireGate(){
+5617 const p = pInit();
+5618 const best = G.companies.reduce((m,co)=> Math.max(m, Math.round(monthlyRevenue(co))), 0);
+5619 const oldest = G.companies.reduce((m,co)=> Math.max(m, monthsRun(co)), 0);
+5620 const seed = INDUSTRIES[G.ui.foundIndustry || INDUSTRY_KEYS[0]].startCash;
+5621 const cashReq = Math.round(seed * EMPIRE_REQ.cashMultiple);
+5622 const hasCeo = G.companies.some(co=>co.ceo && co.ceo.type==="hired");
+5623 const multi = G.companies.length > 1;
+5624 const checks = [
+5625 { key:"revenue", label:`Run a company at ${fmt$(EMPIRE_REQ.revenue)}/mo revenue`,
+5626 now:`${fmt$(best)}/mo`, ok: best >= EMPIRE_REQ.revenue || multi },
+5627 { key:"months", label:`Survive ${EMPIRE_REQ.months} months in business`,
+5628 now:`${oldest} month(s)`, ok: oldest >= EMPIRE_REQ.months || multi },
+5629 { key:"cash", label:`Hold ${fmt$(cashReq)} personal cash (seed + 25% buffer)`,
+5630 now:fmt$(p.cash), ok: p.cash >= cashReq },
+5631 ];
+5632 return { checks, unlocked: checks.every(c=>c.ok), cashReq, seed, best, oldest, hasCeo };
+5633 }
+5634 function renderEmpireV11(){
+5635 const gate = empireGate();
+5636 if(gate.unlocked) return renderEmpireV10();
+5637 const wrap = renderEmpireBase();
+5638 const grid = wrap.querySelector(".folder-grid");
+5639 if(!grid) return wrap;
+5640 const card = grid.closest ? grid.closest(".card") : grid.parentNode;
+5641 if(!card) return wrap;
+5642 const p = pInit();
+5643 card.innerHTML = `
+5644 <div class="flexrow" style="align-items:center;gap:8px;">
+5645 <div style="font-size:30px;">\u{1F512}</div>
+
+=== FILE: art-core.js  LINES 6830-6900
+6830 function renderMarket(){
+6831 const wrap = renderMarketV12();
+6832 wrap.querySelectorAll(".ladder-card").forEach(card=>{
+6833 const t = card.querySelector(".title");
+6834 if(!t) return;
+6835 const found = lookupCatalog(t.textContent||"");
+6836 if(!found) return;
+6837 t.innerHTML = t.innerHTML.replace(/^\s*<svg[\s\S]*?<\/svg>\s*/i, "");
+6838 const row = card.querySelector(".row");
+6839 if(!row || row.querySelector(".art-thumb")) return;
+6840 row.classList.add("with-art");
+6841 const holder = document.createElement("div");
+6842 holder.innerHTML = artThumb(found.item, found.kind);
+6843 row.insertBefore(holder.firstChild, row.firstChild);
+6844 });
+6845 return wrap;
+6846 }
+6847
+6848 /* ---------- Fulfillment: cost up front, payoff underneath, real ideas ---------- */
+6849 const INSIGHT_OUTCOMES = [
+6850 { key:"pricing", label:"a pricing insight", apply:(c)=>{ c.priceTier = clamp((c.priceTier||1)+0.05, 0.5, 3); return "You spotted a pricing gap. Price tier nudged up with no churn hit."; } },
+6851 { key:"process", label:"a process fix", apply:(c)=>{ if(c.costPolicy) c.costPolicy.lean = true; return "You redesigned a workflow on a napkin. Lean overhead switched on."; } },
+6852 { key:"product", label:"a product idea", apply:(c)=>{ c.successScore = clamp(c.successScore+5,0,100); return "A product idea clicked. Success score +5."; } },
+6853 { key:"pipeline", label:"a warm introduction", apply:(c)=>{ const boost = Math.max(400, Math.round((c.mrr||0)*0.04)); c.mrr = (c.mrr||0) + boost; return `Someone you met sent business your way. +${fmt$(boost)} MRR.`; } },
+6854 { key:"talent", label:"a hiring lead", apply:(c)=>{ c.employees.forEach(e=> e.morale = clamp(e.morale+6,0,100)); return "You came back energized and it showed. Team morale +6 across the board."; } },
+6855 { key:"savings", label:"a cost discovery", apply:(c)=>{ const cut = Math.round((c.expensesBreakdown.marketing||0)*0.15); c.expensesBreakdown.marketing = Math.max(0,(c.expensesBreakdown.marketing||0)-cut); return cut>0 ? `You found ${fmt$(cut)}/mo of wasted ad spend and killed it.` : "You mapped where money leaks before it starts. Noted for later."; } },
+6856 ];
+6857 function doFulfillment(key){
+6858 const p = pInit();
+6859 const a = FULFILLMENT.find(x=>x.key===key);
+6860 if(!a) return;
+6861 if(p.actsThisMonth.indexOf(key)>=0){ alert(`You already did "${a.name}" this month.`); return; }
+6862 if(p.cash < a.price){ alert(`Not enough personal cash for ${a.name} (${fmt$(a.price)}).`); return; }
+6863 p.cash -= a.price;
+6864 p.happiness = clamp(p.happiness + a.happiness, 0, 100);
+6865 p.wellbeing = clamp(p.wellbeing + a.wellbeing, 0, 100);
+6866 p.actsThisMonth.push(key);
+6867 p.fulfillHistory.push({ name:a.name, month:G.company.month, year:G.company.year });
+6868 p.monthEvents.push(`${a.name}${a.price?` (${fmt$(a.price)})`:" (free)"} \u2014 +${a.happiness} happiness, +${a.wellbeing} wellbeing`);
+6869 if(!p.insights) p.insights = [];
+6870 let msg = "";
+6871 if(a.insight && Math.random() < 0.5){
+6872 const out = pick(INSIGHT_OUTCOMES);
+6873 let detail = "";
+6874 try { detail = out.apply(G.company) || ""; } catch(e){ detail = ""; }
+6875 const line = `\u{1F4A1} ${a.name} sparked ${out.label}: ${detail}`;
+6876 p.insights.push({ name:a.name, outcome:detail, month:G.company.month, year:G.company.year });
+6877 p.monthEvents.push(line);
+6878 logHistory(line);
+6879 msg = `\n\n\u{1F4A1} ${detail}`;
+6880 }
+6881 alert(`${a.name} \u2014 ${a.price?fmt$(a.price):"free"}\n+${a.happiness} happiness \u00b7 +${a.wellbeing} wellbeing${msg}`);
+6882 renderAll();
+6883 }
+6884 function fulfillCard(a, done){
+6885 return `<div class="fcard ${done?"done":""}">
+6886 <div class="ftop">
+6887 <div class="fname">${a.name}${done?' <span class="pill good">Done</span>':""}</div>
+6888 <div class="fcost ${a.price?"":"free"}">${a.price? fmt$(a.price) : "Free"}</div>
+6889 </div>
+6890 <div class="fgain">+${a.happiness} happiness \u00b7 +${a.wellbeing} wellbeing${a.insight?" \u00b7 \u{1F4A1} can spark a real business idea":""}</div>
+6891 <div class="fdesc">${a.desc}</div>
+6892 <div class="fact"><button class="btn secondary small" data-fulfill="${a.key}" ${done?"disabled":""}>${done?"Done this month":"Do it"}</button></div>
+6893 </div>`;
+6894 }
+6895
+6896 /* ---------- Personal: fulfillment rebuilt, compensation moved to Finance ---------- */
+6897 function renderPersonal(){
+6898 const wrap = renderPersonalV12();
+6899 const p = pInit();
+6900 const cards = Array.from(wrap.querySelectorAll(".card"));
+
+=== FILE: art-core.js  LINES 6215-6235
+6215 const open = INDUSTRY_KEYS.filter(k=>industryUnlocked(k));
+6216 if(open.length) G.ui.foundIndustry = open[0];
+6217 }
+6218 }
+6219 return wrap;
+6220 }
+6221
+6222 /* ---------- Monthly hook: announce unlocks ---------- */
+6223 function advanceMonth(){
+6224 const before = (G.playerMeta && G.playerMeta.unlockedIndustries || []).slice();
+6225 const out = advanceMonthV11();
+6226 const fresh = syncIndustryUnlocks().filter(k=>before.indexOf(k)<0);
+6227 if(fresh.length){
+6228 fresh.forEach(k=> logHistory(`New industry unlocked: ${INDUSTRIES[k].label}. You can found one from the Empire tab.`));
+6229 setTimeout(()=>{
+6230 alert(`\u{1F513} Unlocked: ${fresh.map(k=>INDUSTRIES[k].label).join(", ")}\n\nYou can found a company in that industry from the Empire tab \u2014 once you clear the founding requirements.`);
+6231 }, 50);
+6232 }
+6233 return out;
+6234 }
+6235
 
 === FILE: art-core.js
-=== PATTERN: function render(Expansion|Market|Decide|Growth|Run)
-1952:function renderExpansionBucket(){
-2955:function renderMarket(){
-5009:function renderMarketV11(){
-6127:function renderMarketV12(){
-6830:function renderMarket(){
-
-=== FILE: art-core.js
-=== PATTERN: Founder hustle|Founder Hustle|founderHustle
-678:  { key:"hustle_master", name:"Hustle Culture", icon:"🚀", desc:"Use a Founder Hustle action 20 times total.", check:(c,p)=> (c.founderActionsLifetime||0)>=20 },
-1638:    { key:"founder", icon:"🚀", label:"Founder Hustle", desc:"No-hire moves you can make yourself" },
-1840:    <h3>🚀 Founder Hustle <span class="muted" style="font-size:12px;font-weight:400;">— ${left}/${FOUNDER_ACTION_CAP} left this month</span></h3>
-8907:/* ---------------- 4. Founder hustle, per industry ---------------- */
-8960:    <h3>\u{1F680} Founder Hustle \u2014 ${cfg.icon} ${cfg.label} <span class="muted" style="font-size:12px;font-weight:400;">\u2014 ${left}/${FOUNDER_ACTION_CAP} left this month</span></h3>
-
-=== FILE: art-core.js
-=== PATTERN: This month.s plan|Last month.s report|Projected revenue|Ending cash|Queue this month|Cash burn
-
-=== FILE: art-core.js
-=== PATTERN: v417ExpSub|expSub|function subTabBar
-4560:function subTabBar(){
-5687:function subTabBar(){
-5976:function subTabBar(){
-
-=== FILE: art-core.js
-=== PATTERN: function [A-Za-z0-9_]*[Uu]nlock|unlocked|UNLOCK_|locked:
-694:    if(b.check(c,p)){ c.badges.push(b.key); report.push(`🏅 Milestone unlocked: ${b.name}!`); }
-753:    <div class="window-title"><h2>🏅 Milestones & Badges</h2><span class="sub">${c.badges.length}/${BADGE_DEFS.length} unlocked</span></div>
-755:      ${BADGE_DEFS.map(b=>{ const unlocked = c.badges.includes(b.key);
-756:        return `<div class="card" style="text-align:center;opacity:${unlocked?1:0.4};">
-760:          ${unlocked? '<div class="pill good mt8">Unlocked</div>' : '<div class="pill mt8">Locked</div>'}
-1743:      if(capacity===0 && count===0) return; // not unlocked yet, hide entirely
-1768:      <div class="desc mb8">Team Lead+ unlocked: pick this month's focus for this department.</div>
-5632:  return { checks, unlocked: checks.every(c=>c.ok), cashReq, seed, best, oldest, hasCeo };
-5636:  if(gate.unlocked) return renderEmpireV10();
-5853:function unlockReq(key){ return INDUSTRY_UNLOCK[key]!==undefined ? INDUSTRY_UNLOCK[key] : 0; }
-5854:function syncIndustryUnlocks(){
-5856:  if(!G.playerMeta.unlockedIndustries) G.playerMeta.unlockedIndustries = ["ai_saas"];
-5857:  const list = G.playerMeta.unlockedIndustries;
-5866:function industryUnlocked(key){
-5869:  return G.playerMeta.unlockedIndustries.indexOf(key) >= 0;
-5934:    G.playerMeta.unlockedIndustries = ["ai_saas"];
-6224:  const before = (G.playerMeta && G.playerMeta.unlockedIndustries || []).slice();
-6228:    fresh.forEach(k=> logHistory(`New industry unlocked: ${INDUSTRIES[k].label}. You can found one from the Empire tab.`));
-6230:      alert(`\u{1F513} Unlocked: ${fresh.map(k=>INDUSTRIES[k].label).join(", ")}\n\nYou can found a company in that industry from the Empire tab \u2014 once you clear the founding requirements.`);
-6248:    if(!out.playerMeta.unlockedIndustries){
-6249:      out.playerMeta.unlockedIndustries = ["ai_saas"];
-6250:      (out.companies||[]).forEach(co=>{ if(out.playerMeta.unlockedIndustries.indexOf(co.industry)<0) out.playerMeta.unlockedIndustries.push(co.industry); });
-6252:      INDUSTRY_KEYS.forEach(k=>{ if(out.playerMeta.unlockedIndustries.indexOf(k)<0 && score >= unlockReq(k)) out.playerMeta.unlockedIndustries.push(k); });
-8094:      <b>3. Whole new companies</b> \u2014 the Empire tab. ${next?`Your next unlock is <b>${INDUSTRIES[next.k].label}</b> at ${fmt$(next.need)} net worth.`:"You have unlocked every industry."} Each one runs its own P&L, its own team, and its own mechanics.
-16106:                try{ v30Toast(`<b>Mastered.</b> Tier 10 is the cap \u2014 permanent perk unlocked.`, "good"); }catch(e){}
-16160:function v32EngagementUnlocked(){
-
-=== FILE: art-core.js
-=== PATTERN: function [A-Za-z0-9_]*[Mm]arket
-473:function resolveMarketing(report){
-2597:function computeYourMarketShare(){
-2955:function renderMarket(){
-3445:function marketingBoost(){
-5009:function renderMarketV11(){
-6127:function renderMarketV12(){
-6830:function renderMarket(){
-7805:function marketingBudgetBoost(){
-7811:function marketingBoost(){
-7818:function resolveMarketing(report){
-7863:function marketingSection(){
-16974:function v33MarketGap(dept){
-
-=== FILE: 30-v410-v427.js
-=== PATTERN: v417ExpSub|Facilities|Growth|expansion
-435:   The upgrade existed only as one card buried in Expansion & Growth, so
-467:        + '<div class="muted" style="font-size:11px;margin-top:6px;">Also available on Expansion &amp; Growth. Upgrades complete when the month closes.</div>'
-1868:   2. Expansion leaves the Decisions folder grid and lives in HQ; Facilities
-1887:        G.ui.activeTab = "expansion";
-1888:        G.ui.v417ExpSub = "facilities";
-1890:      if(G.ui.decisionFolder === "expansion") G.ui.decisionFolder = "founder";
-1891:      if(G.ui.v417ExpSub !== "facilities") G.ui.v417ExpSub = "growth";
-1895:  /* Facilities stops being its own destination. */
-1896:  function stripFacilitiesTab(){
-1902:          if(g.id === "hq" && g.items.indexOf("expansion") < 0) g.items.push("expansion");
-1911:  stripFacilitiesTab();
-1912:  try{ setInterval(stripFacilitiesTab, 2000); }catch(e){}
-1914:  function expansionSubBar(){
-1918:    var sub = (G.ui.v417ExpSub === "facilities") ? "facilities" : "growth";
-1921:      + '<button class="v417-b ' + (sub === "growth" ? "on" : "") + '" data-v417exp="growth">\uD83D\uDE80 Growth</button>'
-1922:      + '<button class="v417-b ' + (sub === "facilities" ? "on" : "") + '" data-v417exp="facilities">\uD83C\uDFD7\uFE0F Facilities</button>';
-1925:        G.ui.v417ExpSub = b.getAttribute("data-v417exp");
-1949:            screen.querySelectorAll('.folder-tile[data-folder="expansion"]').forEach(function(n){ try{ n.remove(); }catch(e){} });
-1952:          /* 2b. Expansion screen gets Growth / Facilities sub-tabs */
-1953:          if(G.ui.activeTab === "expansion" && !screen.querySelector("[data-v417sub]")){
-1954:            if(G.ui.v417ExpSub === "facilities" && typeof renderFacilitiesTab === "function"){
-1956:              screen.appendChild(expansionSubBar());
-1957:              try{ screen.appendChild(renderFacilitiesTab()); }
-1958:              catch(e){ screen.appendChild(el('<div class="card">Facilities failed to draw: ' + String(e && e.message || e) + '</div>')); }
-1960:              screen.insertBefore(expansionSubBar(), screen.firstChild);
-1969:  /* Anything that jumps to Facilities now lands on the sub-tab. */
-1970:  function goFacilities(){
-1972:      G.ui.activeTab = "expansion";
-1973:      G.ui.v417ExpSub = "facilities";
-1977:  window.v417GoFacilities = goFacilities;
-1981:      if(t){ ev.preventDefault(); ev.stopPropagation(); goFacilities(); }
-3473:    { key:"growth",     label:"Growth CEO",      blurb:"Chases revenue hard. Margin suffers for it.",          growth:1.06, margin:0.88, pay:1.25 },
-3990:    if(!s.macro) s.macro = { phase:"expansion", rate:1, demand:1, multiple:1, monthsLeft:8, history:[] };
-4046:    expansion: { label:"Expansion",  rate:0.92, demand:1.08, multiple:1.15, next:["peak","expansion"] },
-4047:    peak:      { label:"Overheated", rate:1.18, demand:1.05, multiple:1.30, next:["recession","expansion"] },
-4049:    recovery:  { label:"Recovery",   rate:1.05, demand:0.96, multiple:0.90, next:["expansion","recovery"] }
-4771:      if(["industry","ops","operations","expansion"].indexOf(tab()) < 0) return;
-4830:  /* workspace growth belongs in Facilities */
-4834:      if(["facilities","expansion","hq"].indexOf(tab()) < 0) return;
-
-=== FILE: 50-v429-v432.js
-=== PATTERN: v417ExpSub|Growth|expansion|market
-
-=== FILE: 60-v433-v437.js
-=== PATTERN: v417ExpSub|Growth|expansion|market
-854:          + '<div class="muted" style="font-size:11px;margin-top:6px;">Also available on Expansion &amp; Growth. Upgrades complete when the month closes.</div>'
-881:      /* the facilities tab normalises activeTab to "expansion"; both render the
-883:      else if(tab === "facilities" || tab === "expansion") mountWorkspace(host);
+=== PATTERN: Projected revenue|Ending cash|Queue this month|month.s plan|last month|Cash burn
+1169:  // expire any unaddressed event from last month with its default consequence
+1452:    <div class="stat" title="Recurring costs as of your last month close (salaries, rent, tools, debt service). One-off spend like bonuses/hires/upgrades is separate and shown in the month-end summary."><div class="label">Expenses/mo ⓘ</div><div class="value bad">${fmt$(expenses)}</div></div>
+1455:    <div class="stat" title="Weighted score: 30% avg employee morale, 25% avg client health, 25% last month's profit, 20% MRR growth trend, minus a penalty for consecutive distress months."><div class="label">Success ⓘ</div><div class="value ${c.successScore>=60?'good':c.successScore<35?'bad':''}">${c.successScore}</div></div>
+3829:    <div class="stat" title="Recurring costs as of your last month close."><div class="label">Expenses/mo \u24D8</div><div class="value bad">${fmt$(expenses)}</div></div>
+8854:    <div class="stat" title="Recurring costs as of your last month close."><div class="label">Expenses/mo \u24D8</div><div class="value bad">${fmt$(expenses)}</div></div>
+9230:    <div class="stat" title="Recurring costs as of your last month close."><div class="label">Expenses/mo \u24D8</div><div class="value bad">${fmt$(cs.expenses)}</div></div>
+10994:      <div class="lg"><div class="k">${mrrWord()}</div><div class="v good">${fmt$(m.mrr)}</div><div class="n">${m.net>=0?"+":"\u2212"}${fmt$(Math.abs(m.net))} vs last month</div></div>
+12057:    out.push(`You burned ${fmt$(Math.abs(last.netProfit))} last month. At that rate you have roughly ${runway} month(s) of runway.`);
+12768:    <div class="k"><div class="lbl">Lost sales</div><div class="val ${(o.lastLost||0)>0?"v26-warn":"v26-good"}">${(o.lastLost||0).toLocaleString()}</div><div class="lbl">units last month</div></div>
+12774:      <div class="desc">${s.unitsOnHand.toLocaleString()} units on hand \u00b7 ${cover} months of cover \u00b7 last month sold ${(s.lastSold||0).toLocaleString()} of ${(s.lastDemand||0).toLocaleString()} demanded${(s.inbound||[]).length?` \u00b7 <span class="v26-chip">${(s.inbound||[]).reduce((a,b)=>a+b.units,0)} in transit</span>`:""}</div>
 
