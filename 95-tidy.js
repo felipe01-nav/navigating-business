@@ -1,4 +1,5 @@
-/* 95-tidy.js  —  v4.43 "Right place, right company"  (v4.46 hardening)
+/* 95-tidy.js  —  v4.43 "Right place, right company"  (v4.46 hardening,
+   v4.54 global-resolution fix)
    =====================================================================
    A top layer that corrects PLACEMENT and RELEVANCE. It owns no game
    state, replaces no named function, and fails silently rather than
@@ -9,25 +10,31 @@
    40-v428-trucking.js mounts cards against G.ui.activeTab only, but
    the Expansion screen is ONE tab with two sub-tabs held in
    G.ui.v417ExpSub ("growth" | "facilities"). Every card aimed at
-   "expansion" therefore rendered on BOTH sub-tabs — hence founder
-   decisions in Facilities, and marketing in two places at once.
+   "expansion" therefore rendered on BOTH sub-tabs.
 
-   v4.46 — WHY THIS FILE WAS MISBEHAVING
-   -------------------------------------
-   The first cut observed #app with a MutationObserver and swept every
-   900 ms. Its own DOM edits re-triggered the observer, and the dock
-   edits provoked re-renders elsewhere, producing a visible flicker and
-   making form fields impossible to focus — they were being replaced
-   underneath the cursor. This version:
+   v4.46 — removed a MutationObserver that caused flicker and stole
+   focus from form fields. Sweeps are slow, idle-only, change-driven.
 
-     • has NO MutationObserver;
-     • sweeps on a slow timer, and only when the screen signature has
-       actually changed since the last sweep;
-     • does nothing at all while the account gate or the onboarding
-       overlay is up, or while any field has focus;
-     • touches the dock only when the dock is genuinely untidy;
-     • never re-points activeTab more than once;
-     • can be switched off entirely with ?notidy=1.
+   v4.54 — WHY THIS FILE HAS NEVER ACTUALLY DONE ANYTHING
+   ------------------------------------------------------
+   Every lookup here went through window.X: window.G, window.DOCK_GROUPS,
+   window.DOCK_ITEMS, window.INDUSTRIES, window.LADDERS. The game declares
+   those with const/let at the top level of a classic script, and a
+   top-level const/let is NOT a property of window — it lives in the
+   global lexical environment. Every other file reads them bare
+   (DOCK_GROUPS.forEach(...)), which works; this file read them off
+   window, which does not. So groups() always returned null, industryKey()
+   always returned "", busyElsewhere() always saw no company and held off,
+   and NBTidy.report() reported an empty dock in every save — fleet or
+   otherwise. The layer was inert, not merely wrong.
+
+   The fix is glob(), which tries window first and then an indirect eval
+   in global scope, where lexical globals ARE visible.
+
+   Because the DOM-mutating half has therefore never run against a real
+   game, it is NOT switched on by that fix alone. Mutations are now
+   opt-in with ?tidy=1 (or a manual NBTidy.sweep()). Diagnostics are
+   always live. ?notidy=1 still disables the file entirely.
    ===================================================================== */
 (function () {
   "use strict";
@@ -35,17 +42,36 @@
   window.__v443 = true;
 
   var OFF = false;
-  try { OFF = new URLSearchParams(location.search).get("notidy") === "1"; } catch (e) {}
-  if (OFF) { try { console.log("[v4.46] tidy layer disabled by ?notidy=1"); } catch (e) {} return; }
+  var MUTATE = false;
+  try {
+    var qs = new URLSearchParams(location.search);
+    OFF = qs.get("notidy") === "1";
+    MUTATE = qs.get("tidy") === "1";
+  } catch (e) {}
+  if (OFF) { try { console.log("[v4.54] tidy layer disabled by ?notidy=1"); } catch (e) {} return; }
 
   var LOG = [];
   function note(s) { LOG.push(s); if (LOG.length > 240) LOG.shift(); }
   function screenEl() { return document.getElementById("screen"); }
-  function ui() { try { return (window.G && window.G.ui) || {}; } catch (e) { return {}; } }
   function txt(n) { try { return (n && n.textContent ? n.textContent : "").replace(/\s+/g, " ").trim(); } catch (e) { return ""; } }
 
   /* ---------------------------------------------------------------
-     0. When to keep our hands entirely to ourselves
+     0. Global resolution — window first, then the global lexical scope
+     --------------------------------------------------------------- */
+  function glob(name) {
+    try {
+      var w = window[name];
+      if (w !== undefined && w !== null) return w;
+    } catch (e) {}
+    try {
+      return (0, eval)("typeof " + name + " !== 'undefined' ? " + name + " : null");
+    } catch (e) { return null; }
+  }
+  function GG() { try { return glob("G") || null; } catch (e) { return null; } }
+  function ui() { try { var g = GG(); return (g && g.ui) || {}; } catch (e) { return {}; } }
+
+  /* ---------------------------------------------------------------
+     1. When to keep our hands entirely to ourselves
      --------------------------------------------------------------- */
   function busyElsewhere() {
     /* the sign-in gate is mounted */
@@ -67,19 +93,19 @@
       if (a && a.isContentEditable) return true;
     } catch (e) {}
     /* no game yet — nothing to tidy */
-    try { if (!window.G || !window.G.company) return true; } catch (e) { return true; }
+    try { var g = GG(); if (!g || !g.company) return true; } catch (e) { return true; }
     return false;
   }
 
   /* ---------------------------------------------------------------
-     1. Industry helpers
+     2. Industry helpers
      --------------------------------------------------------------- */
   function industryKey() {
-    try { if (typeof window.IND === "function") return window.IND(); } catch (e) {}
-    try { return (window.G && window.G.company && window.G.company.industry) || ""; } catch (e) { return ""; }
+    try { var f = glob("IND"); if (typeof f === "function") return f() || ""; } catch (e) {}
+    try { var g = GG(); return (g && g.company && g.company.industry) || ""; } catch (e) { return ""; }
   }
   function industryCfg() {
-    try { return (window.INDUSTRIES || {})[industryKey()] || null; } catch (e) { return null; }
+    try { return (glob("INDUSTRIES") || {})[industryKey()] || null; } catch (e) { return null; }
   }
   function isFleet() {
     try {
@@ -92,13 +118,13 @@
     } catch (e) { return false; }
   }
   function opsWanted() {
-    try { if (typeof window.usesOps === "function") return !!window.usesOps(); } catch (e) {}
+    try { var f = glob("usesOps"); if (typeof f === "function") return !!f(); } catch (e) {}
     var c = industryCfg();
     return !!(c && (c.opsType || c.v45 === "fleet" || c.v45 === "salon"));
   }
 
   /* ---------------------------------------------------------------
-     2. Sub-tab hygiene on the Expansion screen
+     3. Sub-tab hygiene on the Expansion screen
      --------------------------------------------------------------- */
   var KEEP_SEL = "[data-v442go],[data-v442],[data-v436up],.hq-photo,.fac-card,.v47-hqcard";
   var KEEP_TEXT = /\b(hq|headquarters?|facilit|workspace|office|move[- ]in|lease|square feet|seats?)\b/i;
@@ -139,7 +165,7 @@
   }
 
   /* ---------------------------------------------------------------
-     3. Dock hygiene — one home per screen (only when untidy)
+     4. Dock hygiene — one home per screen (only when untidy)
      --------------------------------------------------------------- */
   var HOMES = [
     { item: /^(marketing|channels?|campaigns?)$/i, group: /growth/i },
@@ -147,8 +173,8 @@
     { item: /^(expansion|facilities|hq)$/i, group: /^hq$|headquarter/i }
   ];
 
-  function groups() { try { return window.DOCK_GROUPS || null; } catch (e) { return null; } }
-  function items() { try { return window.DOCK_ITEMS || null; } catch (e) { return null; } }
+  function groups() { try { return glob("DOCK_GROUPS") || null; } catch (e) { return null; } }
+  function items() { try { return glob("DOCK_ITEMS") || null; } catch (e) { return null; } }
 
   function dockSig() {
     var gs = groups(); if (!gs) return "";
@@ -224,7 +250,7 @@
   }
 
   /* ---------------------------------------------------------------
-     4. Industry Ops — present only where the industry has ops
+     5. Industry Ops — present only where the industry has ops
      --------------------------------------------------------------- */
   var opsHome = null;
   var bouncedOnce = false;
@@ -272,15 +298,16 @@
 
     /* move the player off a withdrawn tab — once only, never in a loop */
     try {
-      if (!want && !bouncedOnce && window.G && window.G.ui && window.G.ui.activeTab === id) {
+      var g2 = GG();
+      if (!want && !bouncedOnce && g2 && g2.ui && g2.ui.activeTab === id) {
         bouncedOnce = true;
-        window.G.ui.activeTab = "decisions";
+        g2.ui.activeTab = "decisions";
       }
     } catch (e) {}
   }
 
   /* ---------------------------------------------------------------
-     5. Hiring relevance — no drivers in a software company
+     6. Hiring relevance — no drivers in a software company
      --------------------------------------------------------------- */
   var FLEET_TEXT = /(owner[\u2011\u2013\u2014-]?operator|dry van|reefer|flatbed|day\s?cab|sleeper cab|lead driver|driver\s*\/?\s*trainer|\bdriver\b|\bdispatcher\b|fleet operations|safety\s*&?\s*compliance|freight)/i;
   var ROW_SEL = ".row,.hrow,.rung,.hire,.hire-row,li,tr";
@@ -325,7 +352,7 @@
   }
 
   /* ---------------------------------------------------------------
-     6. Sweep — slow, idle-only, and change-driven
+     7. Sweep — slow, idle-only, change-driven, and opt-in
      --------------------------------------------------------------- */
   var busy = false;
   var lastSig = "";
@@ -338,6 +365,7 @@
   }
 
   function sweep(force) {
+    if (!MUTATE && force !== true) return;   /* diagnostics-only unless ?tidy=1 */
     if (busy) return;
     if (busyElsewhere()) return;
     var sig = screenSig();
@@ -354,28 +382,55 @@
   setInterval(function () { try { sweep(false); } catch (e) {} }, 1200);
 
   /* ---------------------------------------------------------------
-     7. Diagnostics
+     8. Diagnostics — always live, whether or not we mutate
      --------------------------------------------------------------- */
   window.NBTidy = {
-    version: "4.46",
+    version: "4.54",
+    mutating: function () { return MUTATE; },
     sweep: function () { return sweep(true); },
     log: function () { return LOG.slice(); },
     report: function () {
-      var out = { version: "4.46" };
+      var out = { version: "4.54", mutating: MUTATE };
+      try {
+        out.globalsSeen = {
+          G: !!GG(),
+          DOCK_GROUPS: !!groups(),
+          DOCK_ITEMS: !!items(),
+          INDUSTRIES: !!glob("INDUSTRIES"),
+          LADDERS: !!glob("LADDERS")
+        };
+      } catch (e) {}
       try { out.industry = industryKey(); } catch (e) {}
       try { out.isFleet = isFleet(); out.opsWanted = opsWanted(); out.opsItem = opsItemId(); } catch (e) {}
       try { out.activeTab = ui().activeTab; out.expSub = ui().v417ExpSub; } catch (e) {}
       try { out.holdingOff = busyElsewhere(); } catch (e) {}
       try {
+        var c = (GG() || {}).company || null;
+        if (c) {
+          out.company = {};
+          for (var ck in c) {
+            var cv = c[ck];
+            if (cv === null || typeof cv === "string" || typeof cv === "number" || typeof cv === "boolean") out.company[ck] = cv;
+            else out.company[ck] = Array.isArray(cv) ? ("array[" + cv.length + "]") : typeof cv;
+          }
+        }
+      } catch (e) {}
+      try {
         out.dock = (groups() || []).map(function (g) {
           return { id: g.id, label: g.label, items: (g.items || []).slice() };
         });
       } catch (e) {}
-      try { out.industries = Object.keys(window.INDUSTRIES || {}); } catch (e) {}
+      try { out.industries = Object.keys(glob("INDUSTRIES") || {}); } catch (e) {}
       try {
         out.ladders = {};
-        var L = window.LADDERS || {};
-        for (var d in L) if (L[d] && L[d].rungs) out.ladders[d] = L[d].rungs.map(function (x) { return x.key; });
+        var L = glob("LADDERS") || {};
+        for (var d in L) {
+          var arr = Array.isArray(L[d]) ? L[d] : (L[d] && L[d].rungs) || null;
+          if (!arr) continue;
+          out.ladders[d] = arr.map(function (x) {
+            return (typeof x === "string") ? x : (x && (x.key || x.id || x.name)) || "?";
+          });
+        }
       } catch (e) {}
       try {
         var s = screenEl();
