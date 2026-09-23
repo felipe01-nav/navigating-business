@@ -1,6 +1,6 @@
 {
   "_comment": "Single source of truth for external art. Key = the art key used by the game's art maps (ART_IMG, IMG, FAC_IMG, ...) or declared by a layer (hq_* from 90-hq-stages.js). Value = filename, resolved against art/ first and the repo root second. Two keys may point at the same file when different bundles name the same subject differently \u2014 see the aliases section. Assets are registered as soon as the file lands in art/; visual QA is done by the project owner outside this repo, so a known cosmetic defect is not a blocker \u2014 it is recorded in accepted_with_defects and shipped. 85-art-override.js reads this file at boot and reports coverage to the console.",
-  "version": 9,
+  "version": 10,
 
   "assets": {
     "beachhouse": "beachhouse.webp",
@@ -84,7 +84,9 @@
 
   "_aliases_comment": "house_* and car_* are the legacy IMG bundle's names for subjects that ART_IMG calls starter, family, mansion, sedan, sports and suv. Both keys are listed so a screen reading either map gets the new art. IMG's remaining keys \u2014 jet, vac_beach, vac_cabin, vac_paris \u2014 have no external asset yet.",
 
-  "_coverage_comment": "Remaining keys with no external asset: sailboat (watercraft), ultralight (aircraft), jet (vehicle ladder and legacy IMG), and the collectibles art, watch, vault and racing. vac_beach, vac_cabin and vac_paris are also still unfilled.",
+  "_coverage_comment": "Remaining keys with no external asset: sailboat (watercraft), jet (vehicle ladder and legacy IMG), and the collectibles art, watch, vault and racing. vac_beach, vac_cabin and vac_paris are also still unfilled.",
+
+  "_retired_comment": "ultralight was removed from the game in v4.69 (114-retire-ultralight.js). It no longer needs art and is no longer counted as a coverage gap.",
 
   "accepted_with_defects": {
     "_comment": "Live in assets by explicit decision, but they violate their prompt's strict exclusions. Regenerate these first when image credits allow.",
