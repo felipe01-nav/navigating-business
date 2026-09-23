@@ -1,9 +1,8 @@
 # <file>|<regex> for grep, <file>@<start>-<end> for a line range.
-# pass 6: what already exists for salon/agency.
-30-v410-v427.js@1596-1680
-30-v410-v427.js|(SALON_ACTIONS|AGENCY_ACTIONS|TRUCK_ACTIONS|TRUCKING_ACTIONS)\s*=
-30-v410-v427.js|function\s+v45\w*
-30-v410-v427.js|(chairs|stylist|Stylist)
-art-core.js@3177-3200
-40-v428-trucking.js|(founderAction|FOUNDER)
-art-core.js@9336-9360
+# pass 7: cheat code hooks.
+art-core.js|function\s+(saveGame|save|autosave|persistState|renderAll|toast|logHistory|recomputeNetWorth|personalNetWorth)\s*\(
+art-core.js|totalNetWorth
+art-core.js|personal\s*=\s*\{
+art-core.js|addEventListener\("keydown"
+70-cloud-saves.js|(function\s+\w+|NBCloud\.\w+\s*=|save)
+94-flags.js|(NBFlags|flag|URLSearchParams)
