@@ -1,137 +1,68 @@
 # introspect report
-# generated: 2026-09-23 12:52:45Z
-# commit: 6297f57f4842566661b3ecb34cc8549b17f7832e
+# generated: 2026-09-23 13:42:51Z
+# commit: 6aba5f9733653824c2984235720c07478c0272bb
 
-=== FILE: art-core.js  LINES 6127-6215
-6127 function renderMarketV12(){
-6128 const wrap = renderMarketV11();
-6129 wrap.querySelectorAll("[data-shoptab]").forEach(b=>{
-6130 const id = b.getAttribute("data-shoptab");
-6131 const txt = b.textContent.replace(/^[^A-Za-z(]+/, "").trim();
-6132 b.innerHTML = `${svgIcon(SHOPTAB_ICON[id]||"box")} ${txt}`;
-6133 });
-6134 const tabRow = wrap.querySelector("[data-shoptab]");
-6135 if(tabRow && tabRow.parentNode) tabRow.parentNode.classList.add("tierbar2");
-6136 const title = wrap.querySelector(".window-title h2");
-6137 if(title) title.innerHTML = `${svgIcon("scale")} Market vs Owned`;
-6138 wrap.querySelectorAll(".ladder-card .title").forEach(t=>{
-6139 const raw = t.innerHTML;
-6140 const stripped = raw.replace(/^(?:[\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2190-\u2BFF\uFE0F\u200D\u26A0-\u27BF])+\s*/, "");
-6141 const name = (t.textContent||"").toLowerCase();
-6142 let ico = "box";
-6143 if(/house|home|villa|penthouse|chalet|estate|loft|studio|townhome|bungalow|ranch|brownstone|vineyard|ch\u00e2teau|chateau|compound|tower|beach/.test(name)) ico = "house";
-6144 else if(/jet|plane|aircraft|cessna|gulfstream|helicopter|citation|learjet/.test(name)) ico = "plane";
-6145 else if(/yacht|boat|catamaran|sail|ship|cruiser/.test(name)) ico = "yacht";
-6146 else if(/watch|chrono/.test(name)) ico = "watch";
-6147 else if(/art|paint|sculpt/.test(name)) ico = "art";
-6148 else if(/car|coupe|sedan|pickup|truck|hatch|roadster|suv|ev\b/.test(name)) ico = "car";
-6149 t.innerHTML = `${svgIcon(ico)} ${stripped}`;
-6150 });
-6151 wrap.querySelectorAll(".card > h3").forEach(h=>{
-6152 const t = h.textContent.replace(/^(?:[\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2190-\u2BFF\uFE0F\u200D\u26A0-\u27BF])+\s*/, "").trim();
-6153 let ico = "box";
-6154 if(/propert|real estate/i.test(t)) ico = "house";
-6155 else if(/garage|vehicle/i.test(t)) ico = "car";
-6156 else if(/collectible|aircraft, boats/i.test(t)) ico = "gem";
-6157 else if(/fleet/i.test(t)) ico = "plane";
-6158 else if(/trip/i.test(t)) ico = "globe";
-6159 h.innerHTML = `${svgIcon(ico)} ${t}`;
-6160 });
-6161 return wrap;
-6162 }
-6163
-6164 /* ---------- Bank overview: lines, not a wall of boxes ---------- */
-6165 function renderBank(){
-6166 const wrap = renderBankV11();
-6167 const secRow = wrap.querySelector("[data-banksec]");
-6168 if(secRow && secRow.parentNode) secRow.parentNode.classList.add("tierbar2");
-6169 const accRow = wrap.querySelector("[data-bankacct]");
-6170 if(accRow && accRow.parentNode) accRow.parentNode.classList.add("tierbar2");
-6171 if(G.ui.bankSection==="overview"){
-6172 const grid = wrap.querySelector(".grid.cols-3");
-6173 if(grid){
-6174 const cards = Array.from(grid.querySelectorAll(".card"));
-6175 const row = document.createElement("div");
-6176 row.className = "ledger-row";
-6177 row.innerHTML = cards.map(c=>{
-6178 const k = c.querySelector("h3"); const v = c.querySelector(".big"); const n = c.querySelector(".muted");
-6179 return `<div class="lg"><div class="k">${k?k.textContent:""}</div>
-6180 <div class="v ${v && v.classList.contains("bad")?"bad":""}">${v?v.textContent:""}</div>
-6181 <div class="n">${n?n.innerHTML:""}</div></div>`;
-6182 }).join("");
-6183 grid.replaceWith(row);
-6184 }
-6185 Array.from(wrap.querySelectorAll(".card")).forEach(c=>{
-6186 if(c.querySelector("[data-banksec]") || c.querySelector("[data-bankacct]")) return;
-6187 c.classList.remove("card");
-6188 c.classList.add("flatsec");
-6189 });
-6190 }
-6191 return wrap;
-6192 }
-6193
-6194 /* ---------- Empire: locked industries + hint text below the button ---------- */
-6195 function renderEmpire(){
-6196 const wrap = renderEmpireV11();
-6197 const hint = wrap.querySelector("#v10FoundHint");
-6198 if(hint){ hint.className = "muted found-hint"; hint.style.marginLeft = "0"; }
-6199 const grid = wrap.querySelector(".folder-grid");
-6200 if(grid){
-6201 syncIndustryUnlocks();
-6202 grid.querySelectorAll("[data-found]").forEach(t=>{
-6203 const key = t.getAttribute("data-found");
-6204 if(industryUnlocked(key)) return;
-6205 t.classList.add("locked-overlay");
-6206 if(!t.querySelector(".locked-badge")){
-6207 const b = document.createElement("div");
-6208 b.className = "locked-badge";
-6209 b.textContent = `${fmt$(unlockReq(key))} net worth`;
-6210 t.appendChild(b);
-6211 }
-6212 t.onclick = ()=> alert(`${INDUSTRIES[key].label} is still locked.\n\n${industryLockNote(key)}`);
-6213 });
-6214 if(!industryUnlocked(G.ui.foundIndustry||"")){
-6215 const open = INDUSTRY_KEYS.filter(k=>industryUnlocked(k));
+=== FILE: 10-core-v40-v46.js
+=== PATTERN: [^ -~]
+1404:/* ================= v4.5 — SMB starter businesses ================= */
+1834:/* ================= v4.6 — client tiers, reputation, budgets, hustle ================= */
 
-=== FILE: art-core.js
-=== PATTERN: data-market|data-enter|enterMarket|marketShare
-271:    id: uid(), name, marketShare: share, funding: rand(500,4000)*1000,
-1374:    const top = [...c.competitors].sort((a,b)=>b.marketShare-a.marketShare)[0];
-1375:    return `${top.name} leads at ${top.marketShare}% share, rated ${top.threat} threat.`;
-2115:          cm.marketShare = clamp(+(cm.marketShare+drift).toFixed(1),1,45);
-2116:          cm.threat = cm.marketShare>18?"High":cm.marketShare>10?"Medium":"Low";
-2117:          lines.push(`${cm.name} share now ${cm.marketShare}% (${cm.threat} threat).`);
-2614:          return `<tr><td>${c.name}</td><td>${c.marketShare}%</td>
-2630:    if(!window.confirm(`Acquire ${target.name} for ${fmt$(buyoutCost)}? This will absorb their ${target.marketShare}% market share into MRR growth and remove them as a competitor.`)) return;
-2638:      const mrrGain = Math.round(acquired.marketShare * 250);
-2643:      report.push(`🏆 Hostile takeover complete — absorbed ${acquired.name}'s ${acquired.marketShare}% market share for +${fmt$(mrrGain)} MRR and a Success Score boost.`);
-8437:  const clients = Math.max(2, Math.round(target.marketShare * 0.9));
-8438:  const mrr = Math.round(target.marketShare * 320);
-8439:  const staff = Math.max(2, Math.round(target.marketShare * 0.6));
-8454:          return `<tr><td>${c.name}</td><td>${c.marketShare}%</td>
-8456:          <td class="muted">${pv.clients} client(s) \u00b7 ${fmt$(pv.mrr)} ${mrrWord()} \u00b7 ${pv.staff} employee(s) \u00b7 ${c.marketShare}% share</td>
-8470:    if(!window.confirm(`Acquire ${target.name} for ${fmt$(pv.cost)}?\n\nYou absorb:\n\u2022 ${pv.clients} of their clients (~${fmt$(pv.mrr)} ${mrrWord()})\n\u2022 ${pv.staff} of their employees onto your payroll\n\u2022 ${target.marketShare}% market share\n\nThey are removed from the market permanently.`)) return;
-8496:      G.company.acquiredShare = (G.company.acquiredShare||0) + acq.marketShare;
-8500:      G.company.acquisitions.push({ name:acq.name, share:acq.marketShare, mrr:gained, staff:hired, month:G.company.month, year:G.company.year });
-8501:      report.push(`\u{1F3C6} Takeover complete \u2014 ${acq.name} is gone. Absorbed ${pv.clients} client(s) worth ${fmt$(gained)} ${mrrWord()}, ${hired} employee(s)${hired<pv.staff?` (${pv.staff-hired} turned away \u2014 no desk space)`:""}, and ${acq.marketShare}% market share.`);
-11141:function v23CompValue(c){ return Math.round((c.funding||0)*1.6 + (c.marketShare||0)*90000); }
-11158:  const clients = Math.max(2, Math.round((target.marketShare||4) * 0.9));
-11159:  const mrrTotal = Math.round((target.marketShare||4) * 320);
-11160:  const staffWant = Math.max(2, Math.round((target.marketShare||4) * 0.6));
-11181:  c.acquiredShare = (c.acquiredShare||0) + (target.marketShare||0);
-11186:  c.acquisitions.push({ name:target.name, share:target.marketShare, mrr:gained, staff:hired, month:c.month, year:c.year, mode });
-11188:  logHistory(`${mode==="hostile"?"Hostile takeover":"Friendly acquisition"} of ${target.name} closed for ${fmt$(cost)} \u2014 ${clients} client(s), ${fmt$(gained)} ${mrrWord()}, ${hired} employee(s), ${target.marketShare}% share.`);
-11189:  toast(`<b>\u{1F3C6} ${target.name} is yours.</b> Absorbed ${clients} client(s) worth ${fmt$(gained)} ${mrrWord()}, ${hired} employee(s) and ${target.marketShare}% market share for ${fmt$(cost)}.${mode==="hostile"?" Their people arrived rattled \u2014 a bonus would help.":""}`, "good");
-11256:          <div class="muted" style="font-size:11.5px;">${t.marketShare}% share \u00b7 ${fmt$(t.funding)} funded \u00b7 ${t.notes}</div>
-11259:        <span class="muted" style="font-size:11.5px;">Valued ${fmt$(v23CompValue(t))} \u00b7 absorbing them adds ~${fmt$(Math.round(t.marketShare*320))} ${mrrWord()}</span>
-11298:        text:`<b>${t.name}</b> \u2014 ${t.marketShare}% share, ${fmt$(t.funding)} funded, ${t.threat.toLowerCase()} threat. ${t.notes}. Control bid would run about ${fmt$(v23BidCost(t,"hostile"))}.` });
-11317:        t.marketShare = Math.max(1, +(t.marketShare + randf(-0.8, 0.9)).toFixed(1));
-11318:        t.threat = t.marketShare>18 ? "High" : t.marketShare>10 ? "Medium" : "Low";
-11333:          aggressor.marketShare = +(aggressor.marketShare + 0.6).toFixed(1);
-11342:          aggressor.marketShare = +(aggressor.marketShare + other.marketShare*0.7).toFixed(1);
-11347:          toast(`<b>\u{1F994} ${aggressor.name} just acquired ${other.name}.</b> Consolidation is happening with or without you \u2014 they now hold ${aggressor.marketShare}%.`, "warn");
-12007:  const aggressive = c.competitors.filter(x=> x.threat==="High" || x.marketShare>12);
-12013:    rival.marketShare = +(rival.marketShare + randf(0.3,0.9)).toFixed(1);
-12023:      rival.marketShare = +(rival.marketShare + 0.5).toFixed(1);
-12029:      rival.marketShare = +(rival.marketShare + randf(0.4,1.1)).toFixed(1);
+=== FILE: 104-dock-shape.js
+=== PATTERN: [^ -~]
+1:/* 104-dock-shape.js — v4.64 "Growth stays, market goes home"
+172:  try { console.log("[v4.64] dock shape armed — Growth label kept, market back under Personal."); } catch (e) {}
+
+=== FILE: 111-expansion-scope.js
+=== PATTERN: [^ -~]
+1:/* 111-expansion-scope.js — v4.65 "Expansion is not a second Decide screen"
+
+=== FILE: 112-kpi-scope.js
+=== PATTERN: [^ -~]
+1:/* 112-kpi-scope.js — v4.66 "Company KPIs belong on company screens"
+
+=== FILE: 30-v410-v427.js
+=== PATTERN: [^ -~]
+2:   v4.10 — 1. Reputation grows in proportion to the company
+98:   v4.10 — 2. The endgame: you choose if and when to go public
+167:  /* the listing itself — the run does not end, you now run a public company */
+172:    /* price off today's book, but never off a momentarily empty one —
+353:   v4.10 — 3. Trucking and the agency get their own rivals and words
+434:   v4.10 — 4. The workspace ladder is visible and reachable
+517:   v4.11 — 1. The header tells the truth about money
+641:   v4.11 — 2. Your header layout stops being wiped
+679:   v4.11 — 3. The tile picker stays open until you say otherwise
+869:   v4.12 — Cash is exact, and it is never stale
+928:      /* Ending cash is a forecast of the same number — show it to the dollar too. */
+1027:   v4.13 — Cash cannot become NaN, and a poisoned save repairs itself
+1044:     1. REPAIR  — a poisoned save is reconstructed on load.
+1045:     2. GUARD   — a watcher catches NaN within half a second and rolls the
+1047:     3. PREVENT — the known NaN sources are sanitised at source.
+1213:            // the close itself poisoned it — roll back to the pre-close figure
+1300:   v4.15 — The save code is gone. Downloading a save file actually works.
+1531:   v4.16 — The marketing agency plays like a marketing agency
+1865:   v4.17 — Feedback pass
+2313:   v4.17.1 — Marketplace art stops cropping
+2333:   v4.18 — Confirmation boxes work inside the Notion embed
+2337:   dialog there — it returns false immediately. Every purchase gated behind
+2493:  /* The v3.3 Rivals screen has no acquisition controls at all — those live
+2520:   v4.19 — Amount prompts work inside the Notion embed
+2523:   allow-modals, so window.prompt() never opens an input box — it returns
+2750:   v4.20 — Owner's salary is per company
+2941:   v4.21 — Bank transfers, founder capital, and the end of the $0 "repair"
+2949:   one month with no expenses — nothing was ever spent; the number was
+2962:     1. SNAPSHOT  — every account's last verified balance is persisted in
+2965:     2. HEAL ALL  — the sweep covers EVERY company, not just the active
+2968:     3. TRANSFERS — account-to-account transfers validate both sides, are
+2972:     4. NO ZEROING — the guard will never again write 0 over a real
+3198:   v4.22 — CASH WRITE FIREWALL
+3201:   CASH $0 with a red delta of ▼$5.0M is a REAL numeric write of zero, not
+3339:    var out = ["v4.22 — " + s.blocked.length + " blocked cash write(s):"];
+3342:      out.push((i+1) + ") " + b.account + ": " + money(b.from) + " → " + b.to + "  [" + b.at + "]");
+3366:          + "<div><b>" + b.account + "</b>: " + money(b.from) + " → " + b.to + "</div>"
+3370:      box.innerHTML = "<div class=\"window-title\">\uD83D\uDEE1\uFE0F Cash audit — blocked writes</div>"
+3376:  /* v4.28d: audit card retired — the firewall still blocks bad writes, silently. */
+3401:   v4.28d — Owner pay across every company, the Chairman seat,
+3432:     1. OWNER PAY — every company pays its own draw
+3968:   v4.28d — Approved feedback build.
+4246:     CONTRACT TERMS (book-level, managed by AEs and CS — no 46k rows)
 
