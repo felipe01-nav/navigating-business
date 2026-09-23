@@ -1,20 +1,193 @@
 # introspect report
-# generated: 2026-09-23 13:43:27Z
-# commit: 7f5c81891d36d81dbc1cb91a230d1bd8f9e9a5a6
+# generated: 2026-09-23 13:43:49Z
+# commit: c6f037c8ac220c696e1f8b40299110a536951ff9
 
-=== FILE: art-core.js
-=== PATTERN: (function svgIcon|SHOPTAB_ICON|ICON_[A-Z]*\s*=|ICONS\s*=|SVG_ICONS|const DOCK_GROUPS|const DOCK_ITEMS)
-1466:const DOCK_ITEMS = [
-4520:const DOCK_GROUPS = [
-5784:function svgIcon(name, cls){
-6126:const SHOPTAB_ICON = { houses:"house", cars:"car", air:"plane", sea:"yacht", lux:"gem", trips:"globe", owned:"box" };
-6132:    b.innerHTML = `${svgIcon(SHOPTAB_ICON[id]||"box")} ${txt}`;
+=== FILE: art-core.js  LINES 5784-5850
+5784 function svgIcon(name, cls){
+5785 const d = SVG_PATHS[name] || SVG_PATHS.box;
+5786 return `<svg class="svg-ico ${cls||""}" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+5787 }
+5788 function svgArt(name, tier){
+5789 const d = SVG_PATHS[name] || SVG_PATHS.box;
+5790 return `<div class="shop-art art-tier${tier||1}"><svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg></div>`;
+5791 }
+5792 function artFor(item, kind){
+5793 const price = item.price || 0;
+5794 const tier = price > 5000000 ? 4 : price > 900000 ? 3 : price > 150000 ? 2 : 1;
+5795 let name = "box";
+5796 if(kind==="house"){
+5797 name = price >= 20000000 ? "tower" : price >= 8000000 ? "castle" : price >= 3000000 ? "villa"
+5798 : price >= 900000 ? "estate" : price >= 250000 ? "house" : "apartment";
+5799 } else if(kind==="car"){
+5800 name = price >= 1000000 ? "hypercar" : price >= 120000 ? "sportscar" : price >= 35000 ? "truck" : "car";
+5801 } else if(kind==="toy"){
+5802 if(item.cls==="air") name = price >= 20000000 ? "jet" : price >= 3000000 ? "plane" : "helicopter";
+5803 else if(item.cls==="sea") name = price >= 30000000 ? "ship" : price >= 2000000 ? "yacht" : "boat";
+5804 else {
+5805 const n = (item.name||"").toLowerCase();
+5806 name = /watch|chrono/.test(n) ? "watch" : /art|paint|sculpt/.test(n) ? "art"
+5807 : /guitar|music|vinyl/.test(n) ? "guitar" : /wine|whisk|bourbon|scotch/.test(n) ? "wine" : "gem";
+5808 }
+5809 } else if(kind==="vacation"){
+5810 const n = (item.name||"").toLowerCase();
+5811 name = /ski|alps|mountain|everest|patagonia|peak/.test(n) ? "mountain"
+5812 : /beach|island|maldives|reef|tahiti|caribbean|coast/.test(n) ? "palm" : "globe";
+5813 }
+5814 return svgArt(name, tier);
+5815 }
+5816
+5817 /* ---------- 100% founder ownership at founding ---------- */
+5818 function initEquity(){
+5819 return { totalShares:TOTAL_SHARES, founder:TOTAL_SHARES, pool:0, grants:[], investors:[], dividendsPaid:0 };
+5820 }
+5821 function openOptionPool(pct){
+5822 const e = eq(G.company);
+5823 const shares = Math.round(e.totalShares * (pct/100));
+5824 if(shares > e.founder) return "You don't hold that many shares.";
+5825 e.founder -= shares; e.pool += shares;
+5826 logHistory(`Carved out a ${pct}% employee option pool from your own shares.`);
+5827 return null;
+5828 }
+5829 function grantEquity(empId, pct, vestMonths){
+5830 const co = G.company, e = co.employees.find(x=>x.id===empId);
+5831 if(!e) return "Employee not found.";
+5832 const E = eq(co);
+5833 const shares = Math.round(E.totalShares * (pct/100));
+5834 if(shares > E.pool + E.founder) return "You don't have that many shares left to give.";
+5835 const fromPool = Math.min(shares, E.pool);
+5836 E.pool -= fromPool;
+5837 E.founder -= (shares - fromPool);
+5838 E.grants.push({ id:uid(), empId, name:e.name, role:e.role, shares, vestMonths:vestMonths||48, vestedMonths:0,
+5839 grantedMonth:co.month, grantedYear:co.year });
+5840 e.morale = clamp(e.morale + Math.min(25, Math.round(pct*12)), 0, 100);
+5841 e.equityShares = (e.equityShares||0) + shares;
+5842 logHistory(`Granted ${e.name} ${pct}% equity (${shares.toLocaleString()} shares, ${vestMonths||48}-month vest)${(shares-fromPool)>0?" \u2014 diluted from your own stake":""}.`);
+5843 return null;
+5844 }
+5845
+5846 /* ---------- Industry progression: start with the AI company, earn the rest ---------- */
+5847 const INDUSTRY_UNLOCK = { ai_saas:0, retail:150000, restaurant:300000, robotics:750000, finance:2000000 };
+5848 function empireScore(){
+5849 const p = pInit();
+5850 const co = (G.companies||[]).reduce((s,c)=> s + (c.netWorth||0) + (c.cash||0), 0);
 
-=== FILE: 20-*.js
-=== PATTERN: \\\\u[0-9A-Fa-f]{4}
-(file not found)
+=== FILE: art-core.js  LINES 1466-1530
+1466 const DOCK_ITEMS = [
+1467 {id:"bank", icon:"🏦", label:"Bank"},
+1468 {id:"decisions", icon:"🧭", label:"Decide"},
+1469 {id:"slack", icon:"💬", label:"Slack"},
+1470 {id:"team", icon:"🧑‍💼", label:"Team"},
+1471 {id:"hr", icon:"🧑‍🎓", label:"HR & Hiring"},
+1472 {id:"clients", icon:"🤝", label:"Clients"},
+1473 {id:"product", icon:"📦", label:"Product"},
+1474 {id:"research", icon:"🔍", label:"Research"},
+1475 {id:"zoom", icon:"🎥", label:"Zoom"},
+1476 {id:"financials", icon:"📊", label:"Finance"},
+1477 {id:"invest", icon:"💹", label:"Invest"},
+1478 {id:"personal", icon:"🏡", label:"Personal"},
+1479 {id:"life", icon:"🌟", label:"My Life"},
+1480 {id:"market", icon:"🛍️", label:"Market vs Owned"},
+1481 {id:"milestones", icon:"🏅", label:"Milestones"},
+1482 {id:"assistant", icon:"🤖", label:"F.E.L.I.P.E AI"},
+1483 {id:"saves", icon:"💾", label:"Saves"},
+1484 {id:"industry", icon:"🏭", label:"Industry Ops"},
+1485 {id:"orgchart", icon:"🏛️", label:"Org Chart"},
+1486 {id:"empire", icon:"🏗️", label:"My Empire"},
+1487 ];
+1488
+1489 function renderDock(){
+1490 let dock = document.getElementById("dock");
+1491 if(!dock){
+1492 const main = document.createElement("div");
+1493 main.id = "main";
+1494 main.innerHTML = `<div id="dock"></div><div id="screen"></div>`;
+1495 document.getElementById("app").appendChild(main);
+1496 dock = document.getElementById("dock");
+1497 }
+1498 dock.innerHTML = DOCK_ITEMS.map(it=>`
+1499 <div>
+1500 <div class="dock-btn ${G.ui.activeTab===it.id?"active":""}" data-tab="${it.id}">${it.icon}
+1501 <span class="dot ${it.id==='decisions' && G.company.pendingEvent?'show':''}"></span></div>
+1502 <div class="dock-label">${it.label}</div>
+1503 </div>`).join("");
+1504 dock.querySelectorAll("[data-tab]").forEach(b=> b.onclick = ()=>{ G.ui.activeTab = b.getAttribute("data-tab"); renderDock(); renderScreen(); });
+1505 }
+1506
+1507 function renderScreenBase(){
+1508 const screen = document.getElementById("screen");
+1509 screen.innerHTML = "";
+1510 const tab = G.ui.activeTab;
+1511 const map = { bank:renderBank, decisions:renderDecisions, slack:renderSlack, team:renderTeam, hr:renderHR,
+1512 clients:renderClients, product:renderProduct, research:renderResearch, zoom:renderZoom,
+1513 financials:renderFinancials, invest:renderInvest, personal:renderPersonal, life:renderLife, market:renderMarket, milestones:renderMilestones, assistant:renderAssistant, saves:renderSaves };
+1514 screen.appendChild((map[tab]||renderBank)());
+1515 }
+1516
+1517 /* ---------------- Bank ---------------- */
+1518 function renderBankBase(){
+1519 const c = G.company;
+1520 const d = c.debt;
+1521 const wrap = el(`<div></div>`);
+1522 wrap.innerHTML = `
+1523 <div class="window-title"><h2>🏦 First Ledger Bank — Business Checking</h2><span class="sub">Welcome back, ${G.meta.playerName}</span></div>
+1524 <div class="grid cols-3">
+1525 <div class="card"><h3>Available Balance</h3><div class="big ${c.cash<0?'bad':''}">${fmt$(c.cash)}</div></div>
+1526 <div class="card"><h3>Monthly Recurring Revenue</h3><div class="big good">${fmt$(c.mrr)}</div></div>
+1527 <div class="card"><h3>Company Net Worth</h3><div class="big">${fmt$(c.netWorth)}</div></div>
+1528 </div>
+1529 <div class="grid cols-3 mt14">
+1530 <div class="card"><h3>Invested Assets</h3><div class="big">${fmt$(Object.entries(c.assets).filter(([k])=>k!=="hq").reduce((s,[,v])=>s+(typeof v==="number"?v:0),0))}</div></div>
 
-=== FILE: 50-*.js
-=== PATTERN: \\\\u[0-9A-Fa-f]{4}
-(file not found)
+=== FILE: art-core.js  LINES 4520-4570
+4520 const DOCK_GROUPS = [
+4521 { id:"run", icon:"\u{1F9ED}", label:"Run", items:["decisions","bank","financials","industry"] },
+4522 { id:"people", icon:"\u{1F9D1}\u200D\u{1F4BC}", label:"People", items:["team","hr","orgchart","slack","zoom"] },
+4523 { id:"market", icon:"\u{1F4E6}", label:"Product", items:["product","clients","research"] },
+4524 { id:"empire", icon:"\u{1F3D7}\uFE0F", label:"Empire", items:["empire","invest","milestones"] },
+4525 { id:"life", icon:"\u{1F3E1}", label:"Life", items:["personal","market","life"] },
+4526 { id:"jarvis", icon:"\u{1F916}", label:"F.E.L.I.P.E AI", items:["assistant"] },
+4527 { id:"system", icon:"\u{1F4BE}", label:"System", items:["saves"] },
+4528 ];
+4529 function dockItem(id){ return DOCK_ITEMS.find(i=>i.id===id) || { id, icon:"\u{1F4C4}", label:id }; }
+4530 function groupOfTab(tabId){ return DOCK_GROUPS.find(g=>g.items.indexOf(tabId)>=0) || DOCK_GROUPS[0]; }
+4531 function groupNeedsAttention(g){
+4532 if(g.items.indexOf("decisions")>=0 && G.company.pendingEvent) return true;
+4533 return false;
+4534 }
+4535 function renderDock(){
+4536 let dock = document.getElementById("dock");
+4537 if(!dock){
+4538 const main = document.createElement("div");
+4539 main.id = "main";
+4540 main.innerHTML = `<div id="dock"></div><div id="screen"></div>`;
+4541 document.getElementById("app").appendChild(main);
+4542 dock = document.getElementById("dock");
+4543 }
+4544 const active = groupOfTab(G.ui.activeTab);
+4545 dock.innerHTML = DOCK_GROUPS.map(g=>`
+4546 <div>
+4547 <div class="dock-btn ${active.id===g.id?"active":""}" data-group="${g.id}" title="${g.items.map(i=>dockItem(i).label).join(" \u00b7 ")}">${g.icon}
+4548 <span class="dot ${groupNeedsAttention(g)?"show":""}"></span></div>
+4549 <div class="dock-label">${g.label}</div>
+4550 </div>`).join("");
+4551 dock.querySelectorAll("[data-group]").forEach(b=> b.onclick = ()=>{
+4552 const g = DOCK_GROUPS.find(x=>x.id===b.getAttribute("data-group"));
+4553 if(!g) return;
+4554 G.ui.lastTabByGroup = G.ui.lastTabByGroup || {};
+4555 G.ui.activeTab = G.ui.lastTabByGroup[g.id] && g.items.indexOf(G.ui.lastTabByGroup[g.id])>=0
+4556 ? G.ui.lastTabByGroup[g.id] : g.items[0];
+4557 renderDock(); renderScreen();
+4558 });
+4559 }
+4560 function subTabBar(){
+4561 const g = groupOfTab(G.ui.activeTab);
+4562 if(g.items.length<2) return null;
+4563 const bar = el(`<div class="card mb8" style="padding:8px 10px;">
+4564 <div class="flexrow" style="flex-wrap:wrap;gap:6px;">
+4565 <span class="muted" style="font-size:11.5px;margin-right:4px;">${g.icon} ${g.label}</span>
+4566 ${g.items.map(id=>{ const it = dockItem(id);
+4567 return `<button class="btn ${G.ui.activeTab===id?"":"secondary"} small" data-subtab="${id}">${it.icon} ${it.label}</button>`; }).join("")}
+4568 </div></div>`);
+4569 bar.querySelectorAll("[data-subtab]").forEach(b=> b.onclick = ()=>{
+4570 G.ui.activeTab = b.getAttribute("data-subtab");
 
