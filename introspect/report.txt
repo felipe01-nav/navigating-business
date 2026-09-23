@@ -1,35 +1,114 @@
 # introspect report
-# generated: 2026-09-23 14:34:15Z
-# commit: aedcba22699d11503fed390db29b2c5141b1bf36
+# generated: 2026-09-23 15:03:43Z
+# commit: 56e3ca85fa6c0b3be300c5fd951a12b730baee2d
 
-=== FILE: art-core.js
-=== PATTERN: DOCK_ITEMS\s*=\s*\[
-1466:const DOCK_ITEMS = [
-
-=== FILE: art-core.js
-=== PATTERN: id:\s*"(decisions|bank|financials|industry|team|hr|orgchart|slack|zoom|product|clients|research|empire|invest|milestones|personal|market|life|assistant|saves)"
-1467:  {id:"bank", icon:"🏦", label:"Bank"},
-1468:  {id:"decisions", icon:"🧭", label:"Decide"},
-1469:  {id:"slack", icon:"💬", label:"Slack"},
-1470:  {id:"team", icon:"🧑‍💼", label:"Team"},
-1471:  {id:"hr", icon:"🧑‍🎓", label:"HR & Hiring"},
-1472:  {id:"clients", icon:"🤝", label:"Clients"},
-1473:  {id:"product", icon:"📦", label:"Product"},
-1474:  {id:"research", icon:"🔍", label:"Research"},
-1475:  {id:"zoom", icon:"🎥", label:"Zoom"},
-1476:  {id:"financials", icon:"📊", label:"Finance"},
-1477:  {id:"invest", icon:"💹", label:"Invest"},
-1478:  {id:"personal", icon:"🏡", label:"Personal"},
-1479:  {id:"life", icon:"🌟", label:"My Life"},
-1480:  {id:"market", icon:"🛍️", label:"Market vs Owned"},
-1481:  {id:"milestones", icon:"🏅", label:"Milestones"},
-1482:  {id:"assistant", icon:"🤖", label:"F.E.L.I.P.E AI"},
-1483:  {id:"saves", icon:"💾", label:"Saves"},
-1484:  {id:"industry", icon:"🏭", label:"Industry Ops"},
-1485:  {id:"orgchart", icon:"🏛️", label:"Org Chart"},
-1486:  {id:"empire", icon:"🏗️", label:"My Empire"},
-4523:  { id:"market", icon:"\u{1F4E6}", label:"Product", items:["product","clients","research"] },
-4524:  { id:"empire", icon:"\u{1F3D7}\uFE0F", label:"Empire", items:["empire","invest","milestones"] },
-4525:  { id:"life",   icon:"\u{1F3E1}", label:"Life",    items:["personal","market","life"] },
-5273:  const list = [{ id:"personal", icon:"\u{1F464}", name:`${G.meta.playerName} (Personal)`, cash:p.cash,
+=== FILE: 113-icons.js  LINES 58-200
+58 return '<img class="nb-ico' + (big ? ' nb-ico-lg' : '') +
+59 '" data-nb-ico="' + key + '" src="' + u + '" alt="" />';
+60 }
+61
+62 function isTagged(s) {
+63 return typeof s === 'string' && s.indexOf('data-nb-ico=') !== -1;
+64 }
+65
+66 /* Top-level const/let never land on window; indirect eval sees the
+67 scope they do live in. */
+68 function ev(name) {
+69 try {
+70 return (0, eval)('typeof ' + name + " !== 'undefined' ? " + name + ' : null');
+71 } catch (e) { return null; }
+72 }
+73
+74 var orig = { groups: {}, items: {} };
+75
+76 function apply() {
+77 var groups = ev('DOCK_GROUPS'), items = ev('DOCK_ITEMS'), n = 0;
+78
+79 if (groups) {
+80 Object.keys(groups).forEach(function (k) {
+81 var g = groups[k], key = GROUP_ICON[k];
+82 if (!g || !key || !ICONS[key] || isTagged(g.icon)) return;
+83 if (!(k in orig.groups)) orig.groups[k] = g.icon;
+84 g.icon = tag(key, true);
+85 n++;
+86 });
+87 }
+88
+89 if (items) {
+90 Object.keys(items).forEach(function (k) {
+91 var it = items[k], key = ITEM_ICON[k];
+92 if (!it || !key || !ICONS[key] || isTagged(it.icon)) return;
+93 if (!(k in orig.items)) orig.items[k] = it.icon;
+94 it.icon = tag(key, false);
+95 n++;
+96 });
+97 }
+98
+99 return n;
+100 }
+101
+102 function revert() {
+103 var groups = ev('DOCK_GROUPS'), items = ev('DOCK_ITEMS');
+104 if (groups) Object.keys(orig.groups).forEach(function (k) {
+105 if (groups[k]) groups[k].icon = orig.groups[k];
+106 });
+107 if (items) Object.keys(orig.items).forEach(function (k) {
+108 if (items[k]) items[k].icon = orig.items[k];
+109 });
+110 try { if (typeof window.renderAll === 'function') window.renderAll(); } catch (e) {}
+111 }
+112
+113 /* A runtime <style> outranks every stylesheet link, which is the only
+114 dependable way to size these inside markup we do not own. */
+115 function css() {
+116 if (document.getElementById('nb-icons-css')) return;
+117 var s = document.createElement('style');
+118 s.id = 'nb-icons-css';
+119 s.textContent =
+120 '.nb-ico{width:21px;height:21px;vertical-align:-4px;display:inline-block;' +
+121 'image-rendering:auto;flex:0 0 auto}' +
+122 '.nb-ico-lg,.dock-btn .nb-ico{width:26px;height:26px;vertical-align:-6px}' +
+123 'button .nb-ico{width:17px;height:17px;vertical-align:-3px}' +
+124 '@media (max-width:780px){.dock-btn .nb-ico{width:24px;height:24px}}';
+125 (document.body || document.documentElement).appendChild(s);
+126 }
+127
+128 function run() {
+129 css();
+130 var n = apply();
+131 try { if (typeof window.renderDock === 'function') window.renderDock(); } catch (e) {}
+132 return n;
+133 }
+134
+135 if (/[?&]noicons=1/.test(location.search)) {
+136 try { console.log('[icons] disabled by ?noicons=1'); } catch (e) {}
+137 return;
+138 }
+139
+140 run();
+141 document.addEventListener('DOMContentLoaded', run);
+142 setTimeout(run, 400);
+143 setTimeout(run, 1500);
+144
+145 window.NBIcons = {
+146 data: ICONS,
+147 groupMap: GROUP_ICON,
+148 itemMap: ITEM_ICON,
+149 apply: run,
+150 revert: revert,
+151 uri: uri,
+152 tag: tag,
+153 /* Later sheets: merge payload and mappings, then re-apply. */
+154 add: function (more, groupMap, itemMap) {
+155 if (more) Object.keys(more).forEach(function (k) { ICONS[k] = more[k]; });
+156 if (groupMap) Object.keys(groupMap).forEach(function (k) { GROUP_ICON[k] = groupMap[k]; });
+157 if (itemMap) Object.keys(itemMap).forEach(function (k) { ITEM_ICON[k] = itemMap[k]; });
+158 return run();
+159 },
+160 report: function () {
+161 return { icons: Object.keys(ICONS).length,
+162 groups: Object.keys(orig.groups), items: Object.keys(orig.items) };
+163 }
+164 };
+165 })();
 
