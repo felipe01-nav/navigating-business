@@ -1,8 +1,5 @@
 # <file>|<regex> for grep, <file>@<start>-<end> for a line range.
-# pass 7: cheat code hooks.
-art-core.js|function\s+(saveGame|save|autosave|persistState|renderAll|toast|logHistory|recomputeNetWorth|personalNetWorth)\s*\(
-art-core.js|totalNetWorth
-art-core.js|personal\s*=\s*\{
-art-core.js|addEventListener\("keydown"
-70-cloud-saves.js|(function\s+\w+|NBCloud\.\w+\s*=|save)
-94-flags.js|(NBFlags|flag|URLSearchParams)
+# pass 8: cheat code collision check.
+art-core.js@13110-13140
+art-core.js@3630-3650
+art-core.js@245-260
