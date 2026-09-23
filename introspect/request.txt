@@ -1,6 +1,6 @@
-10-core-v40-v46.js|[\U0001F300-\U0001FAFF\u2190-\u27BF]
-20-v47-v49.js|[\U0001F300-\U0001FAFF\u2190-\u27BF]
-30-v410-v427.js|[\U0001F300-\U0001FAFF\u2190-\u27BF]
-40-v428-trucking.js|[\U0001F300-\U0001FAFF\u2190-\u27BF]
-50-v429-v432.js|[\U0001F300-\U0001FAFF\u2190-\u27BF]
-60-v433-v437.js|[\U0001F300-\U0001FAFF\u2190-\u27BF]
+10-core-v40-v46.js|icon:\s*"\\u
+20-v47-v49.js|icon:\s*"\\u
+30-v410-v427.js|icon:\s*"\\u
+40-v428-trucking.js|icon:\s*"\\u
+50-v429-v432.js|icon:\s*"\\u
+60-v433-v437.js|icon:\s*"\\u
