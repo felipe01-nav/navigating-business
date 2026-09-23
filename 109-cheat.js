@@ -1,4 +1,4 @@
-/* 109-cheat.js — v4.63
+/* 109-cheat.js — v4.65
    Typed cheat codes. No input box, no console: just type the word anywhere
    in the game and it fires. Built for testing — chiefly so a new company can
    be founded on demand without grinding for the seed capital.
@@ -7,7 +7,22 @@
      navcash   → +$10,000,000,000 personal cash
      navmega   → +$100,000,000,000 personal cash (for the very impatient)
      navpoor   → reset personal cash to $6,000 (the starting figure)
+     navopen   → unlock every industry AND open the Empire founding gate
+     navlock   → undo navopen (re-earn everything honestly)
      navhelp   → toast listing every code
+
+   WHY navopen NEEDS TWO HALVES (verified in art-core)
+     1. Industries are gated by net worth: INDUSTRY_UNLOCK at art-core:5847
+        (retail $150k, restaurant $300k, robotics $750k, finance $2M;
+        agency/trucking/nail_salon are set to 0 by 10-core-v40-v46.js).
+        syncIndustryUnlocks() :5854 only ever ADDS to
+        G.playerMeta.unlockedIndustries, so writing every key into that
+        list is permanent and survives month close and save/load.
+     2. Unlocking an industry is not permission to found a company in it.
+        empireGate() :5616 separately demands $25k/mo revenue, 12 months
+        survived and seed x1.25 in personal cash. Cash is buyable with
+        navcash; revenue and months are not. So navopen also wraps
+        empireGate and forces every check true.
 
    Collision safety: art-core's own key handler (art-core.js:13117) consumes
    Space, Escape and the digits 1-9. Every code here is letters only, so the
@@ -88,10 +103,80 @@
     return true;
   }
 
+  /* ---------------------------------------------------------------
+     Industry unlocks + the founding gate
+     --------------------------------------------------------------- */
+  var gateForced = false;
+  var gateWrapped = false;
+
+  function wrapGate() {
+    if (gateWrapped) return;
+    try {
+      var prev = window.empireGate;
+      if (typeof prev !== "function") return;
+      var fn = function () {
+        var r;
+        try { r = prev.apply(this, arguments); } catch (e) { r = null; }
+        if (!gateForced || !r) return r;
+        try { (r.checks || []).forEach(function (c) { if (c) c.ok = true; }); } catch (e) {}
+        r.unlocked = true;
+        return r;
+      };
+      fn.__nbCheat = true;
+      window.empireGate = fn;
+      gateWrapped = true;
+    } catch (e) { ERR.push("wrapGate: " + (e && e.message)); }
+  }
+
+  function openAll() {
+    var g = G();
+    if (!g) { say("No game loaded yet \u2014 start or load a run first.", "bad"); return false; }
+    var keys = glob("INDUSTRY_KEYS") || [];
+    if (!keys.length) { say("Industry list not reachable.", "bad"); return false; }
+
+    g.playerMeta = g.playerMeta || {};
+    var list = g.playerMeta.unlockedIndustries || ["ai_saas"];
+    var added = [];
+    keys.forEach(function (k) {
+      if (list.indexOf(k) < 0) { list.push(k); added.push(k); }
+    });
+    g.playerMeta.unlockedIndustries = list;
+
+    wrapGate();
+    gateForced = true;
+
+    repaint();
+    try { if (typeof logHistory === "function") logHistory("\u{1F9EA} Test unlock: every industry opened and the founding gate bypassed."); } catch (e) {}
+    say("\u{1F513} " + list.length + " industries unlocked" +
+        (added.length ? " (" + added.length + " new)" : "") +
+        " and the Empire founding gate is open. Found away from the Empire tab.", "good");
+    return true;
+  }
+
+  function relock() {
+    var g = G();
+    if (!g) { say("No game loaded yet.", "bad"); return false; }
+    gateForced = false;
+    try {
+      g.playerMeta = g.playerMeta || {};
+      var owned = (g.companies || []).map(function (c) { return c && c.industry; }).filter(Boolean);
+      var list = ["ai_saas"];
+      owned.forEach(function (k) { if (list.indexOf(k) < 0) list.push(k); });
+      g.playerMeta.unlockedIndustries = list;
+      /* re-add anything genuinely earned */
+      if (typeof syncIndustryUnlocks === "function") syncIndustryUnlocks();
+    } catch (e) { ERR.push("relock: " + (e && e.message)); }
+    repaint();
+    say("\u{1F512} Back to honest progress \u2014 only earned and owned industries remain.", "good");
+    return true;
+  }
+
   var CODES = {
     navcash: { desc: "+$10B personal cash", run: function () { return give(1e10); } },
     navmega: { desc: "+$100B personal cash", run: function () { return give(1e11); } },
     navpoor: { desc: "reset personal cash to $6,000", run: function () { return reset(); } },
+    navopen: { desc: "unlock every industry + open the founding gate", run: function () { return openAll(); } },
+    navlock: { desc: "undo navopen", run: function () { return relock(); } },
     navhelp: {
       desc: "list the codes",
       run: function () {
@@ -147,11 +232,13 @@
   }
 
   window.NBCheat = {
-    version: "4.63",
+    version: "4.65",
     codes: Object.keys(CODES),
     /* Console fallbacks, if the keyboard route ever misbehaves. */
     give: give,
     reset: reset,
+    openAll: openAll,
+    relock: relock,
     fire: function (code) {
       var c = CODES[String(code || "").toLowerCase()];
       if (!c) { say("Unknown code.", "bad"); return false; }
@@ -159,6 +246,7 @@
     },
     report: function () {
       var p = P();
+      var g = G();
       return {
         listening: true,
         codes: Object.keys(CODES).map(function (k) { return k + " \u2014 " + CODES[k].desc; }),
@@ -169,6 +257,9 @@
         personalCash: p ? p.cash : null,
         personalNetWorth: p ? p.netWorth : null,
         totalNetWorth: p ? p.totalNetWorth : null,
+        industriesUnlocked: (g && g.playerMeta && g.playerMeta.unlockedIndustries) || null,
+        allIndustries: glob("INDUSTRY_KEYS"),
+        foundingGateForced: gateForced,
         errors: ERR.slice()
       };
     }
