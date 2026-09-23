@@ -1,49 +1,147 @@
 # introspect report
-# generated: 2026-09-23 12:32:20Z
-# commit: 4f4c2ab5eb2d056cba4b9164448c807901c7968d
+# generated: 2026-09-23 12:33:03Z
+# commit: b692d8393d02a4fa8c040bb0f5f95e03ed9eafbc
 
-=== FILE: art-core.js
-=== PATTERN: (dock-in|#dock\{|dock-btn\s*\{)
-5713:  #dock{width:78px;gap:8px;}
-5714:  .dock-btn{width:62px;height:62px;border-radius:14px;flex-direction:column;gap:3px;font-size:20px;line-height:1;}
-5715:  .dock-btn .dock-in{font-size:8.5px;font-weight:700;letter-spacing:.02em;opacity:.9;}
-5717:  @media (max-width:820px){ #dock{width:64px;} .dock-btn{width:52px;height:54px;font-size:17px;} .dock-btn .dock-in{font-size:7.5px;} }
-5962:      <span>${g.icon}</span><span class="dock-in">${g.label.toUpperCase()}</span>
-10112:  .dock-btn{justify-content:center;align-items:center;text-align:center;}
-10113:  .dock-btn .dock-in{display:block;width:100%;text-align:center;}
-10422:  #dock{transition:width .12s ease;}
-10426:  #dock.v22-dock-icons .dock-btn{width:44px;height:44px;}
-10427:  #dock.v22-dock-icons .dock-in{display:none;}
-10428:  #dock.v22-dock-medium .dock-btn{width:72px;height:58px;}
-10429:  #dock.v22-dock-full .dock-btn{width:130px;height:44px;flex-direction:row;gap:8px;justify-content:flex-start;padding:0 10px;}
-10430:  #dock.v22-dock-full .dock-in{font-size:10.5px;text-align:left;letter-spacing:0;}
-10583:      const lbl = btn.querySelector(".dock-in");
-12352:    #dock{padding-top:4px !important;}
+=== FILE: 10-core-v40-v46.js  LINES 1826-1852
+1826 var ob = document.getElementById("onboard");
+1827 var vs = ob && ob.querySelector("h1 .muted");
+1828 if(vs) vs.textContent = "v4.5";
+1829 }catch(e){}
+1830 return out;
+1831 };
+1832 }catch(e){}
+1833 })();
+1834 /* ================= v4.6 — client tiers, reputation, budgets, hustle ================= */
+1835 (function v46Css(){
+1836 try{
+1837 var s = document.createElement("style");
+1838 s.textContent = `
+1839 #dock{overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;}
+1840 #dock::-webkit-scrollbar{width:6px;}
+1841 #dock::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:3px;}
+1842 .v46-rep{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-top:8px;}
+1843 .v46-repcard{border:1px solid var(--border);border-radius:12px;padding:11px;background:var(--panel2);}
+1844 .v46-repcard .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;opacity:.65;}
+1845 .v46-repcard .val{font-size:23px;font-weight:800;line-height:1.15;margin-top:2px;}
+1846 .v46-repcard .tag{font-size:11.5px;font-weight:700;margin-top:1px;}
+1847 .v46-repcard .sub{font-size:11px;opacity:.72;margin-top:4px;line-height:1.45;}
+1848 .v46-bar{height:6px;border-radius:999px;background:rgba(255,255,255,.12);margin-top:7px;overflow:hidden;}
+1849 .v46-bar i{display:block;height:100%;border-radius:999px;background:var(--good);}
+1850 .v46-grp{border:1px solid var(--border);border-radius:11px;margin-top:9px;overflow:hidden;}
+1851 .v46-grphead{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 11px;cursor:pointer;background:var(--panel2);flex-wrap:wrap;}
+1852 .v46-grphead b{font-size:12.5px;}
 
-=== FILE: art-merge.js
-=== PATTERN: (dock-in|#dock|dock-btn)
+=== FILE: art-core.js  LINES 5700-5722
+5700 G.ui.lastTabByGroup = G.ui.lastTabByGroup || {};
+5701 G.ui.lastTabByGroup[groupOfTab(G.ui.activeTab).id] = G.ui.activeTab;
+5702 renderDock(); renderScreen();
+5703 });
+5704 return bar;
+5705 }
+5706
+5707
+5708 /* ================= v12 — Polish & Progression ================= */
+5709 (function v12Styles(){
+5710 const s = document.createElement("style");
+5711 s.textContent = `
+5712 /* dock: label lives inside the button */
+5713 #dock{width:78px;gap:8px;}
+5714 .dock-btn{width:62px;height:62px;border-radius:14px;flex-direction:column;gap:3px;font-size:20px;line-height:1;}
+5715 .dock-btn .dock-in{font-size:8.5px;font-weight:700;letter-spacing:.02em;opacity:.9;}
+5716 .dock-label{display:none;}
+5717 @media (max-width:820px){ #dock{width:64px;} .dock-btn{width:52px;height:54px;font-size:17px;} .dock-btn .dock-in{font-size:7.5px;} }
+5718
+5719 /* type hierarchy: tier 1 tabs biggest, tier 2 smaller, tier 3 smallest */
+5720 .tierbar1{border:none;background:none;padding:0 0 4px;border-bottom:1px solid var(--border);border-radius:0;margin-bottom:12px;}
+5721 .tierbar1 .btn{font-size:14.5px;padding:9px 15px;border-radius:10px 10px 0 0;}
+5722 .tier1-crumb{font-size:12px;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;}
 
-=== FILE: 10-core-v40-v46.js
-=== PATTERN: (dock-in|#dock|dock-btn)
-1839:    #dock{overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;}
-1840:    #dock::-webkit-scrollbar{width:6px;}
-1841:    #dock::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:3px;}
+=== FILE: art-core.js  LINES 10405-10440
+10405 toast("<b>Run code copied \u2014 opening the form.</b> Paste into the one box and submit.");
+10406 window.open(LEADERBOARD_FORM_URL, "_blank", "noopener");
+10407 };
+10408 return wrap;
+10409 };
+10410
+10411 /* ---- 7. Save migration: nudge legacy tabs into the new map ---- */
+10412 (function v22Migrate(){
+10413 try {
+10414 if(G && G.ui && (G.ui.activeTab==="hq" || G.ui.activeTab==="people")) G.ui.activeTab = "financials";
+10415 } catch(e){}
+10416 })();
+10417
+10418 /* ===================== v22 addendum: board pay, C-suite roster, resizable dock ===================== */
+10419 (function v22bStyle(){
+10420 const s = document.createElement("style");
+10421 s.textContent = `
+10422 #dock{transition:width .12s ease;}
+10423 #dock.v22-dock-icons{width:64px;}
+10424 #dock.v22-dock-medium{width:92px;}
+10425 #dock.v22-dock-full{width:150px;}
+10426 #dock.v22-dock-icons .dock-btn{width:44px;height:44px;}
+10427 #dock.v22-dock-icons .dock-in{display:none;}
+10428 #dock.v22-dock-medium .dock-btn{width:72px;height:58px;}
+10429 #dock.v22-dock-full .dock-btn{width:130px;height:44px;flex-direction:row;gap:8px;justify-content:flex-start;padding:0 10px;}
+10430 #dock.v22-dock-full .dock-in{font-size:10.5px;text-align:left;letter-spacing:0;}
+10431 #dock .v22-dockwidth{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:8px;}
+10432 #dock .v22-dockwidth button{font-size:10px;padding:3px 7px;}
+10433 @media (max-width:820px){ #dock.v22-dock-full,#dock.v22-dock-medium{width:100%;} }
+10434 .v22-csuite{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;}
+10435 .v22-payrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--panel2);border:1px solid var(--border);
+10436 border-radius:8px;padding:7px 10px;margin-bottom:6px;}
+10437 .v22-payrow .nm{font-size:12.5px;font-weight:700;}
+10438 .v22-payrow .sp{flex:1;}
+10439 `;
+10440 document.head.appendChild(s);
 
-=== FILE: 20-v47-v49.js
-=== PATTERN: (dock-in|#dock|dock-btn)
+=== FILE: art-core.js  LINES 12340-12360
+12340 };
+12341 }catch(e){}
+12342 })();
+12343
+12344 try{ if(typeof G !== "undefined" && G && G.company){ v24EnsureAccounts(); v24CheckGoals(); } }catch(e){}
+12345
+12346
+12347 /* ===================== v25: Engagement, Events, Rails & Guardrails ===================== */
+12348 (function v25Css(){
+12349 try{
+12350 const s = document.createElement("style");
+12351 s.textContent = `
+12352 #dock{padding-top:4px !important;}
+12353 #dock .v22-dockwidth{margin:0 0 4px 0 !important;padding:0 !important;}
+12354 #dock .v24-advwrap{margin:0 0 8px 0 !important;}
+12355 .v25-ev{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;margin-bottom:7px;background:var(--panel2);}
+12356 .v25-ev .ico{font-size:20px;min-width:26px;text-align:center;}
+12357 .v25-ev .nm{font-weight:600;font-size:13px;}
+12358 .v25-ev .ds{font-size:11.5px;color:var(--muted);}
+12359 .v25-ev .rt{margin-left:auto;text-align:right;white-space:nowrap;}
+12360 .v25-locked{opacity:.55;}
 
-=== FILE: 30-v410-v427.js
-=== PATTERN: (dock-in|#dock|dock-btn)
-
-=== FILE: 60-v433-v437.js
-=== PATTERN: (dock-in|#dock|dock-btn)
-
-=== FILE: 90-hq-stages.js
-=== PATTERN: (dock-in|#dock|dock-btn)
-
-=== FILE: 99-v454-ui.js
-=== PATTERN: (dock-in|#dock|dock-btn)
-
-=== FILE: facilities.css
-=== PATTERN: (dock-in|#dock|dock-btn)
+=== FILE: art-core.js  LINES 10570-10595
+10570 return G.ui.dockMode;
+10571 }
+10572 (function v22DockWidth(){
+10573 const prev = renderDock;
+10574 renderDock = function(){
+10575 const r = prev.apply(this, arguments);
+10576 const dock = document.getElementById("dock");
+10577 if(!dock) return r;
+10578 const mode = v22DockMode();
+10579 dock.classList.remove("v22-dock-icons","v22-dock-medium","v22-dock-full");
+10580 dock.classList.add("v22-dock-"+mode);
+10581 dock.querySelectorAll("[data-group]").forEach(btn=>{
+10582 const g = DOCK_GROUPS.find(x=>x.id===btn.getAttribute("data-group"));
+10583 const lbl = btn.querySelector(".dock-in");
+10584 if(g && lbl) lbl.textContent = (mode==="full") ? g.label : (V22_NICKS[g.id] || g.label).toUpperCase();
+10585 });
+10586 const ctl = document.createElement("div");
+10587 ctl.className = "v22-dockwidth";
+10588 ctl.innerHTML = `<button class="btn secondary small" id="v22DockToggle" title="Side panel width">${mode==="icons"?"\u00BB":mode==="medium"?"\u00BB":"\u00AB"}</button>`;
+10589 dock.appendChild(ctl);
+10590 const t = ctl.querySelector("#v22DockToggle");
+10591 if(t) t.onclick = ()=>{
+10592 const i = V22_DOCK_MODES.indexOf(v22DockMode());
+10593 G.ui.dockMode = V22_DOCK_MODES[(i+1) % V22_DOCK_MODES.length];
+10594 renderDock();
+10595 };
 
