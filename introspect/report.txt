@@ -1,64 +1,66 @@
 # introspect report
-# generated: 2026-09-23 14:26:51Z
-# commit: 30f979cb8c20fbafffdac27d8ae00f3250d7b985
+# generated: 2026-09-23 14:29:13Z
+# commit: 93cf05e0b7e7fc757f73c9803c787655ce8e4e52
 
-=== FILE: 10-core-v40-v46.js
-=== PATTERN: icon:\s*"\\u
-8:      return { label:"Legal", icon:"\u2696\uFE0F", rungs:[
-9:        { key:"rep", label:"Paralegal", salaryRange:[5000,6000], icon:"\u{1F4C4}" },
-10:        { key:"coordinator", label:"Counsel", salaryRange:[9500,11000], icon:"\u{1F9ED}", under:"rep", per:10,
-12:        { key:"teamlead", label:"Senior Counsel", salaryRange:[12000,13500], icon:"\u{1F9D1}\u200D\u{1F3EB}", under:"coordinator", per:5,
-14:        { key:"manager", label:"Legal Manager", salaryRange:[14500,16500], icon:"\u{1F4CB}", under:"teamlead", per:5,
-16:        { key:"director", label:"Director of Legal", salaryRange:[17500,20000], icon:"\u{1F3AF}", under:"manager", per:5,
-18:        { key:"clo", label:"Chief Legal Officer", salaryRange:[22000,27000], icon:"\u{1F451}", under:"director", per:2,
-150:      DOCK_ITEMS.push({ id:"rivals", label:"Market & Rivals", icon:"\u2694\uFE0F" });
-224:      DOCK_ITEMS.push({ id:"rivals", label:"Market & Rivals", icon:"\u2694\uFE0F" });
-242:    var app = { id:"rivals", icon:"\u2694\uFE0F", label:"Rivals", items:["rivals"] };
-427:      { key:"v43_smb", label:"SMB Account Executive", salaryRange:[5400,6400], icon:"\uD83C\uDFA7",
-429:      { key:"v43_mm", label:"Mid-Market Account Executive", salaryRange:[9500,11500], icon:"\uD83C\uDFE2",
-431:      { key:"v43_ent", label:"Enterprise Account Executive", salaryRange:[16000,20000], icon:"\uD83C\uDFDB\uFE0F",
-1428:      key:"nail_salon", label:"Nail Salon", icon:"\uD83D\uDC85", startCash:25000, opsType:null, v45:"salon",
-1446:      key:"trucking", label:"Trucking Company", icon:"\uD83D\uDE9B", startCash:35000, opsType:null, v45:"fleet",
-1464:      key:"agency", label:"Marketing Agency", icon:"\uD83D\uDCE3", startCash:12000, opsType:null, v45:"agency",
-1952:    var rung = { key:"v46_large", label:"Large Account Executive", salaryRange:[12500,15500], icon:"\uD83C\uDFE2",
-
-=== FILE: 20-v47-v49.js
-=== PATTERN: icon:\s*"\\u
-
-=== FILE: 30-v410-v427.js
-=== PATTERN: icon:\s*"\\u
-343:          if(st.status === "filed") out.unshift({ k:"ipo", cls:"good", icon:"\u{1F4DC}", text:"IPO in " + st.monthsToList + "mo", tab:"rivals" });
-344:          else if(st.status === "private" && window.v410Ready()) out.unshift({ k:"ipoready", cls:"good", icon:"\u{1F3DB}\uFE0F", text:"IPO ready", tab:"rivals" });
-4018:      LADDERS.legal = { label:"Legal & Compliance", icon:"\u2696\ufe0f", rungs:[
-4019:        { key:"rep", label:"Paralegal", salaryRange:[5200,6800], icon:"\u{1F4C4}", under:null, per:0,
-4021:        { key:"senior", label:"Counsel", salaryRange:[9500,12500], icon:"\u{1F4DA}", under:"rep", per:3,
-4023:        { key:"manager", label:"Senior Counsel", salaryRange:[14000,18000], icon:"\u{1F3DB}\ufe0f", under:"senior", per:3,
-4025:        { key:"director", label:"Deputy General Counsel", salaryRange:[20000,24000], icon:"\u{1F5DE}\ufe0f", under:"manager", per:4,
-4027:        { key:"gc", label:"General Counsel", salaryRange:[27000,34000], icon:"\u{1F451}", under:"director", per:2,
-
-=== FILE: 40-v428-trucking.js
-=== PATTERN: icon:\s*"\\u
-1915:  { key:"v428_day",   label:"Day Cab / Regional Driver", salaryRange:[4500,5100], icon:"\u{1F69B}",
-1917:  { key:"v428_dry",   label:"Dry Van Driver", salaryRange:[4900,5500], icon:"\u{1F4E6}",
-1919:  { key:"v428_reefer",label:"Reefer Driver", salaryRange:[5400,6100], icon:"\u{1F9CA}",
-1921:  { key:"v428_flat",  label:"Flatbed Driver", salaryRange:[5500,6300], icon:"\u{1F517}",
-1923:  { key:"v428_trainer",label:"Lead Driver / Trainer", salaryRange:[6800,7600], icon:"\u{1F393}",
-1925:  { key:"v428_safety",label:"Safety & Compliance Manager", salaryRange:[8200,9200], icon:"\u{1F6E1}\uFE0F",
-1927:  { key:"v428_dirfleet",label:"Director of Fleet Operations", salaryRange:[12000,14000], icon:"\u{1F454}",
-1931:  { key:"v428_reefer_rep", label:"Reefer Freight Rep",  salaryRange:[5200,5900], icon:"\u{1F9CA}",
-1933:  { key:"v428_flat_rep",   label:"Flatbed Freight Rep", salaryRange:[5000,5700], icon:"\u{1F517}",
-1935:  { key:"v428_ded_rep",    label:"Dedicated Lanes Rep", salaryRange:[5600,6400], icon:"\u{1F4CD}",
-1946:    LADDERS.drivers = { label:"Drivers & Fleet", icon:"\u{1F69B}", rungs: clone(DRIVER_RUNGS) };
-1949:    BASE_LADDERS.drivers = { label:"Drivers & Fleet", icon:"\u{1F69B}", rungs: clone(DRIVER_RUNGS) };
-2539:      {id:"culture", icon:"\u{1F389}", label:"Culture"},
-2540:      {id:"comp",    icon:"\u{1F4B5}", label:"Compensation"},
-2541:      {id:"board",   icon:"\u{1F3DB}\uFE0F", label:"Board"}
-3060:          s.activity.unshift({ icon:"\u2696\uFE0F", text:"Converted to " + ent.label, amount: ent.setup ? -ent.setup : null, m:n(c.month,1), y:n(c.year,1) });
-3161:    if(!have) DOCK_ITEMS.push({ id:"taxes", icon:"\u{1F9FE}", label:"Taxes" });
-
-=== FILE: 50-v429-v432.js
-=== PATTERN: icon:\s*"\\u
-
-=== FILE: 60-v433-v437.js
-=== PATTERN: icon:\s*"\\u
+=== FILE: 113-icons.js  LINES 1-60
+1 /* 113-icons.js — v4.67 "Emoji retire, icons report for duty"
+2
+3 Sheet 1 of the custom icon set. Twelve flat-vector icons, generated as a
+4 4x3 magenta-keyed grid, cut to transparent PNG, recoloured for the dark
+5 rail (navy ink -> paper, paper -> deep slate, amber untouched) and inlined
+6 here as 48px WebP data URIs. Inlined rather than committed as binaries so
+7 there is no missing-asset window and the service worker caches them with
+8 the script itself.
+9
+10 Applies to DOCK_GROUPS (the seven rail buttons) and the DOCK_ITEMS that
+11 have a genuine match in sheet 1. Anything without a match keeps its emoji
+12 until sheet 2 arrives — a mixed rail is preferable to a wrong icon.
+13
+14 Both constants are top-level `const`, so they are NOT on window; they are
+15 reached by indirect eval and mutated in place.
+16
+17 Escape hatch: ?noicons=1 restores every emoji.
+18 Console: NBIcons.report(), NBIcons.apply(), NBIcons.revert()
+19 */
+20 (function () {
+21 "use strict";
+22
+23 var OFF = /[?&]noicons=1/.test(location.search);
+24
+25 /* ---------- payload: semantic key -> 48px WebP, base64 ---------- */
+26 var D = {
+27 money: "UklGRtIEAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSFECAAABoLRtmyHJXtD7fV+MbRzbO9u2ba1s27Zt2zZXWNm2URHxvYvMrMyKcyJiAvB/KmpmplKIBkWjBBucCYDR8yy9/PJLzzMWAGxACix54rNf/kuSva9ePGUZQAeiWOtFVj1nZ/WVdaADUOxNekzuJOmeopP7QztTLMGc2DJlLg7tKmA/77F1zw9E6G5fxnaR+3dnWPJvb+X+1xLQrgD9gLlN5qdDIV0Z1vTM1ombwFqImoVgpkNwAGO76Ach9CNB0RzCIZ1w/37EAIxacK1N9txx/WVnNUz5yb2N+8/zQxsEmL7Xg58n1v7x9mUbf8x2/GY8pE4w9PjvSTKnmJKz4
+28 growth: "UklGRroEAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSO4CAAABoEVtmyFJ+uKPyNHu2FY11hwbl2vbtm3btjer1rZtG2PblZEZ8V1kIZvXETEBaI2KksahtJRqlEqMRmnBxI/3hTSI0gYA2owdAQVoPM8foRoEgGx25NN/8xqY1HPJN2jYgTvd9asj6XeALsFvG0TjDpJMYhfXQxqDknYPMiYd528M1RigFB5i7BN+AoXGYfC4Jy3vhmkUyuBWcjWdOyEjMUZXFuAK+qU1uxU5GToLAQBVSYCz6VaNAKbMGALJQKHm6vv3gipncASTDdNgNLobpFPfl9MYvZLktZBSBru7xO0OAILSGs/yQ6hSIh+zGCfcTCRlMDVKeCiw3bkQ
+29 hq: "UklGRnwDAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSD4BAAABkHNb27E51/3c39j2TGzb/ANWnS6V/4dts006p02VFpVtv893X+N53mfiKiImAP3bRRe5oHRbMSSqmmetkVXd64WoOk3Lac2DAdpFVNFVJR0g/341IKoAalZfujwb0BQElRevfr55tgJAzZrzL0na7jqIC+Ywgl3rKtaee0nSe298tA5woVRH/PDmv155StJ7I0lPXp8OCaNAQ5ZGkt4bezRPvxQaBKVLLpqR9Mbef+NBZAI4t/UhAye2O4TDQDLxgbgnzPAfWWNUwzx/Xbs1L7L9ADISj9n7owsAqIul2zsbWgDp3Yg0zBv57tgESC8UM2hMM5uQ7xrE9WZmSqQl
+30 people: "UklGRuQDAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSM4CAAABoEPblmnbmqtqv2/btm3btm37Z7Zt27Zt20b0zFNVawQbF9EPI2IC9H+52aCyyqQYB0+QNFElxThAFoLVgmY78+2fv3tsE8lqFkP/REmKpqBN/qPxwS0VZEFSDP2hyRZeeHIpavlx9HIp2WFrVdLMK84mWV8s2Cm/pfT74VMHPUePxgn+SaVZ7xrKyIsXl6xb0FU0/j7jtKPcm9zHzTrVj+DgD08SrEvUCqTinnOabnE6LzIXueA5s5eqLpVO9QQ4PvucCW9y0hxzgwO9cltfzqZW+GmyBXve5mPnmuIvCpB5UrHbaQ2JG3UNidbEFbqT1PC8QgfTpD9RGm6w
+31 ops: "UklGRqwEAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSBQDAAABoCzZtmnb6mPMdZ9t27Zt27Zt26/2X9m2bdu2bb+995pztML2jvsBETEBGgd7SjZao53cfI41Vp/GLKWRcCnpcbhAYyQfBe22jBb6KecXptWO28qG5mNO49/H/yOC7x6HncyH5FqEDEQQUPPbpGbDUTXmcuocGXLkHIelSkM/nBpoBkFhLQ3ZNPXaH1OC8+Za9DpK4dlVJ5cNwSy9CGRulmQfEMAVSsPQeF+0amqOHzPB+HYDmUb9gLw/l2TeoXoLyNwiSW9QgBuU+uvVbPbtvokSceoc819KKby8wfSyXkyS67y3Xn/jlQ2VJJl0ODXQqAky66h3VzJLU/0DcH0
+32 research: "UklGRvgDAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSCsBAAABkFtteyo23y+Z2SV2vAMz8wCueAR2UjF0tABnAVfhpM3JAjwAk3T1Vb5X+kNtREwAfltjTVQxNpYgvolj0HbjwYOHxR88OF6FlQgi1a8Y/TSsFLMY5U8f2fEMSiTCQvCMHBzPwEqxOUYjHc/DiiY63oARTXS8ASOa+IsXYAosJAqZb4XJJeOp6DsLYCddey4jPd9D0GRxn56KDDp+haCpBDt01GRwTK9JUP6aQZNB00dtLZ91Cao+6ILgBb2qElwJTpXFIDNVkJKXwauyWKEuGNylV2UxqW5e3dz/T6e6FquKWVhFiaqQ+TUYTQwZt2HzzCZjFj5UQHIshG
+33 idea: "UklGRl4FAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSI8CAAABoLVtmyFJntDzfREza9u2be+Rd49s27Zt27Zt27Ztb0VkvKuOzKprImICGBF6jME9xGCD4U5l8P5ZgMnXOe6mO+647shVx4NgfXJY9KqfNOSXp88KDniYeekQuwiMd46knHLOOTXS74cOwwH2uJYuA/O8pZKLhixJemQSgo+/4hd5wwljK2f+75RUX3p6ZRLGPiZLungKszq3Kb5UVuuenho5MP0bvy/rtHV/QEkd9nQiw9nibEKbwHpK6rKkspCFKWYP3sJspHdK04mSbiLQPrCCGnVcejMQDG91dkldJW1HNPA67EU13V1OZNQNsRpjvO9Uusp62nzcK7RD9A
+34 decide: "UklGRugDAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSOoBAAABoLNte6FBH9D9JFnbNn+AvZ1tV7Zts9puSxuVbdv2ZxszyV3MO/NushExAfjSleSlxI8CJA8FiBfULgHJhprFIZ9PY8o/LxuJyqAx4a9njUR9HjHGFPuOXK0L61RjinwkV+nC2qj8BMmPzq5EZvW1s4uRVPkICo7bsm33P+STbTu2p2/b8zf5ZNv27WsaQ7KJKnGGfn9vLjqTwQz+G0UxSRtljknaKIr/5UmoTApHbEyf1n0sAskgME9pvTj+VSOPqn/QeaFjU+gMGq3p6Ddmr0wGIxl7ijgeJtNGRt7WZFI4zNhTzF3QaYICr2i9XYBKU6j7L50nyxcFICka
+35 reports: "UklGRqwDAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSGQBAAABkGNtmyIr319V14BoYAFO5LAAUg2J3B0yd1uEO5lL5q7XF4AtwaVPyYdWd/13AxExARjqrkkp06wUELP22NGjx7KPHtsxAqYZ61yHO8ImX42EbULw94Pw09eu2N2CrSeYv2f3nt1vmFjfs7sFU8diFQt6drcgtW7Fn9771Aw9u0cZqXOFgQUrnoGtc7VMiK8geU5K8WmeheBKqWdZAgxru65IsKT/w7tvLJpnMZvl8xwupirFVOq5/M/iOgNLBz6GybiqIKbBdsj/rilg5O12I5oYuBBOlY/7tXGHdCg7DIimxI/dS2EU/XMBrKZUxeu6GNIlZZ5b4DQl/hg
+36 trophy: "UklGRtYEAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSEUCAAABoHNr27E9Oq/rfmLbVmXbtu2ksvUPnJR2xrYr27YVGw+us3h139/M9BExAfgf1Sig8yIIKh4E/fft2+953/4RkJIETW8yYNoWWopDLyb+73A8omJEAZVuRv+ZjRAHqOTL341Bu6FIlSaPfvThRx98G+abDz768KNHm4oCEY6yzJ5ABDg8lsbXzp27HObS+XNX4/RxOCDCfnJFzdotz9F8Gc+3rlVzCXkAUc5achOAb5j5yvgdgDXkuhyHQeQDKC+vM/WV8h0pJ2fI4XCAoNY5/lxJ8VCIx6HlvuWlehAAikeNY4GdTHwlPAAZbPYsFAAiTCZfgS4LsVrwGDkH
+37 market: "UklGRigEAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSIACAAABoERtm2Hb+f6/6pija9u2FdvW6CQj27btzIyRbdvOPrFxjcIX9Omqvde684iYAGwWVaW2BIBaq1IzmDS8Dv9XqQmDo/3qzx88f98pnahNi3tY6H9+YoRoDYj0u/z5bzfx/1fC1kBh2/hdT7p7nX9bpSbECv7/NNcNs/XWWlOsqio9lgMgahrNKeSeqKYYLQHAYCn5UtdhXYfuv9MuOy+aN3/+pNFjR/Tq1atXS1OzQUZBx69MdWHTypUrV37X/e2n77z77qv3joaWgeIRbnLOOe+9DzEGpt8NW8riZDqWj8WheKO/OcFgKWNCqmNXgqDzd8ZqRM6HKQXF4/RV
+38 dashboard: "UklGRugCAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSO8AAAABgFtre/LmFdhOMgMzdTmZg2rOCjgE8xBmGiHMI0CbjlHSF5B+MFUpImICUJNywUpScAdDyTILw2D89PQs9NPTxBA4AM56H6hEHwcYByT26F2rEtTvtAsJCBSNopJUJg/xJ0ulQjlb7t+DbOlkbQVdKqbwR2KD3pRn7UUrz2+0DQkw1nxLJXrfyTgAhsbldCrtzKSuydgMXacyaWcqvdkBhr8MPufoy/ZFS/DJYOdSuKMNkSwpm6JCpCEq3JIj4BvSNk13CJvxybnVL+VRr8+Ng4UgMUMBzkIGJzB8vH90eub1aP94DCK4cmSBhlMLAgBWUDgg0gEAADAKA
+39 };
+40
+41 /* ---------- reach the lexical constants ---------- */
+42 function ev(name) {
+43 try { return (0, eval)("typeof " + name + "!=='undefined'?" + name + ":null"); }
+44 catch (e) { return null; }
+45 }
+46
+47 /* ---------- who gets which icon ----------
+48 Only genuine matches. Unmatched tabs keep their emoji: life, personal,
+49 assistant, saves, slack, zoom, clients, hr, orgchart. Sheet 2 will cover
+50 a house, a robot, a floppy disk, a handshake, a graduate, a medal, a
+51 chat bubble, a camera, a magnifier and a star. */
+52 var GROUP_ICON = {
+53 run: "dashboard", // 🧭 -> dashboard monitor
+54 people: "people", // 🧑‍💼 -> three figures
+55 market: "idea", // 📦 -> lightbulb (this group is Product)
+56 empire: "hq" // 🏗️ -> office block
+57 };
+58 var ITEM_ICON = {
+59 bank: "money", // 🏦 -> coin stacks
+60 decisions: "decide", // 🧭 -> calendar with a tick
 
