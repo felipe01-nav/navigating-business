@@ -1,165 +1,105 @@
 # introspect report
-# generated: 2026-09-23 02:20:38Z
-# commit: d8be38cbe84428de2efca1832b9af636bc640fd4
+# generated: 2026-09-23 02:52:20Z
+# commit: 583ecb26fdee429fce3a661defab66591ca73382
 
-=== FILE: 30-v410-v427.js  LINES 1596-1680
-1596 if(typeof renderAll === "function") renderAll();
-1597 };
-1598 }catch(e){}
-1599
-1600 /* keep the button honest about how many pitches remain */
-1601 function relabelPitch(){
-1602 try{
-1603 if(!c() || (typeof v45Kind === "function" && v45Kind() !== "agency")) return;
-1604 var left = pitchesLeft();
-1605 document.querySelectorAll("[data-v45pitch]").forEach(function(b){
-1606 var want = left > 0
-1607 ? "Pitch a new account \u00b7 " + left + " of " + PITCH_CAP + " left this month"
-1608 : "No pitches left this month";
-1609 if(b.textContent !== want) b.textContent = want;
-1610 b.disabled = left <= 0;
-1611 });
-1612 }catch(e){}
-1613 }
-1614 try{ setInterval(relabelPitch, 900); }catch(e){}
-1615
-1616 /* ---------- 2. Founder actions that fit the business ---------- */
-1617 var AGENCY_ACTIONS = [
-1618 { key:"v416_spec", label:"\u{1F3A8} Build a Spec Campaign", desc:"Do the work before you are hired. Expensive in hours, hard to say no to." },
-1619 { key:"v416_awards", label:"\u{1F3C6} Enter an Awards Show", desc:"Creative awards are how agencies buy reputation. Entry fees are real." },
-1620 { key:"v416_poach", label:"\u{1F3AF} Poach a Rival's Account", desc:"Call a client who is unhappy with their current shop." },
-1621 { key:"v416_casestudy", label:"\u{1F4C8} Publish a Case Study", desc:"Turn your best result into inbound. Slow burn, compounding." },
-1622 { key:"v416_freelance", label:"\u{1F58A}\uFE0F Take a Freelance Brief", desc:"Bill your own hours. One-time cash, no retainer." },
-1623 { key:"v416_mediabuy", label:"\u{1F911} Renegotiate the Media Buy", desc:"Lean on your rep for better rates. Trims recurring cost." }
-1624 ];
-1625 var TRUCK_ACTIONS = [
-1626 { key:"v416_loadboard", label:"\u{1F4CB} Work the Load Board", desc:"Find a better-paying backhaul yourself instead of running empty." },
-1627 { key:"v416_shipper", label:"\u{1F91D} Court a Direct Shipper", desc:"Cut the broker out. Better rate if they bite." },
-1628 { key:"v416_drive", label:"\u{1F69B} Take a Run Yourself", desc:"Cover a load personally. Saves a driver's pay this month." },
-1629 { key:"v416_fuel", label:"\u26FD Negotiate a Fuel Card", desc:"A few cents a gallon across the fleet adds up." },
-1630 { key:"v416_safety", label:"\u{1F6E1}\uFE0F Run a Safety Review", desc:"Fewer incidents, better insurance standing." },
-1631 { key:"negotiate", label:"\u{1F911} Renegotiate a Vendor Contract", desc:"Trim a recurring cost." }
-1632 ];
-1633 var SALON_ACTIONS = [
-1634 { key:"v416_chair", label:"\u{1F485} Work a Chair Yourself", desc:"Take clients personally. Direct cash, and they ask for you again." },
-1635 { key:"v416_regulars", label:"\u{1F4DE} Call Your Regulars", desc:"Fill next week's book by hand." },
-1636 { key:"v416_social", label:"\u{1F4F8} Post the Best Sets", desc:"Nail work is visual. Free reach if it lands." },
-1637 { key:"v416_bridal", label:"\u{1F48D} Chase a Bridal Party", desc:"One booking, a whole day's revenue." },
-1638 { key:"v416_supply", label:"\u{1F9F4} Squeeze the Supplier", desc:"Better pricing on product. Trims recurring cost." },
-1639 { key:"network", label:"\u{1F91D} Work the Neighborhood", desc:"Local referrals and cross-promotion." }
-1640 ];
-1641
-1642 try{
-1643 var prevFor = (typeof founderActionsForIndustry === "function") ? founderActionsForIndustry : null;
-1644 window.founderActionsForIndustry = function(){
-1645 try{
-1646 var ind = c() && c().industry;
-1647 if(ind === "agency") return AGENCY_ACTIONS;
-1648 if(ind === "trucking") return TRUCK_ACTIONS;
-1649 if(ind === "nail_salon") return SALON_ACTIONS;
-1650 }catch(e){}
-1651 return prevFor ? prevFor.apply(this, arguments) : FOUNDER_ACTIONS;
-1652 };
-1653 }catch(e){}
-1654
-1655 try{
-1656 var prevRun = window.runFounderAction;
-1657 window.runFounderAction = function(key){
-1658 if(String(key).indexOf("v416_") !== 0) return prevRun.apply(this, arguments);
-1659 var co = c();
-1660 if(!co) return;
-1661 if((co.founderActionsUsed || 0) >= FOUNDER_ACTION_CAP) return;
-1662 co.founderActionsUsed = (co.founderActionsUsed || 0) + 1;
-1663 co.founderActionsLifetime = (co.founderActionsLifetime || 0) + 1;
-1664
-1665 var idx = (typeof v45TierIndex === "function" && v45Kind && v45Kind() === "agency") ? v45TierIndex() : 0;
-1666 var mult = (typeof V45_TIERS !== "undefined" && V45_TIERS[idx]) ? V45_TIERS[idx].mult : 1;
-1667 var msg = "";
-1668
-1669 function winClient(lo, hi, healthLo, healthHi, seg){
-1670 var mrr = Math.round(rand(lo, hi) * mult);
-1671 co.clients.push({ id:uid(), name:pick(typeof segmentNamePool === "function" ? segmentNamePool(seg || "Small") : ["New Account"]),
-1672 mrr:mrr, health:rand(healthLo, healthHi), sinceMonth:co.month, sinceYear:co.year });
-1673 if(typeof recomputeMRR === "function") recomputeMRR();
-1674 return mrr;
-1675 }
-1676
-1677 /* ----- agency ----- */
-1678 if(key === "v416_spec"){
-1679 var cost = Math.round(rand(400, 1200) * mult);
-1680 co.cash -= cost;
+=== FILE: art-core.js
+=== PATTERN: function\s+(saveGame|save|autosave|persistState|renderAll|toast|logHistory|recomputeNetWorth|personalNetWorth)\s*\(
+381:function logHistory(text){
+1439:function renderAll(){ renderTopbar(); renderDock(); renderScreen(); }
+8152:function toast(msg, kind){
 
-=== FILE: 30-v410-v427.js
-=== PATTERN: (SALON_ACTIONS|AGENCY_ACTIONS|TRUCK_ACTIONS|TRUCKING_ACTIONS)\s*=
-1617:  var AGENCY_ACTIONS = [
-1625:  var TRUCK_ACTIONS = [
-1633:  var SALON_ACTIONS = [
+=== FILE: art-core.js
+=== PATTERN: totalNetWorth
+251:      totalNetWorth: 6000,
+351:  if(p.totalNetWorth===undefined) p.totalNetWorth = p.netWorth;
+661:  { key:"first_million", name:"First Million", icon:"💰", desc:"Reach $1,000,000 in total net worth.", check:(c,p)=> p.totalNetWorth>=1000000 },
+683:  { key:"decamillionaire", name:"Decamillionaire", icon:"💵", desc:"Reach $10,000,000 in personal net worth.", check:(c,p)=> p.totalNetWorth>=10000000 },
+744:    <div class="card mt14"><h3>Total Net Worth</h3><div class="big">${fmt$(p.totalNetWorth)}</div>
+1302:  G.personal.totalNetWorth = Math.round(G.personal.netWorth + G.company.valuation);
+2867:      <div class="card"><h3>Total Net Worth</h3><div class="big">${fmt$(p.totalNetWorth||p.netWorth)}</div>
+3642:  p.totalNetWorth = Math.round(p.netWorth + stakes);
+3719:  if(p.totalNetWorth===undefined) p.totalNetWorth = p.netWorth;
+4117:      <div class="card"><h3>Total Net Worth</h3><div class="big">${fmt$(p.totalNetWorth||p.netWorth)}</div></div>
+4296:    <div class="card mt14"><h3>Total Net Worth</h3><div class="big">${fmt$(p.totalNetWorth)}</div>
+4794:    return `You run ${(G.companies||[]).length} company(ies); ${(G.companies||[]).filter(x=>x.passive).length} on autopilot. Personal cash ${fmt$(p.cash)}, total net worth ${fmt$(p.totalNetWorth||p.cash)}.<br>Hiring a CEO keeps a company compounding in the background while you start something in a different industry \u2014 diversification smooths the bad months.`;
+5136:      <div class="card"><h3>Total Net Worth</h3><div class="big">${fmt$(p.totalNetWorth||p.netWorth)}</div>
+5235:    <div class="card mt14"><h3>Total Net Worth</h3><div class="big">${fmt$(p.totalNetWorth)}</div>
 
-=== FILE: 30-v410-v427.js
-=== PATTERN: function\s+v45\w*
+=== FILE: art-core.js
+=== PATTERN: personal\s*=\s*\{
 
-=== FILE: 30-v410-v427.js
-=== PATTERN: (chairs|stylist|Stylist)
+=== FILE: art-core.js
+=== PATTERN: addEventListener\("keydown"
+13119:    document.addEventListener("keydown", (ev)=>{
 
-=== FILE: art-core.js  LINES 3177-3200
-3177 const INDUSTRIES = {
-3178 ai_saas: {
-3179 key:"ai_saas", label:"AI Dashboard (SaaS)", icon:"\u{1F916}", startCash:30000, opsType:null,
-3180 desc:"Subscription software. Revenue is MRR from clients; engineers ship features that raise pricing power.",
-3181 revenueLabel:"Platform Operations", accountLabel:"Clients",
-3182 deptLabels:{},
-3183 accounts:{ Enterprise:["Titan Manufacturing","Argent Bank","Meridian Health","Vantage Logistics"],
-3184 "Mid-Market":["Harbor Analytics","Nimbus Foods","Cobalt Studio","Junction Coffee","Lark & Co"],
-3185 Small:["Acme Retail","Bluepeak Co","Fenwick Group","Willow Cafe","Redstone Fitness","Sable Goods","Pixel Studio"] },
-3186 roles:{}
-3187 },
-3188 retail: {
-3189 key:"retail", label:"Retail Chain", icon:"\u{1F6CD}\uFE0F", startCash:45000, opsType:"retail",
-3190 desc:"Open stores, buy inventory, price your goods. Revenue comes from foot traffic and sell-through \u2014 stock out and you lose the sale.",
-3191 revenueLabel:"Store Operations", accountLabel:"Wholesale Accounts",
-3192 deptLabels:{ sales:"Store Sales", marketing:"Brand & Promotions", product:"Merchandising", support:"Customer Service", operations:"Supply Chain" },
-3193 accounts:{ Enterprise:["Regional Mall Group","Big Box Partner","National Distributor"],
-3194 "Mid-Market":["Boutique Collective","Airport Retail Group","Campus Bookstore Chain"],
-3195 Small:["Local Consignment Shop","Pop-Up Partner","Corner Market"] },
-3196 roles:{
-3197 sales:["Retail Associate","Shift Lead","Assistant Store Manager","Store Manager","District Manager","Chief Retail Officer"],
-3198 marketing:["Promotions Specialist","Promotions Coordinator","Campaign Lead","Marketing Manager","Director of Brand","Chief Marketing Officer"],
-3199 product:["Merchandiser","Category Buyer","Senior Buyer","Merchandising Manager","Director of Merchandising","Chief Merchandising Officer"],
-3200 support:["Customer Service Rep","CS Lead","CS Team Lead","CS Manager","Director of Customer Experience","Chief Customer Officer"],
+=== FILE: 70-cloud-saves.js
+=== PATTERN: (function\s+\w+|NBCloud\.\w+\s*=|save)
+2:   v4.38 — Cloud saves replace the browser save system.
+5:   so the tab renders cloud slots, autosave-to-cloud, imports and
+34:  function err(w, e) { if (ERR.length < 50) ERR.push(w + ': ' + ((e && e.message) || e)); }
+38:  function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+39:  function set(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
+40:  function token() { return get(K_TOKEN); }
+41:  function code() { return get(K_CODE); }
+42:  function autoOn() { return get(K_AUTO) !== '0'; }   /* default ON */
+46:  function rpc(fn, args) {
+71:  function expired(e) {
+82:  function state() {
+86:  function hasGame() {
+90:  function num(v) { var n = Number(v); return isFinite(n) ? n : null; }
+91:  function money(n) {
+98:  function meta() {
+111:  function exportCode() {
+115:      return Promise.reject(new Error('This build has no portable save codes.'));
+119:  function applyCode(payload) {
+121:      return Promise.reject(new Error('This build cannot apply save codes.'));
+128:  function localSlots() {
+135:  function localLoad(key) {
+172:  function esc(s) {
+177:  function when(ts) {
+181:  function say(text, kind) {
+187:  function repaint() {
+191:  /* -------------------------------------------------------- saves screen */
+193:  function accountCard() {
+196:      + '<h3>\u2601\uFE0F Cloud saves</h3>'
+197:      + '<div class="nbc-who">Signed in as <b>' + esc(code() || '\u2014') + '</b> \u00b7 your saves follow this code on any device.</div>'
+200:      +   '<button class="btn small" data-nbc-act="save"' + (hasGame() ? '' : ' disabled') + '>Save this game</button>'
+207:      + 'Autosave to the cloud as you play</label>'
+210:      + '<h3 style="margin-top:16px;">My saves</h3>'
+215:  function signedOutCard() {
+218:      + '<h3>\u2601\uFE0F Cloud saves</h3>'
+225:  function legacyCard() {
+238:      + '<h3>\u{1F4E6} Old browser saves</h3>'
+240:      + 'Left over from the retired browser save system. They are stuck in this one browser. '
+246:  function leaderboardCard() {
+254:  function buildSaves() {
+264:  function refreshList() {
+267:    return rpc('nb_list_saves', { p_token: token() }).then(function (rows) {
+269:        host.innerHTML = '<div class="muted" style="font-size:12px;">No cloud saves yet. '
+288:  function defaultLabel() {
+295:  function putSave(slot, label, payload) {
+297:    return rpc('nb_put_save', {
+303:  function doSave() {
+304:    var label = window.prompt('Name this save:', defaultLabel());
+319:     the current run to the cloud autosave slot, sets the session flag that
+323:     The gate only pushes the current run when cloud autosave is ON, so when
+324:     it is off we say plainly that unsaved progress will be lost. */
+325:  function doNewGame() {
+330:      question = 'Start a new game?\n\nYour current run is saved to the cloud first, so you can load it '
+333:      question = 'Start a new game?\n\nCloud autosave is OFF, so this run will NOT be saved automatically. '
+352:  function doImport(key) {
+354:    say('Reading the old save\u2026', 'info');
+361:      return rpc('nb_put_save', {
+375:  function doLoad(slot) {
+376:    if (!window.confirm('Load this save? Anything unsaved in the current run is replaced.')) return;
+378:    rpc('nb_get_save', { p_token: token(), p_slot: slot })
+384:  function doDelete(slot) {
 
-=== FILE: 40-v428-trucking.js
-=== PATTERN: (founderAction|FOUNDER)
-2269:  /* ---------- 2. FOUNDER OPTIONS: ONE SECTION, NO POINTS ---------- */
-2278:      if(c) c.founderActionsUsed = 0;
-2281:      finally{ if(c){ c.founderActionsUsed = 0; foundMark(key); } }
-2291:      var c = C(); if(c) c.founderActionsUsed = 0;
-2293:      if(c) c.founderActionsUsed = 0;
-2522:      if(c && num(c.founderActionsUsed) > 0) c.founderActionsUsed = 0;
-
-=== FILE: art-core.js  LINES 9336-9360
-9336 function renderFacilitiesTab(){
-9337 const c = G.company;
-9338 const cap = headcountCap();
-9339 const wrap = el(`<div>
-9340 <div class="window-title"><h2>\u{1F3D7}\uFE0F Facilities</h2><span class="sub">Seats, campuses and where everyone actually sits</span></div>
-9341 <div class="grid3 mb14">
-9342 <div class="card"><h3>Seats Used</h3><div class="big ${c.employees.length>=cap?"bad":""}">${c.employees.length} / ${cap}</div><div class="muted" style="font-size:11px;">Base office ${HEADCOUNT_CAP[c.hqStage]||8} + ${facilityCap().toLocaleString()} from facilities</div></div>
-9343 <div class="card"><h3>Facility Rent</h3><div class="big bad">${fmt$(facilityRent())}/mo</div><div class="muted" style="font-size:11px;">Charged every month close</div></div>
-9344 <div class="card"><h3>Buildings Owned</h3><div class="big">${(c.facilities||[]).length}</div><div class="muted" style="font-size:11px;">Permanent and stackable</div></div>
-9345 </div>
-9346 </div>`);
-9347 const banner = facilitiesBanner();
-9348 if(banner) wrap.appendChild(banner);
-9349 wrap.appendChild(facilitiesSection());
-9350 return wrap;
-9351 }
-9352 DOCK_ITEMS.push({ id:"facilities", icon:"\u{1F3D7}\uFE0F", label:"Facilities" });
-9353 (function v19MoveTabs(){
-9354 const people = DOCK_GROUPS.find(g=>g.id==="people");
-9355 if(people && people.items.indexOf("facilities")<0) people.items.push("facilities");
-9356 DOCK_GROUPS.forEach(g=>{ const i = g.items.indexOf("leaderboard"); if(i>=0) g.items.splice(i,1); });
-9357 const sys = DOCK_GROUPS.find(g=>g.id==="system");
-9358 if(sys && sys.items.indexOf("leaderboard")<0) sys.items.unshift("leaderboard");
-9359 })();
-9360
+=== FILE: 94-flags.js
+=== PATTERN: (NBFlags|flag|URLSearchParams)
+1:/* 94-flags.js — v4.47
+2:   One place for the diagnostic URL flags, loaded before the layers
+14:    var q = new URLSearchParams(location.search);
+18:      console.log("[v4.47] tidy layer (95) disabled by URL flag");
+21:    window.NBFlags = {
 
