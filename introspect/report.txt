@@ -1,199 +1,114 @@
 # introspect report
-# generated: 2026-09-23 01:13:30Z
-# commit: 02f3864163e028606846d901f6e400af29faee94
-
-=== FILE: art-core.js  LINES 5940-6030
-5940 ob.querySelectorAll("[data-load]").forEach(b=> b.onclick = ()=>{
-5941 G = normalizeGame(loadSlot(b.getAttribute("data-load")));
-5942 applyIndustryLabels();
-5943 ob.style.display="none";
-5944 renderAll();
-5945 });
-5946 ob.querySelectorAll("[data-del]").forEach(b=> b.onclick = (e)=>{ e.stopPropagation(); deleteSlot(b.getAttribute("data-del")); renderOnboard(); });
-5947 }
-5948
-5949 /* ---------- Dock: label inside the button ---------- */
-5950 function renderDock(){
-5951 let dock = document.getElementById("dock");
-5952 if(!dock){
-5953 const main = document.createElement("div");
-5954 main.id = "main";
-5955 main.innerHTML = `<div id="dock"></div><div id="screen"></div>`;
-5956 document.getElementById("app").appendChild(main);
-5957 dock = document.getElementById("dock");
-5958 }
-5959 const active = groupOfTab(G.ui.activeTab);
-5960 dock.innerHTML = DOCK_GROUPS.map(g=>`
-5961 <div class="dock-btn ${active.id===g.id?"active":""}" data-group="${g.id}" title="${g.items.map(i=>dockItem(i).label).join(" \u00b7 ")}">
-5962 <span>${g.icon}</span><span class="dock-in">${g.label.toUpperCase()}</span>
-5963 <span class="dot ${groupNeedsAttention(g)?"show":""}"></span>
-5964 </div>`).join("");
-5965 dock.querySelectorAll("[data-group]").forEach(b=> b.onclick = ()=>{
-5966 const g = DOCK_GROUPS.find(x=>x.id===b.getAttribute("data-group"));
-5967 if(!g) return;
-5968 G.ui.lastTabByGroup = G.ui.lastTabByGroup || {};
-5969 G.ui.activeTab = G.ui.lastTabByGroup[g.id] && g.items.indexOf(G.ui.lastTabByGroup[g.id])>=0
-5970 ? G.ui.lastTabByGroup[g.id] : g.items[0];
-5971 renderDock(); renderScreen();
-5972 });
-5973 }
-5974
-5975 /* ---------- Tier-1 tab bar: biggest line on the screen ---------- */
-5976 function subTabBar(){
-5977 const g = groupOfTab(G.ui.activeTab);
-5978 if(g.items.length<2) return null;
-5979 const cur = dockItem(G.ui.activeTab);
-5980 const bar = el(`<div class="tierbar1">
-5981 <div class="muted tier1-crumb">${g.icon} ${g.label} <span style="opacity:.5;">\u203A</span> <b style="color:var(--accent);">${cur.label}</b></div>
-5982 <div class="flexrow" style="flex-wrap:wrap;gap:6px;">
-5983 ${g.items.map(id=>{ const it = dockItem(id); const on = G.ui.activeTab===id; const dot = tabNeedsAttention(id);
-5984 return `<button class="btn ${on?"":"secondary"}" data-subtab="${id}"
-5985 style="${on?"box-shadow:inset 0 -3px 0 rgba(255,255,255,.5);font-weight:700;":""}">${it.icon} ${it.label}${dot?` <span style="color:${on?"#fff":"var(--warn)"};">\u25CF</span>`:""}</button>`; }).join("")}
-5986 </div></div>`);
-5987 bar.querySelectorAll("[data-subtab]").forEach(b=> b.onclick = ()=>{
-5988 G.ui.activeTab = b.getAttribute("data-subtab");
-5989 G.ui.lastTabByGroup = G.ui.lastTabByGroup || {};
-5990 G.ui.lastTabByGroup[groupOfTab(G.ui.activeTab).id] = G.ui.activeTab;
-5991 renderDock(); renderScreen();
-5992 });
-5993 return bar;
-5994 }
-5995
-5996 /* ---------- Activity log ---------- */
-5997 DOCK_ITEMS.push({ id:"log", icon:"\u{1F9FE}", label:"Activity Log" });
-5998 (function addLogTab(){
-5999 const run = DOCK_GROUPS.find(g=>g.id==="run");
-6000 if(run && run.items.indexOf("log")<0) run.items.push("log");
-6001 })();
-6002 function renderLog(){
-6003 const c = G.company;
-6004 const p = pInit();
-6005 if(!G.ui.logScope) G.ui.logScope = "company";
-6006 const wrap = el(`<div></div>`);
-6007 const coRows = (c.history||[]).map(h=>({ when:`Y${h.year} M${h.month}`, text:h.text }));
-6008 const perRows = ((p.fulfillHistory||[]).map(f=>({ when:`Y${f.year||1} M${f.month||1}`, text:f.text || f.name })))
-6009 .concat((p.assets && p.assets.vacationHistory || []).map(v=>({ when:`Y${v.year} M${v.month}`, text:`Trip: ${v.name}` })));
-6010 const rows = G.ui.logScope==="personal" ? perRows : coRows;
-6011 wrap.innerHTML = `
-6012 <div class="window-title"><h2>\u{1F9FE} Activity Log</h2><span class="sub">${c.name} \u00b7 Year ${c.year}, Month ${c.month}</span></div>
-6013 <div class="flexrow tierbar2 mb14" style="gap:6px;">
-6014 <button class="btn ${G.ui.logScope==="company"?"":"secondary"} small" data-logscope="company">Company (${coRows.length})</button>
-6015 <button class="btn ${G.ui.logScope==="personal"?"":"secondary"} small" data-logscope="personal">Personal (${perRows.length})</button>
-6016 </div>
-6017 <div class="flatsec">
-6018 <h3>Newest first</h3>
-6019 ${rows.length? rows.slice(0,200).map(r=>`<div class="logrow"><span class="when">${r.when}</span><span>${r.text}</span></div>`).join("")
-6020 : `<div class="muted">Nothing logged yet \u2014 advance a month or make a decision.</div>`}
-6021 </div>`;
-6022 wrap.querySelectorAll("[data-logscope]").forEach(b=> b.onclick = ()=>{ G.ui.logScope = b.getAttribute("data-logscope"); renderScreen(); });
-6023 return wrap;
-6024 }
-6025 function renderScreen(){
-6026 if(G.ui.activeTab==="log"){
-6027 const screen = document.getElementById("screen");
-6028 screen.innerHTML = "";
-6029 try { screen.appendChild(renderLog()); }
-6030 catch(err){ screen.innerHTML = `<div class="card"><h3 class="bad">Log hit an error</h3><div class="muted">${(err&&err.message)||err}</div></div>`; }
-
-=== FILE: art-core.js  LINES 4520-4560
-4520 const DOCK_GROUPS = [
-4521 { id:"run", icon:"\u{1F9ED}", label:"Run", items:["decisions","bank","financials","industry"] },
-4522 { id:"people", icon:"\u{1F9D1}\u200D\u{1F4BC}", label:"People", items:["team","hr","orgchart","slack","zoom"] },
-4523 { id:"market", icon:"\u{1F4E6}", label:"Product", items:["product","clients","research"] },
-4524 { id:"empire", icon:"\u{1F3D7}\uFE0F", label:"Empire", items:["empire","invest","milestones"] },
-4525 { id:"life", icon:"\u{1F3E1}", label:"Life", items:["personal","market","life"] },
-4526 { id:"jarvis", icon:"\u{1F916}", label:"F.E.L.I.P.E AI", items:["assistant"] },
-4527 { id:"system", icon:"\u{1F4BE}", label:"System", items:["saves"] },
-4528 ];
-4529 function dockItem(id){ return DOCK_ITEMS.find(i=>i.id===id) || { id, icon:"\u{1F4C4}", label:id }; }
-4530 function groupOfTab(tabId){ return DOCK_GROUPS.find(g=>g.items.indexOf(tabId)>=0) || DOCK_GROUPS[0]; }
-4531 function groupNeedsAttention(g){
-4532 if(g.items.indexOf("decisions")>=0 && G.company.pendingEvent) return true;
-4533 return false;
-4534 }
-4535 function renderDock(){
-4536 let dock = document.getElementById("dock");
-4537 if(!dock){
-4538 const main = document.createElement("div");
-4539 main.id = "main";
-4540 main.innerHTML = `<div id="dock"></div><div id="screen"></div>`;
-4541 document.getElementById("app").appendChild(main);
-4542 dock = document.getElementById("dock");
-4543 }
-4544 const active = groupOfTab(G.ui.activeTab);
-4545 dock.innerHTML = DOCK_GROUPS.map(g=>`
-4546 <div>
-4547 <div class="dock-btn ${active.id===g.id?"active":""}" data-group="${g.id}" title="${g.items.map(i=>dockItem(i).label).join(" \u00b7 ")}">${g.icon}
-4548 <span class="dot ${groupNeedsAttention(g)?"show":""}"></span></div>
-4549 <div class="dock-label">${g.label}</div>
-4550 </div>`).join("");
-4551 dock.querySelectorAll("[data-group]").forEach(b=> b.onclick = ()=>{
-4552 const g = DOCK_GROUPS.find(x=>x.id===b.getAttribute("data-group"));
-4553 if(!g) return;
-4554 G.ui.lastTabByGroup = G.ui.lastTabByGroup || {};
-4555 G.ui.activeTab = G.ui.lastTabByGroup[g.id] && g.items.indexOf(G.ui.lastTabByGroup[g.id])>=0
-4556 ? G.ui.lastTabByGroup[g.id] : g.items[0];
-4557 renderDock(); renderScreen();
-4558 });
-4559 }
-4560 function subTabBar(){
-
-=== FILE: art-core.js  LINES 10240-10290
-10240 if(id==="people") id = v22LastPeopleTab();
-10241 G.ui.activeTab = id;
-10242 if(v22IsPeopleTab(id)) G.ui.lastPeopleTab = id;
-10243 G.ui.lastTabByGroup = G.ui.lastTabByGroup || {};
-10244 G.ui.lastTabByGroup[groupOfTab(id).id] = id;
-10245 renderDock(); renderScreen();
-10246 const sc = document.getElementById("screen"); if(sc) sc.scrollTop = 0;
-10247 };
-10248 bar.querySelectorAll("[data-subtab]").forEach(b=> b.onclick = ()=> go(b.getAttribute("data-subtab")));
-10249 bar.querySelectorAll("[data-subtab2]").forEach(b=> b.onclick = ()=> go(b.getAttribute("data-subtab2")));
-10250 return bar;
-10251 };
-10252
-10253 /* ---- 4. Route the "people" umbrella tab + drop the HQ-inside-HQ tab ---- */
-10254 (function v22Route(){
-10255 const prev = renderScreen;
-10256 renderScreen = function(){
-10257 if(G.ui.activeTab === "people" || G.ui.activeTab === "hq"){
-10258 G.ui.activeTab = (G.ui.activeTab==="hq") ? "financials" : v22LastPeopleTab();
-10259 }
-10260 if(v22IsPeopleTab(G.ui.activeTab)) G.ui.lastPeopleTab = G.ui.activeTab;
-10261 return prev.apply(this, arguments);
-10262 };
-10263 const prevDock = renderDock;
-10264 renderDock = function(){
-10265 const r = prevDock.apply(this, arguments);
-10266 const dock = document.getElementById("dock");
-10267 if(dock){
-10268 dock.querySelectorAll("[data-group]").forEach(b=>{
-10269 b.onclick = ()=>{
-10270 const g = DOCK_GROUPS.find(x=>x.id===b.getAttribute("data-group"));
-10271 if(!g) return;
-10272 G.ui.lastTabByGroup = G.ui.lastTabByGroup || {};
-10273 let target = G.ui.lastTabByGroup[g.id];
-10274 const valid = target && (g.items.indexOf(target)>=0 || (g.id==="hq" && v22IsPeopleTab(target)));
-10275 if(!valid) target = g.items[0];
-10276 if(target==="people") target = v22LastPeopleTab();
-10277 G.ui.activeTab = target;
-10278 renderDock(); renderScreen();
-10279 const sc = document.getElementById("screen"); if(sc) sc.scrollTop = 0;
-10280 };
-10281 });
-10282 }
-10283 return r;
-10284 };
-10285 })();
-10286
-10287 /* ---- 5. Team roster: department head large, everyone else half-height rows ---- */
-10288 function v22MiniCard(e){
-10289 return `<div class="v22-mini" data-empcard="${e.id}">
-10290 <span class="av">${e.icon}</span>
+# generated: 2026-09-23 01:14:24Z
+# commit: cbbf7a63e9d6108a19330941d7e40526d5906c47
 
 === FILE: art-core.js
-=== PATTERN: setAttribute\("data-tab"|dataset.tab|data-tab\b
-1500:      <div class="dock-btn ${G.ui.activeTab===it.id?"active":""}" data-tab="${it.id}">${it.icon}
-1504:  dock.querySelectorAll("[data-tab]").forEach(b=> b.onclick = ()=>{ G.ui.activeTab = b.getAttribute("data-tab"); renderDock(); renderScreen(); });
-8784:  const CLICKY = "button,select,option,a,input[type=checkbox],input[type=radio],.radio-chip,.chip,.pill.clickable,.qi,.shop-card,.ladder-card,.dock-btn,.tab,.tabbtn,.stat.clickable,[data-tab],[data-group],[data-ops-open],[data-ops-price],[data-ops-quality],[data-toggledept],[data-qremove],[role=button],[onclick]";
+=== PATTERN: inProgress
+225:      product:{ maturity:5, features:[], inProgress:null, shipped:[] },
+323:  if(c.product.inProgress===undefined) c.product.inProgress = null;
+546:  const ip = G.company.product.inProgress;
+549:  if(!def) { G.company.product.inProgress = null; return; }
+567:    G.company.product.inProgress = null;
+2556:    ${p.inProgress? (()=>{ const def = FEATURE_DEFS.find(f=>f.key===p.inProgress.key);
+2558:        <div class="progress-track"><div class="progress-fill" style="width:${100*(1-(p.inProgress.monthsLeft/def.months))}%;"></div></div>
+2559:        <div class="muted mt8" style="font-size:11.5px;">${p.inProgress.monthsLeft} month(s) left. Needs ${def.reqEngineers} engineer(s)${def.reqTeamLeads?` + ${def.reqTeamLeads} team lead(s)`:""} to keep moving.
+2581:    G.company.product.inProgress = { key, monthsLeft: def.months };
+8278:  if(!c.product) c.product = { maturity:5, features:[], inProgress:null, shipped:[] };
+8279:  if(!c.product.active) c.product.active = c.product.inProgress ? [ { ...c.product.inProgress } ] : [];
+8331:  p.inProgress = null;
+
+=== FILE: art-core.js
+=== PATTERN: FEATURES *=|reqEngineers|monthsLeft
+536:  { key:"onboarding_wizard", name:"Guided Onboarding Wizard", reqEngineers:2, reqTeamLeads:0, months:2, impact:{clientHealth:15, maturity:8} },
+537:  { key:"enterprise_sso", name:"Enterprise SSO & Permissions", reqEngineers:3, reqTeamLeads:1, months:3, impact:{clientHealth:20, maturity:12} },
+538:  { key:"mobile_app", name:"Native Mobile App", reqEngineers:4, reqTeamLeads:1, months:4, impact:{clientHealth:25, maturity:18} },
+539:  { key:"ai_assist", name:"AI-Powered Assistant", reqEngineers:3, reqTeamLeads:1, months:3, impact:{clientHealth:18, maturity:15} },
+540:  { key:"platform_api", name:"Public Platform API", reqEngineers:2, reqTeamLeads:0, months:2, impact:{clientHealth:12, maturity:10} },
+543:  return rungCount("product","rep")>=def.reqEngineers && rungCount("product","teamlead")>=def.reqTeamLeads;
+554:  ip.monthsLeft--;
+555:  if(ip.monthsLeft<=0){
+563:    const effort = def.reqEngineers * def.months;
+566:    report.push(`🚀 Shipped major feature: ${def.name}! Client health +${def.impact.clientHealth}, maturity +${def.impact.maturity}, pricing power +${Math.round(priceBoost*100)}% (built with ${def.reqEngineers} engineer(s) over ${def.months} month(s)).`);
+569:    report.push(`${def.name} is in progress — ${ip.monthsLeft} month(s) left.`);
+2558:        <div class="progress-track"><div class="progress-fill" style="width:${100*(1-(p.inProgress.monthsLeft/def.months))}%;"></div></div>
+2559:        <div class="muted mt8" style="font-size:11.5px;">${p.inProgress.monthsLeft} month(s) left. Needs ${def.reqEngineers} engineer(s)${def.reqTeamLeads?` + ${def.reqTeamLeads} team lead(s)`:""} to keep moving.
+2565:        <div class="desc">Needs ${f.reqEngineers} engineer(s)${f.reqTeamLeads?` + ${f.reqTeamLeads} team lead(s)`:""} · ${f.months} month(s) to ship</div>
+2581:    G.company.product.inProgress = { key, monthsLeft: def.months };
+3420:  { key:"palletizer", name:"Warehouse Palletizer", months:3, reqEngineers:2, unitPrice:48000, unitCost:26000 },
+3421:  { key:"cobot", name:"Collaborative Arm (Cobot)", months:4, reqEngineers:3, unitPrice:82000, unitCost:41000 },
+3422:  { key:"amr", name:"Autonomous Mobile Robot", months:5, reqEngineers:4, unitPrice:135000, unitCost:62000 },
+3423:  { key:"surgical", name:"Surgical Assist Platform", months:7, reqEngineers:6, unitPrice:410000, unitCost:180000 },
+3531:    if(engineers >= def.reqEngineers){
+3532:      o.rnd.monthsLeft--;
+3533:      if(o.rnd.monthsLeft<=0){
+3538:      } else report.push(`\u{1F9BE} ${def.name} R&D in progress \u2014 ${o.rnd.monthsLeft} month(s) left.`);
+3540:      report.push(`\u{1F9BE} ${def.name} R&D stalled \u2014 needs ${def.reqEngineers} engineer(s), you have ${engineers}.`);
+3919:            <div class="progress-track"><div class="progress-fill" style="width:${100*(1-o.rnd.monthsLeft/d.months)}%;"></div></div>
+3920:            <div class="desc mt8">${o.rnd.monthsLeft} month(s) left \u00b7 needs ${d.reqEngineers} engineer(s) ${engineers>=d.reqEngineers?'<span class="pill good">Staffed</span>':'<span class="pill bad">Stalled</span>'}</div></div>`; })()
+3923:            <div class="desc">${m.months} month(s) \u00b7 needs ${m.reqEngineers} engineer(s) \u00b7 sells ${fmt$(m.unitPrice)} / builds ${fmt$(m.unitCost)}</div></div>
+3924:            <button class="btn small" data-ops-rnd="${m.key}" ${engineers>=m.reqEngineers?"":"disabled"}>${engineers>=m.reqEngineers?"Start R&D":"Understaffed"}</button>
+4027:    o.rnd = { key:m.key, monthsLeft:m.months };
+7761:    if(engineers >= def.reqEngineers){
+7762:      o.rnd.monthsLeft--;
+7763:      if(o.rnd.monthsLeft<=0){
+7768:      } else report.push(`\u{1F9BE} ${def.name} R&D in progress \u2014 ${o.rnd.monthsLeft} month(s) left.`);
+7770:      report.push(`\u{1F9BE} ${def.name} R&D stalled \u2014 needs ${def.reqEngineers} engineer(s), you have ${engineers}.`);
+8322:function engineersCommitted(){ return activeProjects().reduce((s,a)=>{ const d=FEATURE_DEFS.find(f=>f.key===a.key); return s+(d?d.reqEngineers:0); },0); }
+8325:  return (rungCount("product","rep") - engineersCommitted()) >= def.reqEngineers
+8339:    const staffed = (engUsed + def.reqEngineers <= engineers) && (leadUsed + def.reqTeamLeads <= leads);
+8345:    engUsed += def.reqEngineers; leadUsed += def.reqTeamLeads;
+8346:    a.monthsLeft--;
+8347:    if(a.monthsLeft<=0){
+8352:      const effort = def.reqEngineers * def.months;
+8357:      report.push(`${def.name} is in progress \u2014 ${a.monthsLeft} month(s) left.`);
+8386:          <div class="progress-track"><div class="progress-fill" style="width:${100*(1-(a.monthsLeft/def.months))}%;"></div></div>
+8387:          <div class="muted mt8" style="font-size:11.5px;">${a.monthsLeft} month(s) left \u00b7 holds ${def.reqEngineers} engineer(s)${def.reqTeamLeads?` + ${def.reqTeamLeads} lead(s)`:""}
+8395:        <div class="desc">Needs ${f.reqEngineers} engineer(s)${f.reqTeamLeads?` + ${f.reqTeamLeads} team lead(s)`:""} \u00b7 ${f.months} month(s) to ship</div>
+8396:        <div class="desc">Impact: +${f.impact.clientHealth} client health, +${f.impact.maturity} maturity, +${Math.round(f.reqEngineers*f.months*1.5)}% pricing power</div></div>
+8397:        <button class="btn small" data-start-feature="${f.key}" ${canStartFeature(f)?'':'disabled'}>${canStartFeature(f)?'Start Building':`Need ${f.reqEngineers} free engineer(s)`}</button>
+8411:    G.company.product.active.push({ key, monthsLeft: def.months });
+8412:    toast(`<b>${def.name} started.</b> ${def.reqEngineers} engineer(s) reserved for ${def.months} month(s). ${G.company.product.active.length} project(s) now in flight.`);
+15597:  if(!c.supplyContract) c.supplyContract = { tier:1, monthsLeft:0, committed:0, shortfalls:0 };
+15604:    return (s.monthsLeft>0 || s.tier===1) ? def.discount : 0;
+15611:  if(s.monthsLeft > 0 && s.tier !== 1){
+15612:    const breakFee = Math.round(s.committed * 18 * (s.monthsLeft/12));
+15617:  s.monthsLeft = def.term;
+15627:    if(s.tier === 1 || s.monthsLeft <= 0) return;
+15638:    s.monthsLeft -= 1;
+15639:    if(s.monthsLeft <= 0){
+15653:      ${s.monthsLeft>0? `<span class="pill">${s.monthsLeft} months left</span>`:""}
+16306:          c.supplyContract = c.supplyContract || { tier:1, monthsLeft:0, committed:0, shortfalls:0 };
+
+=== FILE: art-core.js  LINES 8330-8360
+8330 const p = G.company.product;
+8331 p.inProgress = null;
+8332 const engineers = rungCount("product","rep");
+8333 const leads = rungCount("product","teamlead");
+8334 let engUsed = 0, leadUsed = 0;
+8335 const still = [];
+8336 p.active.forEach(a=>{
+8337 const def = FEATURE_DEFS.find(f=>f.key===a.key);
+8338 if(!def) return;
+8339 const staffed = (engUsed + def.reqEngineers <= engineers) && (leadUsed + def.reqTeamLeads <= leads);
+8340 if(!staffed){
+8341 report.push(`${def.name} is stalled \u2014 not enough engineers to cover every active project.`);
+8342 still.push(a);
+8343 return;
+8344 }
+8345 engUsed += def.reqEngineers; leadUsed += def.reqTeamLeads;
+8346 a.monthsLeft--;
+8347 if(a.monthsLeft<=0){
+8348 p.features.push({ name:def.name, month:G.company.month, year:G.company.year, impact:def.impact });
+8349 p.shipped.push(def.key);
+8350 p.maturity = clamp(p.maturity + def.impact.maturity, 0, 100);
+8351 G.company.clients.forEach(c=> c.health = clamp(c.health+def.impact.clientHealth, 0, 100));
+8352 const effort = def.reqEngineers * def.months;
+8353 const priceBoost = Math.round(effort * 1.5) / 100;
+8354 G.company.pricingBoostFromFeatures = Math.round(((G.company.pricingBoostFromFeatures||0) + priceBoost) * 1000) / 1000;
+8355 report.push(`\u{1F680} Shipped major feature: ${def.name}! Client health +${def.impact.clientHealth}, maturity +${def.impact.maturity}, pricing power +${Math.round(priceBoost*100)}%.`);
+8356 } else {
+8357 report.push(`${def.name} is in progress \u2014 ${a.monthsLeft} month(s) left.`);
+8358 still.push(a);
+8359 }
+8360 });
 
