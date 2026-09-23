@@ -1,110 +1,49 @@
 # introspect report
-# generated: 2026-09-23 12:31:13Z
-# commit: 31ab5b55d73956954ff18ebcaebfd271945e295c
+# generated: 2026-09-23 12:32:20Z
+# commit: 4f4c2ab5eb2d056cba4b9164448c807901c7968d
 
-=== FILE: art-core.js  LINES 5940-6010
-5940 ob.querySelectorAll("[data-load]").forEach(b=> b.onclick = ()=>{
-5941 G = normalizeGame(loadSlot(b.getAttribute("data-load")));
-5942 applyIndustryLabels();
-5943 ob.style.display="none";
-5944 renderAll();
-5945 });
-5946 ob.querySelectorAll("[data-del]").forEach(b=> b.onclick = (e)=>{ e.stopPropagation(); deleteSlot(b.getAttribute("data-del")); renderOnboard(); });
-5947 }
-5948
-5949 /* ---------- Dock: label inside the button ---------- */
-5950 function renderDock(){
-5951 let dock = document.getElementById("dock");
-5952 if(!dock){
-5953 const main = document.createElement("div");
-5954 main.id = "main";
-5955 main.innerHTML = `<div id="dock"></div><div id="screen"></div>`;
-5956 document.getElementById("app").appendChild(main);
-5957 dock = document.getElementById("dock");
-5958 }
-5959 const active = groupOfTab(G.ui.activeTab);
-5960 dock.innerHTML = DOCK_GROUPS.map(g=>`
-5961 <div class="dock-btn ${active.id===g.id?"active":""}" data-group="${g.id}" title="${g.items.map(i=>dockItem(i).label).join(" \u00b7 ")}">
-5962 <span>${g.icon}</span><span class="dock-in">${g.label.toUpperCase()}</span>
-5963 <span class="dot ${groupNeedsAttention(g)?"show":""}"></span>
-5964 </div>`).join("");
-5965 dock.querySelectorAll("[data-group]").forEach(b=> b.onclick = ()=>{
-5966 const g = DOCK_GROUPS.find(x=>x.id===b.getAttribute("data-group"));
-5967 if(!g) return;
-5968 G.ui.lastTabByGroup = G.ui.lastTabByGroup || {};
-5969 G.ui.activeTab = G.ui.lastTabByGroup[g.id] && g.items.indexOf(G.ui.lastTabByGroup[g.id])>=0
-5970 ? G.ui.lastTabByGroup[g.id] : g.items[0];
-5971 renderDock(); renderScreen();
-5972 });
-5973 }
-5974
-5975 /* ---------- Tier-1 tab bar: biggest line on the screen ---------- */
-5976 function subTabBar(){
-5977 const g = groupOfTab(G.ui.activeTab);
-5978 if(g.items.length<2) return null;
-5979 const cur = dockItem(G.ui.activeTab);
-5980 const bar = el(`<div class="tierbar1">
-5981 <div class="muted tier1-crumb">${g.icon} ${g.label} <span style="opacity:.5;">\u203A</span> <b style="color:var(--accent);">${cur.label}</b></div>
-5982 <div class="flexrow" style="flex-wrap:wrap;gap:6px;">
-5983 ${g.items.map(id=>{ const it = dockItem(id); const on = G.ui.activeTab===id; const dot = tabNeedsAttention(id);
-5984 return `<button class="btn ${on?"":"secondary"}" data-subtab="${id}"
-5985 style="${on?"box-shadow:inset 0 -3px 0 rgba(255,255,255,.5);font-weight:700;":""}">${it.icon} ${it.label}${dot?` <span style="color:${on?"#fff":"var(--warn)"};">\u25CF</span>`:""}</button>`; }).join("")}
-5986 </div></div>`);
-5987 bar.querySelectorAll("[data-subtab]").forEach(b=> b.onclick = ()=>{
-5988 G.ui.activeTab = b.getAttribute("data-subtab");
-5989 G.ui.lastTabByGroup = G.ui.lastTabByGroup || {};
-5990 G.ui.lastTabByGroup[groupOfTab(G.ui.activeTab).id] = G.ui.activeTab;
-5991 renderDock(); renderScreen();
-5992 });
-5993 return bar;
-5994 }
-5995
-5996 /* ---------- Activity log ---------- */
-5997 DOCK_ITEMS.push({ id:"log", icon:"\u{1F9FE}", label:"Activity Log" });
-5998 (function addLogTab(){
-5999 const run = DOCK_GROUPS.find(g=>g.id==="run");
-6000 if(run && run.items.indexOf("log")<0) run.items.push("log");
-6001 })();
-6002 function renderLog(){
-6003 const c = G.company;
-6004 const p = pInit();
-6005 if(!G.ui.logScope) G.ui.logScope = "company";
-6006 const wrap = el(`<div></div>`);
-6007 const coRows = (c.history||[]).map(h=>({ when:`Y${h.year} M${h.month}`, text:h.text }));
-6008 const perRows = ((p.fulfillHistory||[]).map(f=>({ when:`Y${f.year||1} M${f.month||1}`, text:f.text || f.name })))
-6009 .concat((p.assets && p.assets.vacationHistory || []).map(v=>({ when:`Y${v.year} M${v.month}`, text:`Trip: ${v.name}` })));
-6010 const rows = G.ui.logScope==="personal" ? perRows : coRows;
+=== FILE: art-core.js
+=== PATTERN: (dock-in|#dock\{|dock-btn\s*\{)
+5713:  #dock{width:78px;gap:8px;}
+5714:  .dock-btn{width:62px;height:62px;border-radius:14px;flex-direction:column;gap:3px;font-size:20px;line-height:1;}
+5715:  .dock-btn .dock-in{font-size:8.5px;font-weight:700;letter-spacing:.02em;opacity:.9;}
+5717:  @media (max-width:820px){ #dock{width:64px;} .dock-btn{width:52px;height:54px;font-size:17px;} .dock-btn .dock-in{font-size:7.5px;} }
+5962:      <span>${g.icon}</span><span class="dock-in">${g.label.toUpperCase()}</span>
+10112:  .dock-btn{justify-content:center;align-items:center;text-align:center;}
+10113:  .dock-btn .dock-in{display:block;width:100%;text-align:center;}
+10422:  #dock{transition:width .12s ease;}
+10426:  #dock.v22-dock-icons .dock-btn{width:44px;height:44px;}
+10427:  #dock.v22-dock-icons .dock-in{display:none;}
+10428:  #dock.v22-dock-medium .dock-btn{width:72px;height:58px;}
+10429:  #dock.v22-dock-full .dock-btn{width:130px;height:44px;flex-direction:row;gap:8px;justify-content:flex-start;padding:0 10px;}
+10430:  #dock.v22-dock-full .dock-in{font-size:10.5px;text-align:left;letter-spacing:0;}
+10583:      const lbl = btn.querySelector(".dock-in");
+12352:    #dock{padding-top:4px !important;}
 
-=== FILE: base.css
-=== PATTERN: (@media|#dock|\.dock|#v23Rail|v25rail|subtab|overflow)
-9:  #app{display:flex;flex-direction:column;height:100vh;overflow:hidden;}
-31:  .saveslot-list{display:flex;flex-direction:column;gap:8px;margin-top:10px;max-height:220px;overflow:auto;}
-49:  #main{flex:1;display:flex;overflow:hidden;}
-50:  #dock{width:64px;background:var(--panel);border-right:1px solid var(--border);
-52:  .dock-btn{width:44px;height:44px;border-radius:12px;background:var(--panel2);border:1px solid var(--border);
-54:  .dock-btn.active{background:var(--accent);color:#0c1220;border-color:var(--accent);}
-55:  .dock-btn .dot{position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:var(--bad);
-57:  .dock-btn .dot.show{display:block;}
-58:  .dock-label{font-size:8px;color:var(--muted);text-align:center;margin-top:-2px;}
-60:  #screen{flex:1;overflow:auto;padding:18px 22px;}
-97:  #slackWrap{display:flex;height:100%;gap:0;border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-98:  #slackList{width:190px;background:var(--panel);border-right:1px solid var(--border);overflow:auto;}
-104:  #slackMsgs{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:8px;}
-119:  .perf-bar{height:5px;background:#2a2f3a;border-radius:4px;margin-top:8px;overflow:hidden;}
-126:    width:min(420px,90vw);max-height:80vh;overflow:auto;}
-138:  .barrow .track{flex:1;height:8px;background:#232733;border-radius:4px;overflow:hidden;}
-157:  .dept-section{background:var(--panel);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;}
-173:  @media (max-width: 780px){
-174:    #topbar{gap:8px;padding:6px 8px;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;}
-181:    #dock{width:100%;height:auto;flex-direction:row;overflow-x:auto;padding:6px 4px;gap:4px;
-182:      -webkit-overflow-scrolling:touch;border-right:none;border-bottom:1px solid var(--border);}
-183:    #dock > div{flex:0 0 auto;}
-184:    .dock-btn{width:38px;height:38px;font-size:16px;}
-185:    .dock-label{font-size:7px;}
-196:  .roster-scroll{max-height:220px;overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-201:  .shop-card{background:var(--panel2);border:1px solid var(--border);border-radius:12px;overflow:hidden;position:relative;}
-218:  .progress-track{height:10px;background:#232733;border-radius:6px;overflow:hidden;}
+=== FILE: art-merge.js
+=== PATTERN: (dock-in|#dock|dock-btn)
+
+=== FILE: 10-core-v40-v46.js
+=== PATTERN: (dock-in|#dock|dock-btn)
+1839:    #dock{overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;}
+1840:    #dock::-webkit-scrollbar{width:6px;}
+1841:    #dock::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:3px;}
+
+=== FILE: 20-v47-v49.js
+=== PATTERN: (dock-in|#dock|dock-btn)
+
+=== FILE: 30-v410-v427.js
+=== PATTERN: (dock-in|#dock|dock-btn)
+
+=== FILE: 60-v433-v437.js
+=== PATTERN: (dock-in|#dock|dock-btn)
+
+=== FILE: 90-hq-stages.js
+=== PATTERN: (dock-in|#dock|dock-btn)
+
+=== FILE: 99-v454-ui.js
+=== PATTERN: (dock-in|#dock|dock-btn)
 
 === FILE: facilities.css
-=== PATTERN: @media
+=== PATTERN: (dock-in|#dock|dock-btn)
 
