@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="NAVigating" />
-<link rel="stylesheet" href="base.css?v=472">
+<link rel="stylesheet" href="base.css?v=473">
 </head>
 <body>
 <div id="app"></div>
@@ -24,101 +24,106 @@
      ignores a great deal of persuasion; changing the URL is the only reliable
      way to guarantee a new release is actually executed. Bump the number on
      every release, alongside CACHE_VERSION in sw.js. -->
-<script>window.NB_BUILD = '4.72';</script>
+<script>window.NB_BUILD = '4.73';</script>
 
-<script src="00-scheduler.js?v=472"></script>
-<script src="art-core.js?v=472"></script>
+<script src="00-scheduler.js?v=473"></script>
+<script src="art-core.js?v=473"></script>
 
-<link rel="stylesheet" href="facilities.css?v=472">
-<script src="art-merge.js?v=472"></script>
+<link rel="stylesheet" href="facilities.css?v=473">
+<script src="art-merge.js?v=473"></script>
 
-<script src="10-core-v40-v46.js?v=472"></script>
+<script src="10-core-v40-v46.js?v=473"></script>
 
-<script src="art-v47.js?v=472"></script>
-<script src="20-v47-v49.js?v=472"></script>
+<script src="art-v47.js?v=473"></script>
+<script src="20-v47-v49.js?v=473"></script>
 
-<script src="30-v410-v427.js?v=472"></script>
+<script src="30-v410-v427.js?v=473"></script>
 
-<script src="40-v428-trucking.js?v=472"></script>
+<script src="40-v428-trucking.js?v=473"></script>
 
-<script src="50-v429-v432.js?v=472"></script>
+<script src="50-v429-v432.js?v=473"></script>
 
-<script src="60-v433-v437.js?v=472"></script>
+<script src="60-v433-v437.js?v=473"></script>
 
-<script src="70-cloud-saves.js?v=472"></script>
-<script src="80-account-gate.js?v=472"></script>
-<script src="85-save-codes.js?v=472"></script>
+<script src="70-cloud-saves.js?v=473"></script>
+<script src="80-account-gate.js?v=473"></script>
+<script src="85-save-codes.js?v=473"></script>
 <!-- Must load after every art bundle, so the maps exist to be patched. -->
-<script src="85-art-override.js?v=472"></script>
-<script src="90-hq-stages.js?v=472"></script>
-<script src="94-flags.js?v=472"></script>
-<script src="95-tidy.js?v=472"></script>
+<script src="85-art-override.js?v=473"></script>
+<script src="90-hq-stages.js?v=473"></script>
+<script src="94-flags.js?v=473"></script>
+<script src="95-tidy.js?v=473"></script>
 <!-- Loads last: rewrites the retired HQ valuation table wherever it survives. -->
-<script src="96-hq-value.js?v=472"></script>
+<script src="96-hq-value.js?v=473"></script>
 <!-- Retires the pre-account "go and fetch a save code" instructions. -->
-<script src="97-onboard-copy.js?v=472"></script>
+<script src="97-onboard-copy.js?v=473"></script>
 <!-- Teaches c.debt to behave like the array the asset statement expects. -->
-<script src="98-debt-compat.js?v=472"></script>
+<script src="98-debt-compat.js?v=473"></script>
 <!-- Must load after 90-hq-stages.js: it wraps renderFacilitiesTab. -->
-<script src="99-v454-ui.js?v=472"></script>
+<script src="99-v454-ui.js?v=473"></script>
 <!-- R&D screen in the Industry Ops slot: wraps renderScreen. -->
-<script src="100-rnd.js?v=472"></script>
+<script src="100-rnd.js?v=473"></script>
 <!-- Renames the tab through the lexical DOCK_ITEMS and applies R&D
      effects to product.maturity / v33.product. Must load after 100. -->
-<script src="101-rnd-patch.js?v=472"></script>
+<script src="101-rnd-patch.js?v=473"></script>
 <!-- Turns the velocity track into real shipping speed: wraps
      resolvePlannedFeature. Must load after 100 and 101. -->
-<script src="102-rnd-speed.js?v=472"></script>
+<script src="102-rnd-speed.js?v=473"></script>
 <!-- Forces the R&D screen to mount past 100's dead #nbGate guard, and
      shows an on-screen diagnostic if it still cannot. Loads last. -->
-<script src="103-rnd-mount.js?v=472"></script>
+<script src="103-rnd-mount.js?v=473"></script>
 <!-- Dock shape: Growth group label; market lives under Personal. Data only. -->
-<script src="104-dock-shape.js?v=472"></script>
+<script src="104-dock-shape.js?v=473"></script>
 <!-- Decides who owns the industry slot per industry: Industry Ops or
      R&D. Must load after 100-103, whose behaviour it overrides. -->
-<script src="105-industry-slot.js?v=472"></script>
+<script src="105-industry-slot.js?v=473"></script>
 <!-- Advisor: rebuilds the growth answer, which said "undefined" in every
      industry added after art-core. Wraps assistantAnswer. -->
-<script src="106-industry-advice.js?v=472"></script>
+<script src="106-industry-advice.js?v=473"></script>
 <!-- Hides trucking-only rungs and the Drivers department in non-fleet
      companies. Display-time only; never splices LADDERS. -->
-<script src="107-hr-scope.js?v=472"></script>
+<script src="107-hr-scope.js?v=473"></script>
 <!-- Industry-appropriate facility names. Wraps facilitiesSection. -->
-<script src="108-facilities-flavor.js?v=472"></script>
+<script src="108-facilities-flavor.js?v=473"></script>
 <!-- Typed cheat codes for testing: navcash, navmega, navpoor, navopen,
      navlock, navhelp. Letters only, so it cannot collide with art-core. -->
-<script src="109-cheat.js?v=472"></script>
+<script src="109-cheat.js?v=473"></script>
 <!-- Phone portrait: makes the stacked dock scroll sideways again.
      Injects a runtime <style>, so it must load after every CSS layer. -->
-<script src="110-mobile-dock.js?v=472"></script>
+<script src="110-mobile-dock.js?v=473"></script>
 <!-- Expansion screen: Decide duplicates off both sub-tabs, marketing and
      markets confined to Growth, HQ sub-tab actually called HQ. -->
-<script src="111-expansion-scope.js?v=472"></script>
+<script src="111-expansion-scope.js?v=473"></script>
 <!-- Company forecast box (v44 banners + KPI strip) limited to Decide and
      Financials, instead of riding along on every personal screen. -->
-<script src="112-kpi-scope.js?v=472"></script>
+<script src="112-kpi-scope.js?v=473"></script>
 <!-- Real-world prices for cars, boats and aircraft, plus the net-worth
      unlock rules. Mutates CARS/TOYS in place, so it must load after every
      layer that could touch those catalogues. -->
-<script src="113-price-reality.js?v=472"></script>
+<script src="113-price-reality.js?v=473"></script>
 <!-- Custom icon set, sheet 1: the icon payload and the maps. Exposes
      window.NBIcons; later sheets call NBIcons.add(...). ?noicons=1 off.
      NOTE: shares the 113 prefix with price-reality by accident of two
      parallel releases; renumber at the next tidy. -->
-<script src="113-icons.js?v=472"></script>
+<script src="113-icons.js?v=473"></script>
 <!-- Retires the Ultralight Aircraft from TOYS. After 113-price-reality,
      so the price layer never reports on an entry about to be removed. -->
-<script src="114-retire-ultralight.js?v=472"></script>
+<script src="114-retire-ultralight.js?v=473"></script>
 <!-- Installs those icons into the dock. DOCK_GROUPS/DOCK_ITEMS are
      ARRAYS of {id,...}, which 113-icons.js mis-read as keyed objects;
      this layer does it properly and re-checks on a timer, since other
      layers rewrite the same arrays. Must load after 113-icons. -->
-<script src="115-icons-apply.js?v=472"></script>
+<script src="115-icons-apply.js?v=473"></script>
 <!-- Icon sheets 3-6: 48 files in art/, matched by rendered emoji rather
      than by key, because everything outside the dock writes its glyph
      inline inside art-core. Must load after 115 so dock entries already
      carrying a sheet-1 icon are left alone. ?noicons2=1 off. -->
-<script src="120-icons-glyphs.js?v=472"></script>
+<script src="120-icons-glyphs.js?v=473"></script>
+<!-- Sheet 1's base64 payload was recoloured and encoded at 48 px, which
+     frosted over the pale-faced icons (the compass worst of all). This
+     layer prefers art/<key>.webp wherever one has been uploaded, and
+     leaves the base64 in place where one has not. Loads after 115/120. -->
+<script src="117-icons-sheet1-files.js?v=473"></script>
 
 <script>
 /* Build stamp, so "which version am I actually running?" is never a mystery. */
