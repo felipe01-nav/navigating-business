@@ -1,114 +1,116 @@
 # introspect report
-# generated: 2026-09-23 01:42:20Z
-# commit: 0e7b2778ea34f77ad4f8e9a8f43454dc597fde52
+# generated: 2026-09-23 02:09:17Z
+# commit: a9f4e5e28f97df477fd5fca001c45e7491ec0745
 
 === FILE: art-core.js
-=== PATTERN: no physical operations layer
-3868:      <div class="card">This industry has no physical operations layer. Your revenue engine is the <b>Clients</b> tab (MRR) and the <b>Product</b> tab (features into pricing power).</div>`;
+=== PATTERN: (const|let|var)\s+(INDUSTRIES|LADDERS|DOCK_ITEMS|DOCK_GROUPS|HQ_STAGES|FACILITIES|FACILITY)\s*=
+75:const LADDERS = {
+1466:const DOCK_ITEMS = [
+3177:const INDUSTRIES = {
+4520:const DOCK_GROUPS = [
+8267:const FACILITIES = [
 
 === FILE: art-core.js
-=== PATTERN: getElementById\("screen"\)|getElementById\('screen'\)|id="screen"
-1494:    main.innerHTML = `<div id="dock"></div><div id="screen"></div>`;
-1508:  const screen = document.getElementById("screen");
-3851:  const screen = document.getElementById("screen");
-4540:    main.innerHTML = `<div id="dock"></div><div id="screen"></div>`;
-4578:  const screen = document.getElementById("screen");
-5955:    main.innerHTML = `<div id="dock"></div><div id="screen"></div>`;
-6027:    const screen = document.getElementById("screen");
-9153:    const host = document.getElementById("screen");
-9162:    const host = document.getElementById("screen");
-9429:  const host = document.getElementById("screen");
-9438:      const h = document.getElementById("screen");
-9521:  const host = document.getElementById("screen");
-9787:    const sc = document.getElementById("screen"); if(sc) sc.scrollTop = 0;
-9939:  const host = document.getElementById("screen");
-10246:    const sc = document.getElementById("screen"); if(sc) sc.scrollTop = 0;
-10279:          const sc = document.getElementById("screen"); if(sc) sc.scrollTop = 0;
-10676:  const main = document.getElementById("main"), screen = document.getElementById("screen");
-10702:    const sc = document.getElementById("screen"); if(sc) sc.scrollTop = 0;
-11134:    const sc = document.getElementById("screen"); if(sc) sc.scrollTop = 0;
-11365:        const sc = document.getElementById("screen");
-12513:    const main = document.getElementById("main"), screen = document.getElementById("screen");
-12543:      const sc = document.getElementById("screen"); if(sc) sc.scrollTop = 0;
-15123:        const host = document.getElementById("screen");
-15983:          const host = document.getElementById("screen");
-16067:        const host = document.getElementById("screen");
-16207:        const host = document.getElementById("screen");
-16228:        const host = document.getElementById("screen");
-16705:          const host = document.getElementById("screen");
-17092:          const host = document.getElementById("screen");
-17096:          const host = document.getElementById("screen");
+=== PATTERN: ^\s{0,8}(ai_saas|trucking|nail_salon|restaurant|robotics|finance|retail|agency)\s*:
+128:  finance: { label:"Finance", icon:"💰", rungs:[
+1781:  finance:[ {key:"tighten",label:"Tighten Budget"}, {key:"invest",label:"Push Investment Returns"} ],
+3178:  ai_saas: {
+3188:  retail: {
+3201:      finance:["Store Accountant","Finance Coordinator","Finance Team Lead","Finance Manager","Director of Finance","Chief Financial Officer"],
+3206:  restaurant: {
+3219:      finance:["Bookkeeper","Finance Coordinator","Finance Team Lead","Finance Manager","Director of Finance","Chief Financial Officer"],
+3224:  robotics: {
+3237:      finance:["Cost Accountant","Finance Coordinator","Finance Team Lead","Finance Manager","Director of Finance","Chief Financial Officer"],
+3242:  finance: {
+3255:      finance:["Treasury Analyst","Treasury Coordinator","Treasury Lead","Treasury Manager","Director of Treasury","Chief Financial Officer"],
+4778:      restaurant:"add a location, but only after quality is above 60 \u2014 bad inspections are expensive",
+4779:      robotics:"finish the R&D program in flight, then add production capacity to clear backlog",
+4780:      finance:"raise deposits first, then lend up to ~80% of them at balanced underwriting",
+4781:      ai_saas:"pair a sales rung with a shipped feature \u2014 pipeline plus product beats either alone" }[ind];
+7640:  retail:      { dept:"sales",      label:"Store Associate",     noun:"store" },
+7641:  restaurant:  { dept:"support",    label:"Server / FOH",        noun:"restaurant" },
+7642:  robotics:    { dept:"operations", label:"Assembly Technician", noun:"production line" }
+8236:  finance: {
+8909:  ai_saas: [
+8917:  retail: [
+8925:  restaurant: [
+8933:  robotics: [
+8941:  finance: [
+15381:  finance:    ["Accounting", "FP&A", "Treasury", "Procurement"],
 
 === FILE: art-core.js
-=== PATTERN: ui\.activeTab\s*=|activeSub|subTab\s*=|\.tab\s*=\s*"industry"
-1500:      <div class="dock-btn ${G.ui.activeTab===it.id?"active":""}" data-tab="${it.id}">${it.icon}
-1504:  dock.querySelectorAll("[data-tab]").forEach(b=> b.onclick = ()=>{ G.ui.activeTab = b.getAttribute("data-tab"); renderDock(); renderScreen(); });
-2351:    G.ui.activeTab = "slack";
-4497:  if(!ok) G.ui.activeTab = "bank";
-4555:    G.ui.activeTab = G.ui.lastTabByGroup[g.id] && g.items.indexOf(G.ui.lastTabByGroup[g.id])>=0
-4567:        return `<button class="btn ${G.ui.activeTab===id?"":"secondary"} small" data-subtab="${id}">${it.icon} ${it.label}</button>`; }).join("")}
-4570:    G.ui.activeTab = b.getAttribute("data-subtab");
-4720:    G.ui.activeTab = b.getAttribute("data-goto");
-5187:  wrap.querySelector("#goShop").onclick = ()=>{ G.ui.activeTab="market"; renderDock(); renderScreen(); };
-5188:  wrap.querySelector("#goBank").onclick = ()=>{ G.ui.activeTab="bank"; G.ui.bankAccount="personal"; renderDock(); renderScreen(); };
-5664:    G.ui.activeTab = b.getAttribute("data-gate-go");
-5694:      ${g.items.map(id=>{ const it = dockItem(id); const on = G.ui.activeTab===id; const dot = tabNeedsAttention(id);
-5699:    G.ui.activeTab = b.getAttribute("data-subtab");
-5969:    G.ui.activeTab = G.ui.lastTabByGroup[g.id] && g.items.indexOf(G.ui.lastTabByGroup[g.id])>=0
-5983:      ${g.items.map(id=>{ const it = dockItem(id); const on = G.ui.activeTab===id; const dot = tabNeedsAttention(id);
-5988:    G.ui.activeTab = b.getAttribute("data-subtab");
-6026:  if(G.ui.activeTab==="log"){
-6103:  wrap.querySelectorAll("[data-expgo]").forEach(b=> b.onclick = ()=>{ G.ui.activeTab = b.getAttribute("data-expgo"); renderDock(); renderScreen(); });
-6924:    if(gf) gf.onclick = ()=>{ G.ui.activeTab="financials"; renderDock(); renderScreen(); };
-6926:    if(gs) gs.onclick = ()=>{ G.ui.activeTab="market"; renderDock(); renderScreen(); };
-6928:    if(gb) gb.onclick = ()=>{ G.ui.activeTab="bank"; G.ui.bankAccount="personal"; renderDock(); renderScreen(); };
-8888:  if(hc) hc.onclick = ()=>{ G.ui.activeTab = "hr"; renderAll(); toast("Facilities & Campus is at the bottom of HR & Hiring \u2014 that is where you add seats."); };
-9077:  box.querySelectorAll("[data-v18fac]").forEach(b=> b.onclick=()=>{ G.ui.activeTab="hr"; renderAll();
-9152:  if(G.ui.activeTab === "leaderboard"){
-9282:  if(hc) hc.onclick = ()=>{ G.ui.activeTab = "facilities"; renderAll(); };
-9430:  if(G.ui.activeTab === "facilities" && host){
-9437:    if(G.ui.activeTab === "assistant"){
-9510:  ["#hcStat","#hcStatVal"].forEach(sel=>{ const n = bar.querySelector(sel); if(n) n.onclick = ()=>{ G.ui.activeTab = "facilities"; renderAll(); }; });
-9522:  if(host && G.ui.activeTab === "facilities"){
-9531:  if(host && G.ui.activeTab === "hq"){
-9617:  wrap.querySelectorAll("[data-v20go]").forEach(b=> b.onclick = ()=>{ G.ui.activeTab = b.getAttribute("data-v20go"); renderAll(); });
-9746:  if(hv) hv.onclick = ()=>{ G.ui.activeTab = "facilities"; renderAll(); };
-9780:        return `<button class="btn ${G.ui.activeTab===id?"":"secondary"} small" data-subtab="${id}">${it.icon} ${it.label}</button>`; }).join("")}
-9783:    G.ui.activeTab = b.getAttribute("data-subtab");
-9932:  wrap.querySelectorAll("[data-v20go]").forEach(b=> b.onclick = ()=>{ G.ui.activeTab = b.getAttribute("data-v20go"); renderAll(); });
-9940:  if(host && G.ui.activeTab === "board"){
-9946:  if(host && G.ui.activeTab === "saves" && !host.querySelector(".v21-version")){
-9954:  if(host && G.ui.activeTab === "board"){
-10180:  if(hv) hv.onclick = ()=>{ G.ui.activeTab = "facilities"; renderAll(); };
-10237:        return `<button class="btn ${G.ui.activeTab===id?"":"secondary"} small" data-subtab2="${id}">${it.icon} ${it.label}</button>`; }).join("")}</div>`:""}
-10241:    G.ui.activeTab = id;
-10257:    if(G.ui.activeTab === "people" || G.ui.activeTab === "hq"){
-10258:      G.ui.activeTab = (G.ui.activeTab==="hq") ? "financials" : v22LastPeopleTab();
-10277:          G.ui.activeTab = target;
-10331:    G.ui.activeTab = "slack";
-10414:    if(G && G.ui && (G.ui.activeTab==="hq" || G.ui.activeTab==="people")) G.ui.activeTab = "financials";
-10689:        return `<button class="v23-railbtn ${G.ui.activeTab===sid?"active":""}" data-v23rail="${sid}"><span>${s.icon}</span><span>${s.label}</span></button>`; }).join("")}</div>`;
-10697:    G.ui.activeTab = id;
-10865:      if(G.ui.activeTab==="decisions"){
-10954:    G.ui.activeTab = "hr"; G.ui.lastPeopleTab = "hr"; renderDock(); renderScreen();
-11359:    if(G.ui.activeTab==="orgchart") G.ui.activeTab = "csuite";
-12529:          return `<button class="v23-railbtn ${G.ui.activeTab===sid?"active":""}" data-v25rail="${sid}"><span>${s.icon}</span><span>${s.label}</span></button>`;
-12538:      G.ui.activeTab = id;
-13816:    G.ui.activeTab = t.getAttribute("data-v29tab");
-13824:    if(!multi){ G.ui.activeTab = "financials"; renderAll(); return; }
-14208:          host.querySelectorAll("[data-v29tab]").forEach(t=> t.onclick = ()=>{ G.ui.activeTab = t.getAttribute("data-v29tab"); renderAll(); });
-14792:        host.querySelectorAll("[data-v29tab]").forEach(t=> t.onclick = ()=>{ G.ui.activeTab = t.getAttribute("data-v29tab"); renderAll(); });
-14799:        row2.querySelectorAll("[data-v29tab]").forEach(t=> t.onclick = ()=>{ G.ui.activeTab = t.getAttribute("data-v29tab"); renderAll(); });
-14932:        host.querySelectorAll("[data-v29tab]").forEach(t=> t.onclick = ()=>{ G.ui.activeTab = t.getAttribute("data-v29tab"); renderAll(); });
-14939:          row.querySelectorAll("[data-v32alert]").forEach(x=> x.onclick = ()=>{ G.ui.activeTab = x.getAttribute("data-v32alert"); renderAll(); });
+=== PATTERN: function\s+(usesOps|IND|industryCfg|industryOf|isFleet)
+3262:function industryOf(co){ return INDUSTRIES[(co && co.industry) || "ai_saas"] || INDUSTRIES.ai_saas; }
 
 === FILE: art-core.js
-=== PATTERN: function subTabBar|function renderScreen
-1507:function renderScreenBase(){
-3850:function renderScreenBase(){
-4560:function subTabBar(){
-4577:function renderScreenV11(){
-5687:function subTabBar(){
-5976:function subTabBar(){
-6025:function renderScreen(){
+=== PATTERN: (opsType|v45)\s*:\s*["']
+3189:    key:"retail", label:"Retail Chain", icon:"\u{1F6CD}\uFE0F", startCash:45000, opsType:"retail",
+3207:    key:"restaurant", label:"Restaurant Group", icon:"\u{1F37D}\uFE0F", startCash:40000, opsType:"restaurant",
+3225:    key:"robotics", label:"Robotics Manufacturer", icon:"\u{1F9BE}", startCash:60000, opsType:"robotics",
+3243:    key:"finance", label:"Bank & Insurance", icon:"\u{1F3E6}", startCash:150000, opsType:"finance",
+
+=== FILE: art-core.js
+=== PATTERN: function\s+(renderFacilitiesTab|renderBusinessHQ|renderExpansion|renderPeople|renderHiring|renderClients|renderProduct)
+1952:function renderExpansionBucket(){
+2446:function renderClients(){
+2545:function renderProduct(){
+8363:function renderProduct(){
+9336:function renderFacilitiesTab(){
+9558:function renderBusinessHQ(){
+
+=== FILE: art-core.js
+=== PATTERN: c\.industry\s*===|company\.industry\s*===|industry\s*===\s*["']
+5861:    const owned = (G.companies||[]).some(c=>c.industry===k);
+8806:function isFinanceCo(co){ return ((co||G.company).industry === "finance"); }
+13741:  const cfg = (typeof industry==="function") ? industry() : { icon:"\u{1F4BC}" };
+
+=== FILE: art-core.js
+=== PATTERN: function\s+(hire|canHire|rungAvailable|ladderFor|rungsFor)
+361:function hire(deptKey, rungKey){
+4481:function hireGateAllows(item){
+7673:function hireLineCrew(l, qty){
+8170:function hireGateAllows(){ return true; }
+
+=== FILE: 40-v428-trucking.js
+=== PATTERN: (usesOps|isFleet|industry\s*===|gateDock|LADDERS)
+214:function usesOps(){
+220:window.__v426UsesOps = usesOps;
+221:function gateDock(){
+225:  var show = usesOps();
+237:window.__v426GateDock = gateDock;
+256:function isFleet(){ try{ return INDUSTRIES[IND()].v45 === "fleet"; }catch(e){ return false; } }
+257:window.__v426IsFleet = isFleet;
+321:  if(!isFleet()) return null;
+450:  if(!isFleet()) return null;
+759:  try{ depts = DEPT_KEYS.slice(); }catch(e){ try{ depts = Object.keys(LADDERS); }catch(e2){ depts = []; } }
+763:  try{ rungs = LADDERS[dept].rungs; }catch(e){ return null; }
+940:    var r = LADDERS[e.dept].rungs.filter(function(x){ return x.key === e.rung; })[0];
+1172:function isTruck(){ var c=C(); return !!(c && c.industry === "trucking"); }
+1461:      if(c && (!co || co === c) && c.industry === "trucking" && c.__v427) base += num(c.__v427.lastGross, 0);
+1723:function isTruck(){ var x=c(); return !!(x && x.industry === "trucking"); }
+1908:function isTruck(){ var c = C(); return !!c && c.industry === "trucking"; }
+1943:  if(typeof LADDERS === "undefined" || !LADDERS || !LADDERS.sales) return;
+1945:  if(!LADDERS.drivers){
+1946:    LADDERS.drivers = { label:"Drivers & Fleet", icon:"\u{1F69B}", rungs: clone(DRIVER_RUNGS) };
+1948:  if(typeof BASE_LADDERS !== "undefined" && BASE_LADDERS && !BASE_LADDERS.drivers){
+1949:    BASE_LADDERS.drivers = { label:"Drivers & Fleet", icon:"\u{1F69B}", rungs: clone(DRIVER_RUNGS) };
+1963:  /* applyIndustryLabels() indexes BASE_LADDERS and INDUSTRIES[*].roles positionally,
+1964:     so any splice into LADDERS.sales must be mirrored into both. */
+1965:  var rungs = LADDERS.sales.rungs;
+1968:    if(typeof BASE_LADDERS !== "undefined" && BASE_LADDERS && BASE_LADDERS.sales){
+1969:      Array.prototype.push.apply(BASE_LADDERS.sales.rungs, clone(SALES_SPECIALISTS));
+1984:      var cfg = (typeof industry === "function") ? industry() : null;
+1986:        var L = LADDERS[dk], B = (typeof BASE_LADDERS !== "undefined" && BASE_LADDERS[dk]) || null;
+2207:      if(typeof LADDERS !== "undefined" && LADDERS.sales){
+2208:        var r = LADDERS.sales.rungs;
+2216:      if(pulledRungs.length && LADDERS.sales){
+2217:        pulledRungs.forEach(function(pair){ LADDERS.sales.rungs.splice(pair[0], 0, pair[1]); });
+2243:     applyIndustryLabels() reads BASE_LADDERS[dk].rungs[i].label positionally.
+2244:     BASE_LADDERS was snapshotted before later patches appended rungs to
+2245:     LADDERS, so any rung past the snapshot threw and killed the HR render. */
+2247:    if(typeof LADDERS==="undefined" || typeof BASE_LADDERS==="undefined") return;
+2248:    Object.keys(LADDERS).forEach(function(dk){
+2249:      var live = LADDERS[dk]; if(!live || !live.rungs) return;
+2250:      if(!BASE_LADDERS[dk]) BASE_LADDERS[dk] = { label: live.label, rungs: [] };
+2251:      var base = BASE_LADDERS[dk];
 
