@@ -5,7 +5,7 @@
    Bump CACHE_VERSION whenever a release should discard old cached assets,
    and bump ?v= in index.html at the same time. */
 
-const CACHE_VERSION = 'nb-2026-09-22-t';
+const CACHE_VERSION = 'nb-2026-09-22-u';
 const ART_ASSETS = ['art-core.js', 'art-merge.js', 'art-v47.js'];
 
 self.addEventListener('install', (event) => {
