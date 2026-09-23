@@ -1,6 +1,1 @@
-10-core-v40-v46.js|icon:\s*"\\u
-20-v47-v49.js|icon:\s*"\\u
-30-v410-v427.js|icon:\s*"\\u
-40-v428-trucking.js|icon:\s*"\\u
-50-v429-v432.js|icon:\s*"\\u
-60-v433-v437.js|icon:\s*"\\u
+113-icons.js@1-60
