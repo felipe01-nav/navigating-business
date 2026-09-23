@@ -1,10 +1,12 @@
 # <file>|<regex> for grep, <file>@<start>-<end> for a line range.
-# pass 3: exact hooks for the four-item build.
-art-core.js@8950-9000
-art-core.js|(case\s*"(network|negotiate|content|outreach|consulting)"|key\s*===\s*"(network|negotiate)")
-art-core.js@4700-4776
-art-core.js|(HEADCOUNT_CAP\s*=|function\s+headcountCap|function\s+hrSection|function\s+renderHR|function\s+peopleSection)
-art-core.js|(\.rungs\.map|rungs\.forEach)
-art-core.js|function\s+(founderActionsForIndustry|runFounderAction|resolveFounderAction|doFounderAction)
-40-v428-trucking.js|(ops\s*=\s*\{|type\s*:\s*"trucking"|\.ops\.type|opsType)
-50-v429-v432.js@1025-1040
+# pass 4: remaining hooks for the four-item build.
+art-core.js@8908-8950
+art-core.js@4776-4800
+art-core.js@7636-7690
+art-core.js@1730-1760
+art-core.js@4050-4075
+art-core.js@8267-8300
+art-core.js|ops\s*:\s*\{\s*type\s*:\s*"[a-z_]+"
+art-core.js|type\s*:\s*"(store|stores|restaurant|production|fleet|salon|chairs|line|lines)"
+40-v428-trucking.js|(ops\.type|ops\s*=|"trucking"|trucks)
+50-v429-v432.js|(nail_salon|salon|agency|ops\.type)
