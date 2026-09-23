@@ -1,8 +1,6 @@
 # <file>|<extended regex>   Lines starting with # are ignored.
-art-core.js|qualit
-art-core.js|velocit|devSpeed|shipSpeed|buildSpeed|featureSpeed
-art-core.js|function (monthEnd|endMonth|closeMonth|advanceMonth|nextMonth|endTurn|tick)
-art-core.js|churn
-art-core.js|(product|feature)s? *[:=]
-art-core.js|function renderScreen|activeTab *===? *"industry"|renderIndustry
-art-core.js|cash *:|company *= *\{
+art-core.js|DOCK_ITEMS|DOCK_GROUPS
+art-core.js|dock-label|class="dock"|id="dock"
+art-core.js|data-tab=|function renderDock|function buildDock|function dock\(
+art-core.js|industry.*(label|name) *:|label *: *"Industry
+art-core.js|function renderScreen\(\)
