@@ -1,3 +1,2 @@
-art-core.js|(superyacht|sportfish|cabin_cruiser|bassboat|jetski|pontoon)
-art-core.js|(ultralight|heavyjet|lightjet|midjet)
-art-core.js|(netWorth\s*[><]=?|minNet|unlockNet|requireNet)
+art-core.js@2795-2840
+art-core.js@4805-4890
