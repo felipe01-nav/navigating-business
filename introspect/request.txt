@@ -1,5 +1,5 @@
 # <file>|<regex> for grep, <file>@<start>-<end> for a line range.
-# pass 8: cheat code collision check.
-art-core.js@13110-13140
-art-core.js@3630-3650
-art-core.js@245-260
+# pass 9: dock markup + mobile layout.
+art-core.js@5940-6010
+base.css|(@media|#dock|\.dock|#v23Rail|v25rail|subtab|overflow)
+facilities.css|@media
