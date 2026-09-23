@@ -1,234 +1,165 @@
 # introspect report
-# generated: 2026-09-23 02:19:56Z
-# commit: ff38398df28bd068d410dc855ed673fa0c60dc03
+# generated: 2026-09-23 02:20:38Z
+# commit: d8be38cbe84428de2efca1832b9af636bc640fd4
+
+=== FILE: 30-v410-v427.js  LINES 1596-1680
+1596 if(typeof renderAll === "function") renderAll();
+1597 };
+1598 }catch(e){}
+1599
+1600 /* keep the button honest about how many pitches remain */
+1601 function relabelPitch(){
+1602 try{
+1603 if(!c() || (typeof v45Kind === "function" && v45Kind() !== "agency")) return;
+1604 var left = pitchesLeft();
+1605 document.querySelectorAll("[data-v45pitch]").forEach(function(b){
+1606 var want = left > 0
+1607 ? "Pitch a new account \u00b7 " + left + " of " + PITCH_CAP + " left this month"
+1608 : "No pitches left this month";
+1609 if(b.textContent !== want) b.textContent = want;
+1610 b.disabled = left <= 0;
+1611 });
+1612 }catch(e){}
+1613 }
+1614 try{ setInterval(relabelPitch, 900); }catch(e){}
+1615
+1616 /* ---------- 2. Founder actions that fit the business ---------- */
+1617 var AGENCY_ACTIONS = [
+1618 { key:"v416_spec", label:"\u{1F3A8} Build a Spec Campaign", desc:"Do the work before you are hired. Expensive in hours, hard to say no to." },
+1619 { key:"v416_awards", label:"\u{1F3C6} Enter an Awards Show", desc:"Creative awards are how agencies buy reputation. Entry fees are real." },
+1620 { key:"v416_poach", label:"\u{1F3AF} Poach a Rival's Account", desc:"Call a client who is unhappy with their current shop." },
+1621 { key:"v416_casestudy", label:"\u{1F4C8} Publish a Case Study", desc:"Turn your best result into inbound. Slow burn, compounding." },
+1622 { key:"v416_freelance", label:"\u{1F58A}\uFE0F Take a Freelance Brief", desc:"Bill your own hours. One-time cash, no retainer." },
+1623 { key:"v416_mediabuy", label:"\u{1F911} Renegotiate the Media Buy", desc:"Lean on your rep for better rates. Trims recurring cost." }
+1624 ];
+1625 var TRUCK_ACTIONS = [
+1626 { key:"v416_loadboard", label:"\u{1F4CB} Work the Load Board", desc:"Find a better-paying backhaul yourself instead of running empty." },
+1627 { key:"v416_shipper", label:"\u{1F91D} Court a Direct Shipper", desc:"Cut the broker out. Better rate if they bite." },
+1628 { key:"v416_drive", label:"\u{1F69B} Take a Run Yourself", desc:"Cover a load personally. Saves a driver's pay this month." },
+1629 { key:"v416_fuel", label:"\u26FD Negotiate a Fuel Card", desc:"A few cents a gallon across the fleet adds up." },
+1630 { key:"v416_safety", label:"\u{1F6E1}\uFE0F Run a Safety Review", desc:"Fewer incidents, better insurance standing." },
+1631 { key:"negotiate", label:"\u{1F911} Renegotiate a Vendor Contract", desc:"Trim a recurring cost." }
+1632 ];
+1633 var SALON_ACTIONS = [
+1634 { key:"v416_chair", label:"\u{1F485} Work a Chair Yourself", desc:"Take clients personally. Direct cash, and they ask for you again." },
+1635 { key:"v416_regulars", label:"\u{1F4DE} Call Your Regulars", desc:"Fill next week's book by hand." },
+1636 { key:"v416_social", label:"\u{1F4F8} Post the Best Sets", desc:"Nail work is visual. Free reach if it lands." },
+1637 { key:"v416_bridal", label:"\u{1F48D} Chase a Bridal Party", desc:"One booking, a whole day's revenue." },
+1638 { key:"v416_supply", label:"\u{1F9F4} Squeeze the Supplier", desc:"Better pricing on product. Trims recurring cost." },
+1639 { key:"network", label:"\u{1F91D} Work the Neighborhood", desc:"Local referrals and cross-promotion." }
+1640 ];
+1641
+1642 try{
+1643 var prevFor = (typeof founderActionsForIndustry === "function") ? founderActionsForIndustry : null;
+1644 window.founderActionsForIndustry = function(){
+1645 try{
+1646 var ind = c() && c().industry;
+1647 if(ind === "agency") return AGENCY_ACTIONS;
+1648 if(ind === "trucking") return TRUCK_ACTIONS;
+1649 if(ind === "nail_salon") return SALON_ACTIONS;
+1650 }catch(e){}
+1651 return prevFor ? prevFor.apply(this, arguments) : FOUNDER_ACTIONS;
+1652 };
+1653 }catch(e){}
+1654
+1655 try{
+1656 var prevRun = window.runFounderAction;
+1657 window.runFounderAction = function(key){
+1658 if(String(key).indexOf("v416_") !== 0) return prevRun.apply(this, arguments);
+1659 var co = c();
+1660 if(!co) return;
+1661 if((co.founderActionsUsed || 0) >= FOUNDER_ACTION_CAP) return;
+1662 co.founderActionsUsed = (co.founderActionsUsed || 0) + 1;
+1663 co.founderActionsLifetime = (co.founderActionsLifetime || 0) + 1;
+1664
+1665 var idx = (typeof v45TierIndex === "function" && v45Kind && v45Kind() === "agency") ? v45TierIndex() : 0;
+1666 var mult = (typeof V45_TIERS !== "undefined" && V45_TIERS[idx]) ? V45_TIERS[idx].mult : 1;
+1667 var msg = "";
+1668
+1669 function winClient(lo, hi, healthLo, healthHi, seg){
+1670 var mrr = Math.round(rand(lo, hi) * mult);
+1671 co.clients.push({ id:uid(), name:pick(typeof segmentNamePool === "function" ? segmentNamePool(seg || "Small") : ["New Account"]),
+1672 mrr:mrr, health:rand(healthLo, healthHi), sinceMonth:co.month, sinceYear:co.year });
+1673 if(typeof recomputeMRR === "function") recomputeMRR();
+1674 return mrr;
+1675 }
+1676
+1677 /* ----- agency ----- */
+1678 if(key === "v416_spec"){
+1679 var cost = Math.round(rand(400, 1200) * mult);
+1680 co.cash -= cost;
 
 === FILE: 30-v410-v427.js
-=== PATTERN: (nail_salon|agency)
-353:   v4.10 — 3. Trucking and the agency get their own rivals and words
-358:    nail_salon: {
-370:    agency: {
-378:    nail_salon: [[/\bProduct quality\b/g,"Service quality"],[/\bProduct\b/g,"Service quality"],[/\bproduct\b/g,"service quality"],[/\bR&D\b/g,"Training"],[/\broadmap\b/g,"service menu"]],
-380:    agency:     [[/\bProduct quality\b/g,"Creative quality"],[/\bProduct\b/g,"Creative quality"],[/\bproduct\b/g,"creative quality"],[/\bR&D\b/g,"Craft & talent"],[/\broadmap\b/g,"creative pipeline"]]
-1531:   v4.16 — The marketing agency plays like a marketing agency
-1534:   2. Founder Hustle actions written for an agency owner (and for the
-1603:      if(!c() || (typeof v45Kind === "function" && v45Kind() !== "agency")) return;
-1647:        if(ind === "agency") return AGENCY_ACTIONS;
-1649:        if(ind === "nail_salon") return SALON_ACTIONS;
-1665:      var idx = (typeof v45TierIndex === "function" && v45Kind && v45Kind() === "agency") ? v45TierIndex() : 0;
-1677:      /* ----- agency ----- */
-1701:          msg = "They fired their agency and signed with you at " + fmt$(m2) + "/mo. Word gets around, both ways.";
-1870:   3. New business director: an agency hire who pitches for you each month.
-1878:  function isAgency(){ try{ return typeof v45Kind === "function" && v45Kind() === "agency"; }catch(e){ return false; } }
-2069:  /* Show the director inside the agency standing card. */
-2753:   and writes the same field, so a $25M/mo draw at a mature agency follows
-3407:      the active company's. So a $25M/mo draw at a mature agency pays
+=== PATTERN: (SALON_ACTIONS|AGENCY_ACTIONS|TRUCK_ACTIONS|TRUCKING_ACTIONS)\s*=
+1617:  var AGENCY_ACTIONS = [
+1625:  var TRUCK_ACTIONS = [
+1633:  var SALON_ACTIONS = [
 
-=== FILE: 50-v429-v432.js
-=== PATTERN: (INDUSTRIES\[|nail_salon|agency|v45\s*:)
-1032:     robotics and finance do. SaaS, salon, trucking and agency do not. */
+=== FILE: 30-v410-v427.js
+=== PATTERN: function\s+v45\w*
 
-=== FILE: 60-v433-v437.js
-=== PATTERN: (nail_salon|agency|INDUSTRIES\[)
+=== FILE: 30-v410-v427.js
+=== PATTERN: (chairs|stylist|Stylist)
 
-=== FILE: art-core.js  LINES 3425-3450
-3425 const PRICE_TIER_OPTS = [ {v:0.85,label:"Value"}, {v:1,label:"Standard"}, {v:1.25,label:"Premium"} ];
-3426 const UNDERWRITING = [
-3427 { key:"tight", label:"Tight", rate:0.0075, defaults:0.002, growth:0.6 },
-3428 { key:"balanced", label:"Balanced", rate:0.0095, defaults:0.005, growth:1.0 },
-3429 { key:"loose", label:"Loose", rate:0.0125, defaults:0.014, growth:1.5 },
-3430 ];
-3431 function opsInit(industryKey){
-3432 if(industryKey==="retail") return { type:"retail", stores:[], priceTier:1, satisfaction:70, lastNet:0, lastGross:0 };
-3433 if(industryKey==="restaurant") return { type:"restaurant", locations:[], priceTier:1, quality:62, inspectionFails:0, lastNet:0, lastGross:0 };
-3434 if(industryKey==="robotics") return { type:"robotics", lines:[], released:[], rnd:null, backlog:0, delivered:0, lastNet:0, lastGross:0 };
-3435 if(industryKey==="finance") return { type:"finance", deposits:250000, loanBook:0, underwriting:"balanced", insuranceBook:0, chargeOffs:0, lastNet:0, lastGross:0 };
-3436 return null;
-3437 }
-3438 function opsSpend(amount, label){
-3439 const co = G.company;
-3440 if(co.cash < amount){ alert(`Not enough company cash for ${label} (${fmt$(amount)}). You have ${fmt$(co.cash)}.`); return false; }
-3441 co.cash -= amount;
-3442 logHistory(`${label} \u2014 ${fmt$(amount)} paid from company cash.`);
-3443 return true;
-3444 }
-3445 function marketingBoost(){
-3446 const specs = rungCount("marketing","rep");
-3447 let b = 0.03*specs;
-3448 if(deptHas("marketing","manager")) b += 0.05;
-3449 if(deptHas("marketing","cmo")) b += 0.12;
-3450 return b;
+=== FILE: art-core.js  LINES 3177-3200
+3177 const INDUSTRIES = {
+3178 ai_saas: {
+3179 key:"ai_saas", label:"AI Dashboard (SaaS)", icon:"\u{1F916}", startCash:30000, opsType:null,
+3180 desc:"Subscription software. Revenue is MRR from clients; engineers ship features that raise pricing power.",
+3181 revenueLabel:"Platform Operations", accountLabel:"Clients",
+3182 deptLabels:{},
+3183 accounts:{ Enterprise:["Titan Manufacturing","Argent Bank","Meridian Health","Vantage Logistics"],
+3184 "Mid-Market":["Harbor Analytics","Nimbus Foods","Cobalt Studio","Junction Coffee","Lark & Co"],
+3185 Small:["Acme Retail","Bluepeak Co","Fenwick Group","Willow Cafe","Redstone Fitness","Sable Goods","Pixel Studio"] },
+3186 roles:{}
+3187 },
+3188 retail: {
+3189 key:"retail", label:"Retail Chain", icon:"\u{1F6CD}\uFE0F", startCash:45000, opsType:"retail",
+3190 desc:"Open stores, buy inventory, price your goods. Revenue comes from foot traffic and sell-through \u2014 stock out and you lose the sale.",
+3191 revenueLabel:"Store Operations", accountLabel:"Wholesale Accounts",
+3192 deptLabels:{ sales:"Store Sales", marketing:"Brand & Promotions", product:"Merchandising", support:"Customer Service", operations:"Supply Chain" },
+3193 accounts:{ Enterprise:["Regional Mall Group","Big Box Partner","National Distributor"],
+3194 "Mid-Market":["Boutique Collective","Airport Retail Group","Campus Bookstore Chain"],
+3195 Small:["Local Consignment Shop","Pop-Up Partner","Corner Market"] },
+3196 roles:{
+3197 sales:["Retail Associate","Shift Lead","Assistant Store Manager","Store Manager","District Manager","Chief Retail Officer"],
+3198 marketing:["Promotions Specialist","Promotions Coordinator","Campaign Lead","Marketing Manager","Director of Brand","Chief Marketing Officer"],
+3199 product:["Merchandiser","Category Buyer","Senior Buyer","Merchandising Manager","Director of Merchandising","Chief Merchandising Officer"],
+3200 support:["Customer Service Rep","CS Lead","CS Team Lead","CS Manager","Director of Customer Experience","Chief Customer Officer"],
 
-=== FILE: art-core.js  LINES 1702-1734
-1702 function renderHRBase(){
-1703 const wrap = el(`<div></div>`);
-1704 const c = G.company;
-1705 let html = `<div class="window-title"><h2>🧑‍🎓 HR & Hiring</h2>
-1706 <span class="sub">Headcount cap: ${headcountCap()} · Current: ${c.employees.length}</span></div>`;
-1707 DEPT_KEYS.forEach(dk=>{ html += renderLadderBucket(dk); });
-1708 html += `<h3 class="section-divider">🎁 Benefits & Perks</h3>`;
-1709 html += renderBenefitsBucket();
-1710 html += `<h3 class="section-divider">🏛️ Board of Directors</h3>`;
-1711 html += renderBoardBucket();
-1712 html += renderQueuePanel("commitBtnHR");
-1713 wrap.innerHTML = html;
-1714 wrap.querySelectorAll("[data-qremove]").forEach(b=> b.onclick=()=>{ queueRemove(b.getAttribute("data-qremove")); renderScreen(); });
-1715 wrap.querySelector("#commitBtnHR").onclick = ()=>{ confirmAndAdvance(); };
-1716 wrap.querySelectorAll("[data-board]").forEach(b=> b.onclick=()=>{
-1717 const key = b.getAttribute("data-board");
-1718 const seat = BOARD_SEATS.find(s=>s.key===key);
-1719 if(!seat || (G.company.board||[]).includes(key)) return;
-1720 if(!affordOrAlert(seat.cost, `recruiting ${seat.name}`)) return;
-1721 queueAdd({ id:uid(), label:`Recruit board seat: ${seat.name}`, cost:seat.cost, run:(report)=>{
-1722 if(G.company.cash<seat.cost){ report.push(`Skipped recruiting ${seat.name} — insufficient cash.`); return; }
-1723 G.company.cash -= seat.cost;
-1724 if(!G.company.board) G.company.board=[];
-1725 if(!G.company.board.includes(key)) G.company.board.push(key);
-1726 report.push(`🏛️ ${seat.name} joined your Board of Directors! ${seat.effect}`);
-1727 }});
-1728 renderScreen();
-1729 });
-1730 wireBucketButtons(wrap);
-1731 return wrap;
-1732 }
-1733
-1734 function renderLadderBucket(deptKey){
+=== FILE: 40-v428-trucking.js
+=== PATTERN: (founderAction|FOUNDER)
+2269:  /* ---------- 2. FOUNDER OPTIONS: ONE SECTION, NO POINTS ---------- */
+2278:      if(c) c.founderActionsUsed = 0;
+2281:      finally{ if(c){ c.founderActionsUsed = 0; foundMark(key); } }
+2291:      var c = C(); if(c) c.founderActionsUsed = 0;
+2293:      if(c) c.founderActionsUsed = 0;
+2522:      if(c && num(c.founderActionsUsed) > 0) c.founderActionsUsed = 0;
 
-=== FILE: art-core.js  LINES 4610-4650
-4610 function renderHR(){
-4611 const wrap = renderHRBase();
-4612 collapseSection(wrap, "Board of Directors", false);
-4613 collapseSection(wrap, "Benefits & Perks", false);
-4614 return wrap;
-4615 }
-4616
-4617 /* ---------------- Jarvis advisor ---------------- */
-4618 function cashRunway(){
-4619 const c = G.company;
-4620 const exp = Object.values(c.expensesBreakdown||{}).reduce((a,b)=>a+(b||0),0);
-4621 const rev = monthlyRevenue(c);
-4622 const burn = exp - rev;
-4623 if(burn <= 0) return Infinity;
-4624 return Math.max(0, Math.floor(c.cash / burn));
-4625 }
-4626 function jarvisAdvice(){
-4627 const c = G.company, p = G.personal, out = [];
-4628 const add = (pri, icon, title, text, tab)=> out.push({ pri, icon, title, text, tab });
-4629 const rev = monthlyRevenue(c);
-4630 const runway = cashRunway();
-4631
-4632 if(c.cash < 0 || (c.distressMonths||0) > 0)
-4633 add(100, "\u{1F6A8}", "You are in financial distress", `Cash is ${fmt$(c.cash)} and you've had ${c.distressMonths} month(s) of overdrafts. Borrowing capacity right now is ${fmt$(Math.max(0, debtCapacity()-c.debt.loanBalance))}. Take a term loan or cut queued spend before advancing.`, "bank");
-4634 else if(runway !== Infinity && runway <= 2)
-4635 add(95, "\u26A0\uFE0F", `About ${runway} month(s) of runway left`, `Burn is outpacing ${fmt$(Math.round(rev))}/mo of revenue. Either borrow (${fmt$(Math.max(0, debtCapacity()-c.debt.loanBalance))} available), raise a round in My Empire, or trim payroll.`, "bank");
-4636
-4637 if(c.pendingEvent)
-4638 add(92, "\u26A1", "An event needs your decision", `"${c.pendingEvent.title}" is waiting. Unresolved events keep compounding.`, "decisions");
-4639
-4640 const cap = headcountCap(), room = cap - c.employees.length;
-4641 if(room <= 0 && c.cash > 20000)
-4642 add(70, "\u{1F3E2}", "Office is at capacity", `You're at ${c.employees.length}/${cap} headcount. Upgrade the workspace in Decisions \u2192 Expansion before you can hire again.`, "decisions");
-4643
-4644 if(c.employees.length){
-4645 const avgMorale = Math.round(c.employees.reduce((s,e)=>s+e.morale,0)/c.employees.length);
-4646 if(avgMorale < 55) add(72, "\u{1F614}", `Morale is ${avgMorale}/100`, "Low morale raises attrition and cuts output. Try a team event, a benefits tier upgrade, or equity grants \u2014 option holders quit far less.", "hr");
-4647 const atRisk = c.employees.filter(e=>e.morale<35);
-4648 if(atRisk.length) add(68, "\u{1F6AA}", `${atRisk.length} person(s) at flight risk`, atRisk.slice(0,3).map(e=>`${e.name} (${e.role})`).join(", ") + ". A bonus, promotion, or equity grant usually resets them.", "team");
-4649 } else {
-4650 add(80, "\u{1F464}", "You have no employees", "Nothing compounds without a team. Start with the entry rung in your core department.", "hr");
-
-=== FILE: art-core.js
-=== PATTERN: function\s+(rungCount|rungCapacity|rungRemaining|applyIndustryLabels|assistantAnswerBase|industry)
-180:function rungCount(deptKey, rungKey){ return deptEmployees(deptKey).filter(e=>e.rung===rungKey).length; }
-181:function rungCapacity(deptKey, rungKey){
-189:function rungRemaining(deptKey, rungKey){
-1353:function assistantAnswerBase(question){
-3262:function industryOf(co){ return INDUSTRIES[(co && co.industry) || "ai_saas"] || INDUSTRIES.ai_saas; }
-3263:function industry(){ return industryOf(G && G.company); }
-3264:function applyIndustryLabels(){
-5866:function industryUnlocked(key){
-5871:function industryLockNote(key){
-8168:function rungCapacity(){ return Infinity; }        // hire any level, any time
-8169:function rungRemaining(){ return Infinity; }
-
-=== FILE: art-core.js  LINES 1846-1900
-1846 function runFounderAction(key){
-1847 const c = G.company;
-1848 if((c.founderActionsUsed||0) >= FOUNDER_ACTION_CAP) return;
-1849 c.founderActionsUsed = (c.founderActionsUsed||0) + 1;
-1850 c.founderActionsLifetime = (c.founderActionsLifetime||0) + 1;
-1851 let msg = "";
-1852 if(key==="outreach"){
-1853 if(Math.random() < 0.45){
-1854 const mrrVal = rand(120,320);
-1855 c.clients.push({ id:uid(), name:pick(["Corner Bakery","Riverside Dental","Acme Consulting","Bright Path Tutoring","Metro Fitness"]),
-1856 mrr:mrrVal, health:rand(65,85), sinceMonth:c.month, sinceYear:c.year });
-1857 recomputeMRR();
-1858 msg = `You landed a new client yourself worth ${fmt$(mrrVal)} MRR! 🎉`;
-1859 } else msg = "You pitched a few prospects yourself but no bites this time. Worth trying again next month.";
-1860 } else if(key==="consulting"){
-1861 const gain = rand(600,1800);
-1862 c.cash += gain;
-1863 msg = `Side consulting gig paid off — ${fmt$(gain)} landed straight in the business account.`;
-1864 } else if(key==="network"){
-1865 if(Math.random() < 0.35){
-1866 const mrrVal = rand(200,500);
-1867 c.clients.push({ id:uid(), name:pick(["Lakeside Realty","Harbor Legal","Nova Yoga Studio","Ember Design Co","Crestline Logistics"]),
-1868 mrr:mrrVal, health:rand(70,90), sinceMonth:c.month, sinceYear:c.year });
-1869 recomputeMRR();
-1870 c.successScore = clamp(c.successScore+2,0,100);
-1871 msg = `A founder-meetup connection turned into a referral client worth ${fmt$(mrrVal)} MRR!`;
-1872 } else {
-1873 c.successScore = clamp(c.successScore+1,0,100);
-1874 msg = "Good conversations at the meetup — nothing closed yet, but your reputation ticked up slightly.";
-1875 }
-1876 } else if(key==="freelance"){
-1877 const gain = rand(1500,3500);
-1878 c.cash += gain;
-1879 msg = `Freelance project wrapped up — ${fmt$(gain)} one-time payout landed in the business account.`;
-1880 } else if(key==="content"){
-1881 if(Math.random() < 0.4){
-1882 const mrrVal = rand(150,400);
-1883 c.clients.push({ id:uid(), name:pick(["Sunrise Yoga","Blue Ridge Consulting","Maple Street Cafe","Fenwick & Partners","Coral Bay Media"]),
-1884 mrr:mrrVal, health:rand(65,85), sinceMonth:c.month, sinceYear:c.year });
-1885 recomputeMRR();
-1886 msg = `Your post went semi-viral and pulled in a new client worth ${fmt$(mrrVal)} MRR!`;
-1887 } else {
-1888 c.successScore = clamp(c.successScore+1,0,100);
-1889 msg = "Decent engagement on your post — no direct client yet, but brand awareness ticked up.";
-1890 }
-1891 } else if(key==="negotiate"){
-1892 const cut = rand(80,250);
-1893 c.expensesBreakdown.other = Math.max(0, c.expensesBreakdown.other - cut);
-1894 msg = `Renegotiated a vendor contract — trimmed ${fmt$(cut)}/mo off recurring overhead.`;
-1895 }
-1896 G.ui.founderMsg = msg;
-1897 logHistory(msg);
-1898 }
-1899 function renderPricingBucket(){
-1900 const c = G.company;
-
-=== FILE: 40-v428-trucking.js  LINES 1938-1960
-1938 var SALES_EQUIP = { rep:["dryvan"], v428_reefer_rep:["reefer"], v428_flat_rep:["flatbed"], v428_ded_rep:["daycab","dryvan"] };
-1939 var SEATABLE = { v428_day:"daycab", v428_dry:"dryvan", v428_reefer:"reefer", v428_flat:"flatbed", v428_trainer:"dryvan" };
-1940 var REP_TYPE = { reefer:"reefer", flatbed:"flatbed", daycab:"dedicated", dryvan:"dry" };
-1941
-1942 T("ladder", function(){
-1943 if(typeof LADDERS === "undefined" || !LADDERS || !LADDERS.sales) return;
-1944
-1945 if(!LADDERS.drivers){
-1946 LADDERS.drivers = { label:"Drivers & Fleet", icon:"\u{1F69B}", rungs: clone(DRIVER_RUNGS) };
-1947 }
-1948 if(typeof BASE_LADDERS !== "undefined" && BASE_LADDERS && !BASE_LADDERS.drivers){
-1949 BASE_LADDERS.drivers = { label:"Drivers & Fleet", icon:"\u{1F69B}", rungs: clone(DRIVER_RUNGS) };
-1950 }
-1951 if(typeof DEPT_KEYS !== "undefined" && DEPT_KEYS && DEPT_KEYS.indexOf("drivers") < 0){
-1952 var at = DEPT_KEYS.indexOf("operations");
-1953 DEPT_KEYS.splice(at < 0 ? DEPT_KEYS.length : at, 0, "drivers");
-1954 }
-1955 if(typeof ORDER_OPTIONS !== "undefined" && ORDER_OPTIONS && !ORDER_OPTIONS.drivers){
-1956 ORDER_OPTIONS.drivers = [
-1957 { key:"miles", label:"Run More Miles" },
-1958 { key:"safety", label:"Safety First" },
-1959 { key:"retain", label:"Keep the Drivers" }
-1960 ];
+=== FILE: art-core.js  LINES 9336-9360
+9336 function renderFacilitiesTab(){
+9337 const c = G.company;
+9338 const cap = headcountCap();
+9339 const wrap = el(`<div>
+9340 <div class="window-title"><h2>\u{1F3D7}\uFE0F Facilities</h2><span class="sub">Seats, campuses and where everyone actually sits</span></div>
+9341 <div class="grid3 mb14">
+9342 <div class="card"><h3>Seats Used</h3><div class="big ${c.employees.length>=cap?"bad":""}">${c.employees.length} / ${cap}</div><div class="muted" style="font-size:11px;">Base office ${HEADCOUNT_CAP[c.hqStage]||8} + ${facilityCap().toLocaleString()} from facilities</div></div>
+9343 <div class="card"><h3>Facility Rent</h3><div class="big bad">${fmt$(facilityRent())}/mo</div><div class="muted" style="font-size:11px;">Charged every month close</div></div>
+9344 <div class="card"><h3>Buildings Owned</h3><div class="big">${(c.facilities||[]).length}</div><div class="muted" style="font-size:11px;">Permanent and stackable</div></div>
+9345 </div>
+9346 </div>`);
+9347 const banner = facilitiesBanner();
+9348 if(banner) wrap.appendChild(banner);
+9349 wrap.appendChild(facilitiesSection());
+9350 return wrap;
+9351 }
+9352 DOCK_ITEMS.push({ id:"facilities", icon:"\u{1F3D7}\uFE0F", label:"Facilities" });
+9353 (function v19MoveTabs(){
+9354 const people = DOCK_GROUPS.find(g=>g.id==="people");
+9355 if(people && people.items.indexOf("facilities")<0) people.items.push("facilities");
+9356 DOCK_GROUPS.forEach(g=>{ const i = g.items.indexOf("leaderboard"); if(i>=0) g.items.splice(i,1); });
+9357 const sys = DOCK_GROUPS.find(g=>g.id==="system");
+9358 if(sys && sys.items.indexOf("leaderboard")<0) sys.items.unshift("leaderboard");
+9359 })();
+9360
 
