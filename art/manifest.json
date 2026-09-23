@@ -1,6 +1,6 @@
 {
   "_comment": "Single source of truth for external art. Key = the art key used by the game's art maps (ART_IMG, IMG, FAC_IMG, ...) or declared by a layer (hq_* from 90-hq-stages.js). Value = filename, resolved against art/ first and the repo root second. Two keys may point at the same file when different bundles name the same subject differently \u2014 see the aliases section. Assets are registered as soon as the file lands in art/; visual QA is done by the project owner outside this repo, so a known cosmetic defect is not a blocker \u2014 it is recorded in accepted_with_defects and shipped. 85-art-override.js reads this file at boot and reports coverage to the console.",
-  "version": 10,
+  "version": 11,
 
   "assets": {
     "beachhouse": "beachhouse.webp",
@@ -19,7 +19,6 @@
     "starter": "starter.webp",
     "studio": "studio.webp",
     "suburban": "suburban.webp",
-    "tower": "tower.webp",
     "townhome": "townhome.webp",
     "villa": "villa.webp",
     "vineyard": "vineyard.webp",
@@ -84,7 +83,20 @@
 
   "_aliases_comment": "house_* and car_* are the legacy IMG bundle's names for subjects that ART_IMG calls starter, family, mansion, sedan, sports and suv. Both keys are listed so a screen reading either map gets the new art. IMG's remaining keys \u2014 jet, vac_beach, vac_cabin, vac_paris \u2014 have no external asset yet.",
 
-  "_coverage_comment": "Remaining keys with no external asset: sailboat (watercraft), jet (vehicle ladder and legacy IMG), and the collectibles art, watch, vault and racing. vac_beach, vac_cabin and vac_paris are also still unfilled.",
+  "_icons_comment": "Informational only. These are 48x48 WebP UI glyphs from icon sheets 3-6, applied by 120-icons-glyphs.js, which resolves them directly from art/ by filename and does NOT read this manifest. They are listed here so the inventory stays complete and so no future full-bleed illustration is given a colliding filename. They are deliberately NOT in assets: registering a 48px glyph against an illustration key would replace a full-bleed card image with a tiny icon \u2014 which is exactly the tower regression below.",
+
+  "icons": {
+    "_sheet_3": ["scales.webp", "swords.webp", "target.webp", "scroll.webp", "crown.webp", "shield.webp", "siren.webp", "clipboard.webp", "necktie.webp", "bolt.webp", "warning.webp", "document.webp"],
+    "_sheet_4": ["headset.webp", "megaphone.webp", "newspaper.webp", "books.webp", "receipt.webp", "banknote.webp", "building.webp", "tower.webp", "truck.webp", "pin.webp", "chain.webp", "frost.webp"],
+    "_sheet_5": ["dining.webp", "robotarm.webp", "salon.webp", "party.webp", "graduate.webp", "dumbbell.webp", "runner.webp", "brain.webp", "lotus.webp", "skillet.webp", "boot.webp", "guitar.webp"],
+    "_sheet_6": ["picture.webp", "golf.webp", "spa.webp", "phoneoff.webp", "wine.webp", "watch.webp", "flag.webp", "fish.webp", "wave.webp", "sailboat.webp", "arrowup.webp", "arrowdown.webp"]
+  },
+
+  "_icon_defects_comment": "runner is a solid navy silhouette with no interior detail at 21px. salon reads as nail polish and brush rather than hair or spa. frost shipped as generated white \u2014 it contained no navy pixels, so the dark-rail recolour was skipped by design. All three shipped under the standing ship-as-is policy.",
+
+  "_regression_comment": "tower.webp was the property-ladder Tower house illustration (~19 KB). The sheet-4 skyscraper icon (1084 B) was uploaded over it, so the house key 'tower' has been REMOVED from assets to stop the ladder rendering a 48px glyph as a card image; the rung falls back to the built-in art-core art meanwhile. Restore: download https://raw.githubusercontent.com/felipe01-nav/navigating-business/28881570e9bca7e8cab891c446e8f425561d31df/art/tower.webp , re-upload it as art/tower.webp, re-upload the skyscraper glyph as art/icon_tower.webp, then re-add \"tower\": \"tower.webp\" here and add the skyscraper to 120-icons-glyphs.js. Until then the skyscraper glyph is omitted from that layer's map (47 of 48 keys live).",
+
+  "_coverage_comment": "Remaining keys with no external asset: sailboat (watercraft), jet (vehicle ladder and legacy IMG), and the collectibles art, watch, vault and racing. vac_beach, vac_cabin and vac_paris are also still unfilled, and tower is temporarily unmapped pending the restore above. Note: files named sailboat.webp and watch.webp now exist in art/, but they are 48px UI icons, not illustrations, and must not be registered against those keys.",
 
   "_retired_comment": "ultralight was removed from the game in v4.69 (114-retire-ultralight.js). It no longer needs art and is no longer counted as a coverage gap.",
 
