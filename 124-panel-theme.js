@@ -1,55 +1,58 @@
-/* 124-panel-theme.js — v4.78
+/* 124-panel-theme.js — v4.79
    =====================================================================
-   WHY THIS FILE EXISTS
-   --------------------
-   v4.75 through v4.77 solved the wrong problem with increasing
-   precision. The premise was that the icons must sit on a dark rail, so
-   each icon was given its own small light placard. Three releases of
-   tuning later the placards were correct and still wrong: a grid of
-   little tiles behind a set of glyphs reads as clutter, and the tiles
-   fight the panel they sit on.
+   HISTORY, BRIEFLY
+   ----------------
+   v4.75-v4.77 put a light placard behind every icon. v4.78 threw the
+   placards away and repainted the application light instead. Felipe's
+   verdict on the light surface: tolerable, not wanted — and the side
+   panel still looked layered.
 
-   The correct move is the one Felipe asked for: stop patching behind
-   each icon and change the surface. If the artwork is to be dark ink,
-   the panel must be light. So this layer does two things:
+   He was right about the layering, and the plate was never the whole
+   of it. The dock is built as a stack of three surfaces: the rail
+   (#dock, var(--panel)), a rounded 44 px tile per button (.dock-btn,
+   var(--panel2) with a 1 px border), and then the icon on top. Removing
+   the plate in v4.78 left two of those three still stacked, which is
+   exactly the "layered images" complaint. A dock should be glyphs on a
+   rail, not glyphs on tiles on a rail.
 
-     1. Retires the plate. 122's tone goes to 'off' and 123's per-icon
-        inline colouring is switched off, while 122's geometry (the size
-        and padding compensation) is left in place.
+   WHAT THIS VERSION DOES
+   ----------------------
+     1. Flattens the dock in every theme. The per-button tile and its
+        border go transparent; the rail loses its own fill and sits on
+        the page colour; the current tab is marked by a short accent
+        bar at the edge rather than by a filled box. Hover gets a faint
+        wash so the buttons still feel like buttons.
 
-     2. Repaints the entire application light — background, panels,
-        rails, borders, text, and the two dozen hard-coded dark values
-        scattered through base.css that no CSS variable governs.
+     2. Keeps the plates retired. 122 goes to 'off', 123's inline
+        colouring is switched off, and 122's leftover padding and
+        corner radius on the icon itself are zeroed — that padding was
+        compensation for a tile that no longer exists.
 
-   THE AWKWARD INTERVAL
-   --------------------
-   Every icon in art/ today was recoloured for a dark rail: pale fills,
-   light linework. Put them on a white panel and they vanish. Until the
-   dark-ink set exists they are carried by a stopgap: each icon's mean
-   luminance is measured off a canvas, and anything paler than the
-   threshold is flipped with filter:invert(1) hue-rotate(180deg), which
-   inverts lightness while returning the hue to roughly where it began.
-   On near-monochrome navy-and-cream linework the result is a credible
-   dark icon. It is a stopgap and it looks like one on the busier
-   glyphs. It exists so the light panel can be judged today rather than
-   after a re-generation.
+     3. Restores dark as the default and adds a darker one. Three
+        surfaces now:
 
-   When the dark-ink sheet lands, turn it off once and for all:
+            NBTheme.dark()   base.css as shipped        #15171c
+            NBTheme.deep()   a genuinely darker room    #0c0e12
+            NBTheme.light()  v4.78's white panel        #e9edf3
 
-       NBTheme.invert(false)
+        'deep' also drops the panel and rail nearer the page, so the
+        flattened dock reads as one continuous dark edge.
+
+     4. The pale-icon invert stopgap now applies only in 'light'. On a
+        dark surface today's pale artwork is correct as drawn and is
+        left alone.
 
    CONSOLE
    -------
-       NBTheme.light()            repaint light (default from v4.78)
-       NBTheme.dark()             back to the original dark surface
-       NBTheme.toggle()
-       NBTheme.invert(true|false) the pale-icon stopgap
-       NBTheme.threshold(0.38)    luminance above which an icon flips
-       NBTheme.plate(true)        bring the backing plates back
+       NBTheme.dark() / .deep() / .light() / .cycle()
+       NBTheme.flat(false)        put the dock tiles back
+       NBTheme.plate(true)        put the icon placards back
+       NBTheme.invert(true|false) pale-icon stopgap, light theme only
+       NBTheme.threshold(0.38)
        NBTheme.report()
 
-   Persists in localStorage. Per-load override: ?theme=light,
-   ?theme=dark. Disabled outright with ?notheme=1.
+   Persists in localStorage. Per-load: ?theme=dark|deep|light.
+   Disabled outright with ?notheme=1.
    ===================================================================== */
 (function () {
   "use strict";
@@ -60,116 +63,173 @@
   if (window.__nbPanelTheme478) return;
   window.__nbPanelTheme478 = true;
 
-  var STORE     = "nb.theme";
-  var STORE_INV = "nb.themeInvert";
-  var STORE_THR = "nb.themeInvertThreshold";
-  var LUMCACHE  = "nb.panelLum.v1";
+  var STORE      = "nb.theme";
+  var STORE_INV  = "nb.themeInvert";
+  var STORE_THR  = "nb.themeInvertThreshold";
+  var STORE_FLAT = "nb.dockFlat";
+  var LUMCACHE   = "nb.panelLum.v1";
 
   /* ------------------------------------------------------------------
-     Palette
-     -------
-     base.css is itself the dark theme, so 'dark' is the absence of an
-     override rather than a second palette. Only the light surface is
-     declared here.
+     Palettes
+     --------
+     'dark' is base.css itself, so it declares no overrides. 'deep' and
+     'light' are full declarations.
 
-     The panel is not pure white. #ffffff against a #eceff4 page gives
-     no separation at all between card and background, and a full-screen
-     white is as fatiguing as a full-screen black. The panel is white,
-     the page beneath it is a cool near-white, and the recessed surface
-     (--panel2) sits a step below both.
+     On 'deep' the point is not merely a lower number. The page, the
+     panel and the rail are pulled close together (#0c0e12 / #12151b /
+     #171b22) so that with the dock flattened there is no visible seam
+     between rail and page — one dark edge, glyphs sitting on it. The
+     border lightens slightly rather than darkening, because at this
+     depth a dark border is invisible and cards lose their shape.
   ------------------------------------------------------------------ */
-  var LIGHT = {
-    bg:      "#e9edf3",
-    panel:   "#ffffff",
-    panel2:  "#f2f5f9",
-    border:  "#d2d9e3",
-    text:    "#151c27",
-    muted:   "#5b6675",
-    accent:  "#2f6fd0",
-    good:    "#0e8f69",
-    warn:    "#9a6207",
-    bad:     "#c2413a",
-    purple:  "#6a4ead",
-    /* Neutral tracks and rails that base.css hard-codes. */
-    track:   "#dde3ec",
-    hairline:"#e3e8ef",
-    thumb:   "#bcc5d3",
-    themeColor: "#e9edf3"
+  var PALETTES = {
+    dark: null,
+    deep: {
+      bg: "#0c0e12", panel: "#12151b", panel2: "#171b22", border: "#252b36",
+      text: "#e9ebf0", muted: "#8f98a8", accent: "#7db0ff",
+      good: "#4fd1a5", warn: "#f5b95d", bad: "#f2716a", purple: "#b39ddb",
+      track: "#1c212a", hairline: "#1d222b", thumb: "#2c333f",
+      onInk: "#07090c", themeColor: "#0c0e12",
+      topbar: "linear-gradient(180deg,#13161d,#0f1216)",
+      onboard: "radial-gradient(circle at 30% 20%,#161b26,#0a0c10 70%)",
+      banner: "linear-gradient(90deg,#221a0c,#1d1523)",
+      badge: "rgba(0,0,0,.55)",
+      scrim: "rgba(0,0,0,.62)",
+      shadow: "0 20px 60px rgba(0,0,0,.6)"
+    },
+    light: {
+      bg: "#e9edf3", panel: "#ffffff", panel2: "#f2f5f9", border: "#d2d9e3",
+      text: "#151c27", muted: "#5b6675", accent: "#2f6fd0",
+      good: "#0e8f69", warn: "#9a6207", bad: "#c2413a", purple: "#6a4ead",
+      track: "#dde3ec", hairline: "#e3e8ef", thumb: "#bcc5d3",
+      onInk: "#ffffff", themeColor: "#e9edf3",
+      topbar: "linear-gradient(180deg,#ffffff,#f2f5f9)",
+      onboard: "radial-gradient(circle at 30% 20%,#ffffff,#e9edf3 70%)",
+      banner: "linear-gradient(90deg,#fff7e8,#f6effa)",
+      badge: "rgba(21,28,39,.08)",
+      scrim: "rgba(21,28,39,.34)",
+      shadow: "0 18px 44px rgba(20,30,50,.14)"
+    }
   };
 
-  function lightCss() {
-    var L = LIGHT;
+  function paletteCss(name) {
+    var P = PALETTES[name];
+    if (!P) return "";
     return [
       ":root{",
-        "--bg:" + L.bg + ";",
-        "--panel:" + L.panel + ";",
-        "--panel2:" + L.panel2 + ";",
-        "--border:" + L.border + ";",
-        "--text:" + L.text + ";",
-        "--muted:" + L.muted + ";",
-        "--accent:" + L.accent + ";",
-        "--good:" + L.good + ";",
-        "--warn:" + L.warn + ";",
-        "--bad:" + L.bad + ";",
-        "--purple:" + L.purple + ";",
+        "--bg:" + P.bg + ";",
+        "--panel:" + P.panel + ";",
+        "--panel2:" + P.panel2 + ";",
+        "--border:" + P.border + ";",
+        "--text:" + P.text + ";",
+        "--muted:" + P.muted + ";",
+        "--accent:" + P.accent + ";",
+        "--good:" + P.good + ";",
+        "--warn:" + P.warn + ";",
+        "--bad:" + P.bad + ";",
+        "--purple:" + P.purple + ";",
       "}",
 
-      /* --- Solid-fill controls. base.css assumes a dark ink on a pale
-         accent; the light accent is dark, so the ink must go white. --- */
-      ".btn{color:#fff;}",
-      ".btn.secondary{background:" + L.panel2 + ";color:" + L.text + ";}",
-      ".btn.ghost{color:" + L.muted + ";}",
-      ".btn.danger{color:#fff;}",
-      "#advanceBtn{color:#fff;}",
-      ".dock-btn.active{color:#fff;}",
-      ".msg.me{color:#fff;}",
-      ".radio-chip.sel{color:#fff;}",
-      ".slack-item .av{color:#fff;}",
-      ".emp-av{color:#fff;}",
+      /* Solid-fill controls: base.css hard-codes a near-black ink that
+         only suits a pale accent. Each palette states its own. */
+      ".btn{color:" + P.onInk + ";}",
+      ".btn.secondary{background:" + P.panel2 + ";color:" + P.text + ";}",
+      ".btn.ghost{color:" + P.muted + ";}",
+      ".btn.danger{color:" + P.onInk + ";}",
+      "#advanceBtn{color:" + P.onInk + ";}",
+      ".msg.me{color:" + P.onInk + ";}",
+      ".radio-chip.sel{color:" + P.onInk + ";}",
+      ".slack-item .av{color:" + P.onInk + ";}",
+      ".emp-av{color:" + P.onInk + ";}",
 
-      /* --- Gradients and hard-coded darks, in base.css order. --- */
-      "#onboard{background:radial-gradient(circle at 30% 20%,#ffffff," + L.bg + " 70%);}",
-      ".ob-card{box-shadow:0 18px 44px rgba(20,30,50,.14);}",
-      "#topbar{background:linear-gradient(180deg,#ffffff," + L.panel2 + ");}",
-      "td{border-bottom:1px solid " + L.hairline + ";}",
-      ".slack-item{border-bottom:1px solid " + L.hairline + ";}",
-      ".perf-bar{background:" + L.track + ";}",
-      ".barrow .track{background:" + L.track + ";}",
-      ".progress-track{background:" + L.track + ";}",
-      "::-webkit-scrollbar-thumb{background:" + L.thumb + ";}",
-      ".event-banner{background:linear-gradient(90deg,#fff7e8,#f6effa);}",
-      ".locked-badge{background:rgba(21,28,39,.08);color:" + L.muted + ";}",
-      ".folder-panel{box-shadow:0 8px 24px rgba(20,30,50,.10);}",
-      ".card{box-shadow:0 1px 2px rgba(20,30,50,.05);}",
-      "#modalOverlay{background:rgba(21,28,39,.34);}",
-      "#modalBox{box-shadow:0 24px 64px rgba(20,30,50,.20);}",
-
-      /* --- The illustrations are full-colour scenes with their own
-         grounds and are deliberately left alone. --- */
-      ".shop-card img{background:" + L.panel2 + ";}"
+      /* The hard-coded darks in base.css, in source order. */
+      "#onboard{background:" + P.onboard + ";}",
+      ".ob-card{box-shadow:" + P.shadow + ";}",
+      "#topbar{background:" + P.topbar + ";}",
+      "td{border-bottom:1px solid " + P.hairline + ";}",
+      ".slack-item{border-bottom:1px solid " + P.hairline + ";}",
+      ".perf-bar{background:" + P.track + ";}",
+      ".barrow .track{background:" + P.track + ";}",
+      ".progress-track{background:" + P.track + ";}",
+      "::-webkit-scrollbar-thumb{background:" + P.thumb + ";}",
+      ".event-banner{background:" + P.banner + ";}",
+      ".locked-badge{background:" + P.badge + ";color:" + P.muted + ";}",
+      "#modalOverlay{background:" + P.scrim + ";}",
+      ".shop-card img{background:" + P.panel2 + ";}"
     ].join("");
   }
 
-  /* The plate is retired in CSS as well as through 122/123's own APIs.
-     123 writes inline styles, which outrank an ordinary stylesheet, so
-     these two declarations carry !important — the only two in the file.
-     122's padding and width compensation is deliberately not touched:
-     the geometry was correct, only the tile was wrong. */
-  function plateOffCss() {
+  /* ------------------------------------------------------------------
+     The dock, flattened
+     -------------------
+     Theme-independent: the layering was wrong on the dark surface too,
+     it was simply less obvious there. The active marker is a 3 px
+     accent bar on the inside edge of the rail — on desktop at the left,
+     on the mobile horizontal dock along the bottom.
+  ------------------------------------------------------------------ */
+  function flatDockCss() {
     return [
-      "img[data-nb-ico]{",
-        "background:transparent !important;",
-        "box-shadow:none !important;",
+      "#dock{background:transparent;}",
+      ".dock-btn{",
+        "background:transparent;",
+        "border-color:transparent;",
+        "box-shadow:none;",
+        "transition:color .12s ease, background .12s ease;",
+      "}",
+      ".dock-btn:hover{background:var(--panel2);border-color:transparent;}",
+      ".dock-btn.active,",
+      ".dock-btn[aria-selected=\"true\"]{",
+        "background:transparent;",
+        "border-color:transparent;",
+        "color:var(--accent);",
+      "}",
+      ".dock-btn.active::after,",
+      ".dock-btn[aria-selected=\"true\"]::after{",
+        "content:\"\";",
+        "position:absolute;",
+        "left:-8px;top:50%;",
+        "transform:translateY(-50%);",
+        "width:3px;height:20px;",
+        "border-radius:0 2px 2px 0;",
+        "background:var(--accent);",
+      "}",
+      /* The tile is gone, so the padding that compensated for it must
+         go too, or every icon carries 2 px of dead margin. */
+      "img[data-nb-ico]:not(.nb-ico-lg){",
+        "padding:0 !important;",
+        "border-radius:0 !important;",
+      "}",
+      "#dock .dock-btn img[data-nb-ico]:not(.nb-ico-lg),",
+      ".dock-btn img[data-nb-ico]:not(.nb-ico-lg){",
+        "width:27px !important;height:27px !important;",
+      "}",
+      "button img[data-nb-ico]:not(.nb-ico-lg){",
+        "width:18px !important;height:18px !important;",
+      "}",
+      "@media (max-width:780px){",
+        ".dock-btn.active::after,",
+        ".dock-btn[aria-selected=\"true\"]::after{",
+          "left:50%;top:auto;bottom:-5px;",
+          "transform:translateX(-50%);",
+          "width:18px;height:3px;",
+          "border-radius:2px 2px 0 0;",
+        "}",
+        "#dock .dock-btn img[data-nb-ico]:not(.nb-ico-lg),",
+        ".dock-btn img[data-nb-ico]:not(.nb-ico-lg){",
+          "width:24px !important;height:24px !important;",
+        "}",
       "}"
     ].join("");
+  }
+
+  /* 123 writes inline styles, which outrank an ordinary stylesheet, so
+     these two carry !important. */
+  function plateOffCss() {
+    return "img[data-nb-ico]{background:transparent !important;box-shadow:none !important;}";
   }
 
   function invertCss() {
-    return [
-      "img[data-nb-ico].nb-inv{",
-        "filter:invert(1) hue-rotate(180deg) saturate(.9);",
-      "}"
-    ].join("");
+    return "img[data-nb-ico].nb-inv{filter:invert(1) hue-rotate(180deg) saturate(.9);}";
   }
 
   /* ------------------------------------------------------------------ */
@@ -185,19 +245,31 @@
   }
 
   function fromQuery() {
-    var m = q.match(/[?&]theme=(light|dark)/i);
+    var m = q.match(/[?&]theme=(light|dark|deep)/i);
     return m ? m[1].toLowerCase() : null;
   }
 
-  /* v4.78 makes light the default. A user who has already chosen dark
-     keeps dark; a user with no stored preference gets the new surface. */
-  var theme     = fromQuery() || readStore(STORE, "light");
-  if (theme !== "light" && theme !== "dark") theme = "light";
-  var doInvert  = readStore(STORE_INV, "1") !== "0";
+  /* v4.78 briefly defaulted to light and wrote that choice to storage
+     for anyone who loaded it. That is not a decision the user made, so
+     it is discarded once; a deliberate choice made from v4.79 onward
+     carries a marker and is respected. */
+  (function migrate() {
+    try {
+      if (readStore("nb.themeChosen", "") !== "1" && readStore(STORE, "") === "light") {
+        localStorage.removeItem(STORE);
+      }
+    } catch (e) {}
+  })();
+
+  var theme = fromQuery() || readStore(STORE, "dark");
+  if (!(theme in PALETTES)) theme = "dark";
+
+  var doFlat   = readStore(STORE_FLAT, "1") !== "0";
+  var doInvert = readStore(STORE_INV, "1") !== "0";
   var threshold = parseFloat(readStore(STORE_THR, "0.38"));
   if (!isFinite(threshold) || threshold <= 0 || threshold >= 1) threshold = 0.38;
 
-  /* ---------------- luminance measurement (stopgap) ---------------- */
+  /* ---------------- luminance measurement (light theme only) ------- */
 
   var lum = {};
   try { lum = JSON.parse(readStore(LUMCACHE, "{}")) || {}; } catch (e) { lum = {}; }
@@ -212,8 +284,6 @@
     try { s = img.currentSrc || img.getAttribute("src") || ""; } catch (e) {}
     if (!s) return null;
     if (/^data:/.test(s)) {
-      /* The surviving base64 icons have no filename to key on; the icon
-         key plus payload length is stable enough for a cache. */
       var k = "";
       try { k = img.getAttribute("data-nb-ico") || ""; } catch (e) {}
       return "inline:" + k + ":" + s.length;
@@ -221,9 +291,6 @@
     return s.split("?")[0].replace(/^.*\//, "");
   }
 
-  /* Mean sRGB relative luminance over the pixels that are actually
-     drawn. Transparent margin is skipped, or every icon would report
-     the luminance of its own padding. */
   function measure(src, done) {
     var im = new Image();
     im.onload = function () {
@@ -254,6 +321,8 @@
   }
 
   function applyTo(img) {
+    /* Only the light surface needs the stopgap. On dark, the artwork is
+       correct as drawn. */
     if (theme !== "light" || !doInvert) {
       try { img.classList.remove("nb-inv"); } catch (e) {}
       return;
@@ -296,21 +365,22 @@
       n.id = id;
       (document.head || document.documentElement).appendChild(n);
     }
-    /* Re-appended on every paint so this layer outranks the runtime
-       <style> blocks injected by 110, 113, 120 and 122. */
     if (n.parentNode && n.parentNode.lastChild !== n) n.parentNode.appendChild(n);
     return n;
   }
 
-  function setThemeColorMeta(colour) {
+  function setThemeColorMeta() {
     try {
       var m = document.querySelector('meta[name="theme-color"]');
-      if (m) m.setAttribute("content", colour);
+      if (!m) return;
+      var P = PALETTES[theme];
+      m.setAttribute("content", P ? P.themeColor : "#15171c");
     } catch (e) {}
   }
 
+  var platesRetired = true;
+
   function retirePlate(on) {
-    /* on === true means "plates off". */
     try {
       if (on) {
         if (window.NBIconPlateAuto && window.NBIconPlateAuto.off) window.NBIconPlateAuto.off();
@@ -322,69 +392,73 @@
     } catch (e) {}
   }
 
-  var platesRetired = true;
-
   function paint() {
     try {
-      var theme_node = styleNode("nb-panel-theme-css");
-      theme_node.textContent = (theme === "light" ? lightCss() : "");
-
-      var plate_node = styleNode("nb-plate-off-css");
-      plate_node.textContent = platesRetired ? plateOffCss() : "";
-
-      var inv_node = styleNode("nb-invert-css");
-      inv_node.textContent = invertCss();
-
-      try {
-        document.documentElement.setAttribute("data-nb-theme", theme);
-      } catch (e) {}
-      setThemeColorMeta(theme === "light" ? LIGHT.themeColor : "#15171c");
+      styleNode("nb-panel-theme-css").textContent = paletteCss(theme);
+      styleNode("nb-plate-off-css").textContent   = platesRetired ? plateOffCss() : "";
+      styleNode("nb-dock-flat-css").textContent   = doFlat ? flatDockCss() : "";
+      styleNode("nb-invert-css").textContent      = invertCss();
+      try { document.documentElement.setAttribute("data-nb-theme", theme); } catch (e) {}
+      setThemeColorMeta();
       sweep();
     } catch (e) {}
   }
 
   retirePlate(true);
   paint();
-  /* 122 reasserts its own stylesheet at 500/1500/4000 ms; follow each
-     of those with a repaint so the plate stays retired. */
+  /* 122 reasserts its stylesheet at 500/1500/4000 ms; follow each. */
   setTimeout(function () { retirePlate(platesRetired); paint(); }, 600);
   setTimeout(function () { retirePlate(platesRetired); paint(); }, 1600);
   setTimeout(function () { retirePlate(platesRetired); paint(); }, 4100);
 
-  /* Screens re-render wholesale, so new icons arrive constantly. */
   try {
     if (window.MutationObserver) {
-      var mo = new MutationObserver(function () { sweep(); });
-      mo.observe(document.documentElement, { childList: true, subtree: true });
+      new MutationObserver(function () { sweep(); })
+        .observe(document.documentElement, { childList: true, subtree: true });
     }
   } catch (e) {}
 
   /* ---------------- console API ---------------- */
 
+  var ORDER = ["dark", "deep", "light"];
+
   function setTheme(next) {
-    theme = (next === "dark") ? "dark" : "light";
+    theme = (next in PALETTES) ? next : "dark";
     writeStore(STORE, theme);
+    writeStore("nb.themeChosen", "1");
     paint();
     try {
       console.log("Theme: " + theme +
-        (theme === "light" && doInvert
-          ? " (pale-icon invert stopgap ON — NBTheme.invert(false) once the dark-ink set lands)"
-          : ""));
+        (theme === "light" && doInvert ? " (pale-icon invert stopgap on)" : ""));
     } catch (e) {}
     return theme;
   }
 
   window.NBTheme = {
-    version: "4.78",
-    light: function () { return setTheme("light"); },
+    version: "4.79",
     dark:  function () { return setTheme("dark"); },
-    toggle: function () { return setTheme(theme === "light" ? "dark" : "light"); },
+    deep:  function () { return setTheme("deep"); },
+    light: function () { return setTheme("light"); },
+    set:   function (n) { return setTheme(String(n || "").toLowerCase()); },
+    cycle: function () {
+      return setTheme(ORDER[(ORDER.indexOf(theme) + 1) % ORDER.length]);
+    },
+    toggle: function () { return this.cycle(); },
+    flat: function (on) {
+      if (on === undefined) return doFlat;
+      doFlat = !!on;
+      writeStore(STORE_FLAT, doFlat ? "1" : "0");
+      paint();
+      try { console.log("Dock: " + (doFlat ? "flat" : "tiled (base.css original)")); } catch (e) {}
+      return doFlat;
+    },
     invert: function (on) {
       if (on === undefined) return doInvert;
       doInvert = !!on;
       writeStore(STORE_INV, doInvert ? "1" : "0");
       paint();
-      try { console.log("Pale-icon invert stopgap: " + (doInvert ? "on" : "off")); } catch (e) {}
+      try { console.log("Pale-icon invert stopgap: " + (doInvert ? "on" : "off") +
+                        " (light theme only)"); } catch (e) {}
       return doInvert;
     },
     threshold: function (n) {
@@ -410,40 +484,33 @@
       lum = {};
       persistLum();
       sweep();
-      try { console.log("Luminance cache cleared; re-measuring."); } catch (e) {}
       return true;
     },
     report: function () {
-      var seen = {}, flipped = [], kept = [], unmeasured = [];
       var list = [];
       try { list = document.querySelectorAll("img[data-nb-ico]"); } catch (e) {}
+      var seen = {}, inverted = [];
       for (var i = 0; i < list.length; i++) {
-        var img = list[i];
         var name = "";
-        try { name = img.getAttribute("data-nb-ico") || keyFor(img) || "?"; } catch (e) { name = "?"; }
-        if (seen[name]) continue;
-        seen[name] = true;
-        var k = keyFor(img);
-        var v = (k && typeof lum[k] === "number") ? lum[k] : null;
-        if (v === null) unmeasured.push(name);
-        else if (v > threshold) flipped.push(name + " " + v);
-        else kept.push(name + " " + v);
+        try { name = list[i].getAttribute("data-nb-ico") || keyFor(list[i]) || "?"; } catch (e) {}
+        if (!seen[name]) {
+          seen[name] = true;
+          try { if (list[i].classList.contains("nb-inv")) inverted.push(name); } catch (e) {}
+        }
       }
-      flipped.sort(); kept.sort(); unmeasured.sort();
+      var P = PALETTES[theme];
       var out = {
-        version: "4.78",
+        version: "4.79",
         theme: theme,
+        surface: P ? { bg: P.bg, panel: P.panel, panel2: P.panel2, border: P.border }
+                   : { bg: "#15171c", panel: "#1b1e25", panel2: "#20242c", border: "#2a2f3a" },
+        dockFlat: doFlat,
         platesRetired: platesRetired,
-        invertStopgap: doInvert,
-        threshold: threshold,
+        invertActive: (theme === "light" && doInvert),
         iconsOnScreen: list.length,
         distinctIcons: Object.keys(seen).length,
-        flippedCount: flipped.length,
-        flipped: flipped,
-        keptAsDrawnCount: kept.length,
-        keptAsDrawn: kept,
-        unmeasured: unmeasured,
-        change: "NBTheme.dark() | NBTheme.invert(false) | NBTheme.threshold(0.5) | NBTheme.plate(true)"
+        invertedNow: inverted.sort(),
+        change: "NBTheme.dark() | .deep() | .light() | .flat(false) | .plate(true)"
       };
       try { console.log(JSON.stringify(out, null, 2)); } catch (e) { console.log(out); }
       return out;
@@ -451,8 +518,7 @@
   };
 
   try {
-    console.log("[v4.78] panel theme: " + theme +
-                "; backing plates retired. NBTheme.report() for detail, " +
-                "NBTheme.dark() to go back.");
+    console.log("[v4.79] theme: " + theme + "; dock flattened; plates retired. " +
+                "NBTheme.deep() for a darker room, NBTheme.report() for detail.");
   } catch (e) {}
 })();
