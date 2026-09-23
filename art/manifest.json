@@ -1,6 +1,6 @@
 {
   "_comment": "Single source of truth for external art. Key = the art key used by the game's art maps (ART_IMG, IMG, FAC_IMG, ...) or declared by a layer (hq_* from 90-hq-stages.js). Value = filename, resolved against art/ first and the repo root second. Two keys may point at the same file when different bundles name the same subject differently \u2014 see the aliases section. Assets are registered as soon as the file lands in art/; visual QA is done by the project owner outside this repo, so a known cosmetic defect is not a blocker \u2014 it is recorded in accepted_with_defects and shipped. 85-art-override.js reads this file at boot and reports coverage to the console.",
-  "version": 8,
+  "version": 9,
 
   "assets": {
     "beachhouse": "beachhouse.webp",
@@ -26,6 +26,7 @@
 
     "beater": "beater.webp",
     "chauffeur": "chauffeur.webp",
+    "classic": "classic.webp",
     "ev": "ev.webp",
     "german": "german.webp",
     "gt": "gt.webp",
@@ -52,6 +53,16 @@
     "superyacht": "superyacht.webp",
     "yacht": "yacht.webp",
 
+    "airliner": "airliner.webp",
+    "cessna": "cessna.webp",
+    "heavyjet": "heavyjet.webp",
+    "heli": "heli.webp",
+    "lightjet": "lightjet.webp",
+    "midjet": "midjet.webp",
+    "twin": "twin.webp",
+
+    "island": "island.webp",
+
     "hq_0": "hq_0.webp",
     "hq_1": "hq_1.webp",
     "hq_2": "hq_2.webp",
@@ -73,7 +84,7 @@
 
   "_aliases_comment": "house_* and car_* are the legacy IMG bundle's names for subjects that ART_IMG calls starter, family, mansion, sedan, sports and suv. Both keys are listed so a screen reading either map gets the new art. IMG's remaining keys \u2014 jet, vac_beach, vac_cabin, vac_paris \u2014 have no external asset yet.",
 
-  "_watercraft_comment": "The watercraft block covers the boat subjects in the toy/collectible ladder. Still unrepresented in that group: sailboat. The aircraft and collectible keys alongside them (cessna, lightjet, midjet, heavyjet, twin, ultralight, airliner, heli, art, watch, vault, island, racing) have no external asset yet.",
+  "_coverage_comment": "Remaining keys with no external asset: sailboat (watercraft), ultralight (aircraft), jet (vehicle ladder and legacy IMG), and the collectibles art, watch, vault and racing. vac_beach, vac_cabin and vac_paris are also still unfilled.",
 
   "accepted_with_defects": {
     "_comment": "Live in assets by explicit decision, but they violate their prompt's strict exclusions. Regenerate these first when image credits allow.",
@@ -85,7 +96,12 @@
     "chauffeur": "Strongly resembles a specific luxury marque's grille and bonnet ornament. Real-world marques are excluded. Shipped by explicit decision \u2014 no badges or lettering present.",
     "track": "Reads as a specific manufacturer's GT race car silhouette. Same class of issue as chauffeur, shipped on the same decision.",
     "pickup": "Translucent vertical bands overlaying the left and right edges, same artifact class as ski. Previously held; shipped by explicit decision.",
-    "superyacht": "Helipad marked with the letter H, plus a helicopter. Lettering is excluded \u2014 same class as compound."
+    "superyacht": "Helipad marked with the letter H, plus a helicopter. Lettering is excluded \u2014 same class as compound.",
+    "classic": "Radiator shell and bonnet ornament read as a specific pre-war luxury marque. Same class as chauffeur.",
+    "island": "Legible 'SPA' lettering on the outbuilding at right. Text is excluded.",
+    "airliner": "Background skyline includes a recognisable real-world landmark tower silhouette.",
+    "heli": "Airframe reads as a specific twin-engine executive helicopter model.",
+    "lightjet": "Airframe reads as a specific single-engine very light jet model."
   },
 
   "held": {
