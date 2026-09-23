@@ -1,11 +1,9 @@
 # <file>|<regex> for grep, <file>@<start>-<end> for a line range.
-# pass 5: late industries, ops defaults, HR dept render.
-30-v410-v427.js|(nail_salon|agency)
-50-v429-v432.js|(INDUSTRIES\[|nail_salon|agency|v45\s*:)
-60-v433-v437.js|(nail_salon|agency|INDUSTRIES\[)
-art-core.js@3425-3450
-art-core.js@1702-1734
-art-core.js@4610-4650
-art-core.js|function\s+(rungCount|rungCapacity|rungRemaining|applyIndustryLabels|assistantAnswerBase|industry)
-art-core.js@1846-1900
-40-v428-trucking.js@1938-1960
+# pass 6: what already exists for salon/agency.
+30-v410-v427.js@1596-1680
+30-v410-v427.js|(SALON_ACTIONS|AGENCY_ACTIONS|TRUCK_ACTIONS|TRUCKING_ACTIONS)\s*=
+30-v410-v427.js|function\s+v45\w*
+30-v410-v427.js|(chairs|stylist|Stylist)
+art-core.js@3177-3200
+40-v428-trucking.js|(founderAction|FOUNDER)
+art-core.js@9336-9360
