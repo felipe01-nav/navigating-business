@@ -1,199 +1,137 @@
 # introspect report
-# generated: 2026-09-23 12:50:45Z
-# commit: 265bd6746803e76a153f8cf6048b208a5690375b
+# generated: 2026-09-23 12:52:45Z
+# commit: 6297f57f4842566661b3ecb34cc8549b17f7832e
 
-=== FILE: art-core.js  LINES 5845-5880
-5845
-5846 /* ---------- Industry progression: start with the AI company, earn the rest ---------- */
-5847 const INDUSTRY_UNLOCK = { ai_saas:0, retail:150000, restaurant:300000, robotics:750000, finance:2000000 };
-5848 function empireScore(){
-5849 const p = pInit();
-5850 const co = (G.companies||[]).reduce((s,c)=> s + (c.netWorth||0) + (c.cash||0), 0);
-5851 return Math.round((p.netWorth||0) + co);
-5852 }
-5853 function unlockReq(key){ return INDUSTRY_UNLOCK[key]!==undefined ? INDUSTRY_UNLOCK[key] : 0; }
-5854 function syncIndustryUnlocks(){
-5855 if(!G || !G.playerMeta) return [];
-5856 if(!G.playerMeta.unlockedIndustries) G.playerMeta.unlockedIndustries = ["ai_saas"];
-5857 const list = G.playerMeta.unlockedIndustries;
-5858 const score = empireScore();
-5859 const fresh = [];
-5860 INDUSTRY_KEYS.forEach(k=>{
-5861 const owned = (G.companies||[]).some(c=>c.industry===k);
-5862 if(list.indexOf(k)<0 && (owned || score >= unlockReq(k))){ list.push(k); fresh.push(k); }
-5863 });
-5864 return fresh;
-5865 }
-5866 function industryUnlocked(key){
-5867 if(!G || !G.playerMeta) return unlockReq(key)===0;
-5868 syncIndustryUnlocks();
-5869 return G.playerMeta.unlockedIndustries.indexOf(key) >= 0;
-5870 }
-5871 function industryLockNote(key){
-5872 return `Unlocks at ${fmt$(unlockReq(key))} total net worth \u2014 you're at ${fmt$(empireScore())}.`;
-5873 }
-5874
-5875 /* ---------- Onboarding: you, your company, your industry — in that order ---------- */
-5876 function renderOnboard(){
-5877 const ob = document.getElementById("onboard");
-5878 const slots = listSlots();
-5879 ob.style.display = "flex";
-5880 window.__obIndustry = "ai_saas";
-
-=== FILE: art-core.js  LINES 5600-5645
-5600 p2.monthEvents.push(`Auto-drew ${fmt$(need)} from your personal credit line to cover a shortfall.`);
-5601 }
-5602 }
-5603
-5604
-5605 function mrrWord(){ return opsBasedIndustry() ? "monthly contract revenue" : "MRR"; }
-5606 /* =========================================================
-5607 v11 — Earn Your Empire
-5608 - Founding new companies is locked until you've proven the first one
-5609 - Clearer active tab + per-tab attention dots
-5610 - Retail/restaurant no longer talk MRR or founder-led SaaS selling
-5611 ========================================================= */
-5612
-5613 const EMPIRE_REQ = { revenue: 25000, months: 12, cashMultiple: 1.25 };
-5614 function opsBasedIndustry(key){ return ["retail","restaurant"].indexOf(key || G.company.industry) >= 0; }
-5615 function monthsRun(co){ co = co || G.company; return ((co.year-1)*12) + co.month; }
-5616 function empireGate(){
-5617 const p = pInit();
-5618 const best = G.companies.reduce((m,co)=> Math.max(m, Math.round(monthlyRevenue(co))), 0);
-5619 const oldest = G.companies.reduce((m,co)=> Math.max(m, monthsRun(co)), 0);
-5620 const seed = INDUSTRIES[G.ui.foundIndustry || INDUSTRY_KEYS[0]].startCash;
-5621 const cashReq = Math.round(seed * EMPIRE_REQ.cashMultiple);
-5622 const hasCeo = G.companies.some(co=>co.ceo && co.ceo.type==="hired");
-5623 const multi = G.companies.length > 1;
-5624 const checks = [
-5625 { key:"revenue", label:`Run a company at ${fmt$(EMPIRE_REQ.revenue)}/mo revenue`,
-5626 now:`${fmt$(best)}/mo`, ok: best >= EMPIRE_REQ.revenue || multi },
-5627 { key:"months", label:`Survive ${EMPIRE_REQ.months} months in business`,
-5628 now:`${oldest} month(s)`, ok: oldest >= EMPIRE_REQ.months || multi },
-5629 { key:"cash", label:`Hold ${fmt$(cashReq)} personal cash (seed + 25% buffer)`,
-5630 now:fmt$(p.cash), ok: p.cash >= cashReq },
-5631 ];
-5632 return { checks, unlocked: checks.every(c=>c.ok), cashReq, seed, best, oldest, hasCeo };
-5633 }
-5634 function renderEmpireV11(){
-5635 const gate = empireGate();
-5636 if(gate.unlocked) return renderEmpireV10();
-5637 const wrap = renderEmpireBase();
-5638 const grid = wrap.querySelector(".folder-grid");
-5639 if(!grid) return wrap;
-5640 const card = grid.closest ? grid.closest(".card") : grid.parentNode;
-5641 if(!card) return wrap;
-5642 const p = pInit();
-5643 card.innerHTML = `
-5644 <div class="flexrow" style="align-items:center;gap:8px;">
-5645 <div style="font-size:30px;">\u{1F512}</div>
-
-=== FILE: art-core.js  LINES 6830-6900
-6830 function renderMarket(){
-6831 const wrap = renderMarketV12();
-6832 wrap.querySelectorAll(".ladder-card").forEach(card=>{
-6833 const t = card.querySelector(".title");
-6834 if(!t) return;
-6835 const found = lookupCatalog(t.textContent||"");
-6836 if(!found) return;
-6837 t.innerHTML = t.innerHTML.replace(/^\s*<svg[\s\S]*?<\/svg>\s*/i, "");
-6838 const row = card.querySelector(".row");
-6839 if(!row || row.querySelector(".art-thumb")) return;
-6840 row.classList.add("with-art");
-6841 const holder = document.createElement("div");
-6842 holder.innerHTML = artThumb(found.item, found.kind);
-6843 row.insertBefore(holder.firstChild, row.firstChild);
-6844 });
-6845 return wrap;
-6846 }
-6847
-6848 /* ---------- Fulfillment: cost up front, payoff underneath, real ideas ---------- */
-6849 const INSIGHT_OUTCOMES = [
-6850 { key:"pricing", label:"a pricing insight", apply:(c)=>{ c.priceTier = clamp((c.priceTier||1)+0.05, 0.5, 3); return "You spotted a pricing gap. Price tier nudged up with no churn hit."; } },
-6851 { key:"process", label:"a process fix", apply:(c)=>{ if(c.costPolicy) c.costPolicy.lean = true; return "You redesigned a workflow on a napkin. Lean overhead switched on."; } },
-6852 { key:"product", label:"a product idea", apply:(c)=>{ c.successScore = clamp(c.successScore+5,0,100); return "A product idea clicked. Success score +5."; } },
-6853 { key:"pipeline", label:"a warm introduction", apply:(c)=>{ const boost = Math.max(400, Math.round((c.mrr||0)*0.04)); c.mrr = (c.mrr||0) + boost; return `Someone you met sent business your way. +${fmt$(boost)} MRR.`; } },
-6854 { key:"talent", label:"a hiring lead", apply:(c)=>{ c.employees.forEach(e=> e.morale = clamp(e.morale+6,0,100)); return "You came back energized and it showed. Team morale +6 across the board."; } },
-6855 { key:"savings", label:"a cost discovery", apply:(c)=>{ const cut = Math.round((c.expensesBreakdown.marketing||0)*0.15); c.expensesBreakdown.marketing = Math.max(0,(c.expensesBreakdown.marketing||0)-cut); return cut>0 ? `You found ${fmt$(cut)}/mo of wasted ad spend and killed it.` : "You mapped where money leaks before it starts. Noted for later."; } },
-6856 ];
-6857 function doFulfillment(key){
-6858 const p = pInit();
-6859 const a = FULFILLMENT.find(x=>x.key===key);
-6860 if(!a) return;
-6861 if(p.actsThisMonth.indexOf(key)>=0){ alert(`You already did "${a.name}" this month.`); return; }
-6862 if(p.cash < a.price){ alert(`Not enough personal cash for ${a.name} (${fmt$(a.price)}).`); return; }
-6863 p.cash -= a.price;
-6864 p.happiness = clamp(p.happiness + a.happiness, 0, 100);
-6865 p.wellbeing = clamp(p.wellbeing + a.wellbeing, 0, 100);
-6866 p.actsThisMonth.push(key);
-6867 p.fulfillHistory.push({ name:a.name, month:G.company.month, year:G.company.year });
-6868 p.monthEvents.push(`${a.name}${a.price?` (${fmt$(a.price)})`:" (free)"} \u2014 +${a.happiness} happiness, +${a.wellbeing} wellbeing`);
-6869 if(!p.insights) p.insights = [];
-6870 let msg = "";
-6871 if(a.insight && Math.random() < 0.5){
-6872 const out = pick(INSIGHT_OUTCOMES);
-6873 let detail = "";
-6874 try { detail = out.apply(G.company) || ""; } catch(e){ detail = ""; }
-6875 const line = `\u{1F4A1} ${a.name} sparked ${out.label}: ${detail}`;
-6876 p.insights.push({ name:a.name, outcome:detail, month:G.company.month, year:G.company.year });
-6877 p.monthEvents.push(line);
-6878 logHistory(line);
-6879 msg = `\n\n\u{1F4A1} ${detail}`;
-6880 }
-6881 alert(`${a.name} \u2014 ${a.price?fmt$(a.price):"free"}\n+${a.happiness} happiness \u00b7 +${a.wellbeing} wellbeing${msg}`);
-6882 renderAll();
-6883 }
-6884 function fulfillCard(a, done){
-6885 return `<div class="fcard ${done?"done":""}">
-6886 <div class="ftop">
-6887 <div class="fname">${a.name}${done?' <span class="pill good">Done</span>':""}</div>
-6888 <div class="fcost ${a.price?"":"free"}">${a.price? fmt$(a.price) : "Free"}</div>
-6889 </div>
-6890 <div class="fgain">+${a.happiness} happiness \u00b7 +${a.wellbeing} wellbeing${a.insight?" \u00b7 \u{1F4A1} can spark a real business idea":""}</div>
-6891 <div class="fdesc">${a.desc}</div>
-6892 <div class="fact"><button class="btn secondary small" data-fulfill="${a.key}" ${done?"disabled":""}>${done?"Done this month":"Do it"}</button></div>
-6893 </div>`;
-6894 }
-6895
-6896 /* ---------- Personal: fulfillment rebuilt, compensation moved to Finance ---------- */
-6897 function renderPersonal(){
-6898 const wrap = renderPersonalV12();
-6899 const p = pInit();
-6900 const cards = Array.from(wrap.querySelectorAll(".card"));
-
-=== FILE: art-core.js  LINES 6215-6235
+=== FILE: art-core.js  LINES 6127-6215
+6127 function renderMarketV12(){
+6128 const wrap = renderMarketV11();
+6129 wrap.querySelectorAll("[data-shoptab]").forEach(b=>{
+6130 const id = b.getAttribute("data-shoptab");
+6131 const txt = b.textContent.replace(/^[^A-Za-z(]+/, "").trim();
+6132 b.innerHTML = `${svgIcon(SHOPTAB_ICON[id]||"box")} ${txt}`;
+6133 });
+6134 const tabRow = wrap.querySelector("[data-shoptab]");
+6135 if(tabRow && tabRow.parentNode) tabRow.parentNode.classList.add("tierbar2");
+6136 const title = wrap.querySelector(".window-title h2");
+6137 if(title) title.innerHTML = `${svgIcon("scale")} Market vs Owned`;
+6138 wrap.querySelectorAll(".ladder-card .title").forEach(t=>{
+6139 const raw = t.innerHTML;
+6140 const stripped = raw.replace(/^(?:[\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2190-\u2BFF\uFE0F\u200D\u26A0-\u27BF])+\s*/, "");
+6141 const name = (t.textContent||"").toLowerCase();
+6142 let ico = "box";
+6143 if(/house|home|villa|penthouse|chalet|estate|loft|studio|townhome|bungalow|ranch|brownstone|vineyard|ch\u00e2teau|chateau|compound|tower|beach/.test(name)) ico = "house";
+6144 else if(/jet|plane|aircraft|cessna|gulfstream|helicopter|citation|learjet/.test(name)) ico = "plane";
+6145 else if(/yacht|boat|catamaran|sail|ship|cruiser/.test(name)) ico = "yacht";
+6146 else if(/watch|chrono/.test(name)) ico = "watch";
+6147 else if(/art|paint|sculpt/.test(name)) ico = "art";
+6148 else if(/car|coupe|sedan|pickup|truck|hatch|roadster|suv|ev\b/.test(name)) ico = "car";
+6149 t.innerHTML = `${svgIcon(ico)} ${stripped}`;
+6150 });
+6151 wrap.querySelectorAll(".card > h3").forEach(h=>{
+6152 const t = h.textContent.replace(/^(?:[\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2190-\u2BFF\uFE0F\u200D\u26A0-\u27BF])+\s*/, "").trim();
+6153 let ico = "box";
+6154 if(/propert|real estate/i.test(t)) ico = "house";
+6155 else if(/garage|vehicle/i.test(t)) ico = "car";
+6156 else if(/collectible|aircraft, boats/i.test(t)) ico = "gem";
+6157 else if(/fleet/i.test(t)) ico = "plane";
+6158 else if(/trip/i.test(t)) ico = "globe";
+6159 h.innerHTML = `${svgIcon(ico)} ${t}`;
+6160 });
+6161 return wrap;
+6162 }
+6163
+6164 /* ---------- Bank overview: lines, not a wall of boxes ---------- */
+6165 function renderBank(){
+6166 const wrap = renderBankV11();
+6167 const secRow = wrap.querySelector("[data-banksec]");
+6168 if(secRow && secRow.parentNode) secRow.parentNode.classList.add("tierbar2");
+6169 const accRow = wrap.querySelector("[data-bankacct]");
+6170 if(accRow && accRow.parentNode) accRow.parentNode.classList.add("tierbar2");
+6171 if(G.ui.bankSection==="overview"){
+6172 const grid = wrap.querySelector(".grid.cols-3");
+6173 if(grid){
+6174 const cards = Array.from(grid.querySelectorAll(".card"));
+6175 const row = document.createElement("div");
+6176 row.className = "ledger-row";
+6177 row.innerHTML = cards.map(c=>{
+6178 const k = c.querySelector("h3"); const v = c.querySelector(".big"); const n = c.querySelector(".muted");
+6179 return `<div class="lg"><div class="k">${k?k.textContent:""}</div>
+6180 <div class="v ${v && v.classList.contains("bad")?"bad":""}">${v?v.textContent:""}</div>
+6181 <div class="n">${n?n.innerHTML:""}</div></div>`;
+6182 }).join("");
+6183 grid.replaceWith(row);
+6184 }
+6185 Array.from(wrap.querySelectorAll(".card")).forEach(c=>{
+6186 if(c.querySelector("[data-banksec]") || c.querySelector("[data-bankacct]")) return;
+6187 c.classList.remove("card");
+6188 c.classList.add("flatsec");
+6189 });
+6190 }
+6191 return wrap;
+6192 }
+6193
+6194 /* ---------- Empire: locked industries + hint text below the button ---------- */
+6195 function renderEmpire(){
+6196 const wrap = renderEmpireV11();
+6197 const hint = wrap.querySelector("#v10FoundHint");
+6198 if(hint){ hint.className = "muted found-hint"; hint.style.marginLeft = "0"; }
+6199 const grid = wrap.querySelector(".folder-grid");
+6200 if(grid){
+6201 syncIndustryUnlocks();
+6202 grid.querySelectorAll("[data-found]").forEach(t=>{
+6203 const key = t.getAttribute("data-found");
+6204 if(industryUnlocked(key)) return;
+6205 t.classList.add("locked-overlay");
+6206 if(!t.querySelector(".locked-badge")){
+6207 const b = document.createElement("div");
+6208 b.className = "locked-badge";
+6209 b.textContent = `${fmt$(unlockReq(key))} net worth`;
+6210 t.appendChild(b);
+6211 }
+6212 t.onclick = ()=> alert(`${INDUSTRIES[key].label} is still locked.\n\n${industryLockNote(key)}`);
+6213 });
+6214 if(!industryUnlocked(G.ui.foundIndustry||"")){
 6215 const open = INDUSTRY_KEYS.filter(k=>industryUnlocked(k));
-6216 if(open.length) G.ui.foundIndustry = open[0];
-6217 }
-6218 }
-6219 return wrap;
-6220 }
-6221
-6222 /* ---------- Monthly hook: announce unlocks ---------- */
-6223 function advanceMonth(){
-6224 const before = (G.playerMeta && G.playerMeta.unlockedIndustries || []).slice();
-6225 const out = advanceMonthV11();
-6226 const fresh = syncIndustryUnlocks().filter(k=>before.indexOf(k)<0);
-6227 if(fresh.length){
-6228 fresh.forEach(k=> logHistory(`New industry unlocked: ${INDUSTRIES[k].label}. You can found one from the Empire tab.`));
-6229 setTimeout(()=>{
-6230 alert(`\u{1F513} Unlocked: ${fresh.map(k=>INDUSTRIES[k].label).join(", ")}\n\nYou can found a company in that industry from the Empire tab \u2014 once you clear the founding requirements.`);
-6231 }, 50);
-6232 }
-6233 return out;
-6234 }
-6235
 
 === FILE: art-core.js
-=== PATTERN: Projected revenue|Ending cash|Queue this month|month.s plan|last month|Cash burn
-1169:  // expire any unaddressed event from last month with its default consequence
-1452:    <div class="stat" title="Recurring costs as of your last month close (salaries, rent, tools, debt service). One-off spend like bonuses/hires/upgrades is separate and shown in the month-end summary."><div class="label">Expenses/mo ⓘ</div><div class="value bad">${fmt$(expenses)}</div></div>
-1455:    <div class="stat" title="Weighted score: 30% avg employee morale, 25% avg client health, 25% last month's profit, 20% MRR growth trend, minus a penalty for consecutive distress months."><div class="label">Success ⓘ</div><div class="value ${c.successScore>=60?'good':c.successScore<35?'bad':''}">${c.successScore}</div></div>
-3829:    <div class="stat" title="Recurring costs as of your last month close."><div class="label">Expenses/mo \u24D8</div><div class="value bad">${fmt$(expenses)}</div></div>
-8854:    <div class="stat" title="Recurring costs as of your last month close."><div class="label">Expenses/mo \u24D8</div><div class="value bad">${fmt$(expenses)}</div></div>
-9230:    <div class="stat" title="Recurring costs as of your last month close."><div class="label">Expenses/mo \u24D8</div><div class="value bad">${fmt$(cs.expenses)}</div></div>
-10994:      <div class="lg"><div class="k">${mrrWord()}</div><div class="v good">${fmt$(m.mrr)}</div><div class="n">${m.net>=0?"+":"\u2212"}${fmt$(Math.abs(m.net))} vs last month</div></div>
-12057:    out.push(`You burned ${fmt$(Math.abs(last.netProfit))} last month. At that rate you have roughly ${runway} month(s) of runway.`);
-12768:    <div class="k"><div class="lbl">Lost sales</div><div class="val ${(o.lastLost||0)>0?"v26-warn":"v26-good"}">${(o.lastLost||0).toLocaleString()}</div><div class="lbl">units last month</div></div>
-12774:      <div class="desc">${s.unitsOnHand.toLocaleString()} units on hand \u00b7 ${cover} months of cover \u00b7 last month sold ${(s.lastSold||0).toLocaleString()} of ${(s.lastDemand||0).toLocaleString()} demanded${(s.inbound||[]).length?` \u00b7 <span class="v26-chip">${(s.inbound||[]).reduce((a,b)=>a+b.units,0)} in transit</span>`:""}</div>
+=== PATTERN: data-market|data-enter|enterMarket|marketShare
+271:    id: uid(), name, marketShare: share, funding: rand(500,4000)*1000,
+1374:    const top = [...c.competitors].sort((a,b)=>b.marketShare-a.marketShare)[0];
+1375:    return `${top.name} leads at ${top.marketShare}% share, rated ${top.threat} threat.`;
+2115:          cm.marketShare = clamp(+(cm.marketShare+drift).toFixed(1),1,45);
+2116:          cm.threat = cm.marketShare>18?"High":cm.marketShare>10?"Medium":"Low";
+2117:          lines.push(`${cm.name} share now ${cm.marketShare}% (${cm.threat} threat).`);
+2614:          return `<tr><td>${c.name}</td><td>${c.marketShare}%</td>
+2630:    if(!window.confirm(`Acquire ${target.name} for ${fmt$(buyoutCost)}? This will absorb their ${target.marketShare}% market share into MRR growth and remove them as a competitor.`)) return;
+2638:      const mrrGain = Math.round(acquired.marketShare * 250);
+2643:      report.push(`🏆 Hostile takeover complete — absorbed ${acquired.name}'s ${acquired.marketShare}% market share for +${fmt$(mrrGain)} MRR and a Success Score boost.`);
+8437:  const clients = Math.max(2, Math.round(target.marketShare * 0.9));
+8438:  const mrr = Math.round(target.marketShare * 320);
+8439:  const staff = Math.max(2, Math.round(target.marketShare * 0.6));
+8454:          return `<tr><td>${c.name}</td><td>${c.marketShare}%</td>
+8456:          <td class="muted">${pv.clients} client(s) \u00b7 ${fmt$(pv.mrr)} ${mrrWord()} \u00b7 ${pv.staff} employee(s) \u00b7 ${c.marketShare}% share</td>
+8470:    if(!window.confirm(`Acquire ${target.name} for ${fmt$(pv.cost)}?\n\nYou absorb:\n\u2022 ${pv.clients} of their clients (~${fmt$(pv.mrr)} ${mrrWord()})\n\u2022 ${pv.staff} of their employees onto your payroll\n\u2022 ${target.marketShare}% market share\n\nThey are removed from the market permanently.`)) return;
+8496:      G.company.acquiredShare = (G.company.acquiredShare||0) + acq.marketShare;
+8500:      G.company.acquisitions.push({ name:acq.name, share:acq.marketShare, mrr:gained, staff:hired, month:G.company.month, year:G.company.year });
+8501:      report.push(`\u{1F3C6} Takeover complete \u2014 ${acq.name} is gone. Absorbed ${pv.clients} client(s) worth ${fmt$(gained)} ${mrrWord()}, ${hired} employee(s)${hired<pv.staff?` (${pv.staff-hired} turned away \u2014 no desk space)`:""}, and ${acq.marketShare}% market share.`);
+11141:function v23CompValue(c){ return Math.round((c.funding||0)*1.6 + (c.marketShare||0)*90000); }
+11158:  const clients = Math.max(2, Math.round((target.marketShare||4) * 0.9));
+11159:  const mrrTotal = Math.round((target.marketShare||4) * 320);
+11160:  const staffWant = Math.max(2, Math.round((target.marketShare||4) * 0.6));
+11181:  c.acquiredShare = (c.acquiredShare||0) + (target.marketShare||0);
+11186:  c.acquisitions.push({ name:target.name, share:target.marketShare, mrr:gained, staff:hired, month:c.month, year:c.year, mode });
+11188:  logHistory(`${mode==="hostile"?"Hostile takeover":"Friendly acquisition"} of ${target.name} closed for ${fmt$(cost)} \u2014 ${clients} client(s), ${fmt$(gained)} ${mrrWord()}, ${hired} employee(s), ${target.marketShare}% share.`);
+11189:  toast(`<b>\u{1F3C6} ${target.name} is yours.</b> Absorbed ${clients} client(s) worth ${fmt$(gained)} ${mrrWord()}, ${hired} employee(s) and ${target.marketShare}% market share for ${fmt$(cost)}.${mode==="hostile"?" Their people arrived rattled \u2014 a bonus would help.":""}`, "good");
+11256:          <div class="muted" style="font-size:11.5px;">${t.marketShare}% share \u00b7 ${fmt$(t.funding)} funded \u00b7 ${t.notes}</div>
+11259:        <span class="muted" style="font-size:11.5px;">Valued ${fmt$(v23CompValue(t))} \u00b7 absorbing them adds ~${fmt$(Math.round(t.marketShare*320))} ${mrrWord()}</span>
+11298:        text:`<b>${t.name}</b> \u2014 ${t.marketShare}% share, ${fmt$(t.funding)} funded, ${t.threat.toLowerCase()} threat. ${t.notes}. Control bid would run about ${fmt$(v23BidCost(t,"hostile"))}.` });
+11317:        t.marketShare = Math.max(1, +(t.marketShare + randf(-0.8, 0.9)).toFixed(1));
+11318:        t.threat = t.marketShare>18 ? "High" : t.marketShare>10 ? "Medium" : "Low";
+11333:          aggressor.marketShare = +(aggressor.marketShare + 0.6).toFixed(1);
+11342:          aggressor.marketShare = +(aggressor.marketShare + other.marketShare*0.7).toFixed(1);
+11347:          toast(`<b>\u{1F994} ${aggressor.name} just acquired ${other.name}.</b> Consolidation is happening with or without you \u2014 they now hold ${aggressor.marketShare}%.`, "warn");
+12007:  const aggressive = c.competitors.filter(x=> x.threat==="High" || x.marketShare>12);
+12013:    rival.marketShare = +(rival.marketShare + randf(0.3,0.9)).toFixed(1);
+12023:      rival.marketShare = +(rival.marketShare + 0.5).toFixed(1);
+12029:      rival.marketShare = +(rival.marketShare + randf(0.4,1.1)).toFixed(1);
 
