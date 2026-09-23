@@ -1,4 +1,4 @@
-/* 120-icons-glyphs.js — v4.73
+/* 120-icons-glyphs.js — v4.74
    =====================================================================
    Sheets 1 and 3-6 of the custom icon set, applied by GLYPH rather than
    by key.
@@ -14,13 +14,26 @@
    per bundle. Matching the rendered glyph instead costs one sweep and
    reaches all of them at once, including any a later layer adds.
 
-   NEW IN 4.73
-   -----------
-   The v4.72 report showed the heaviest unmapped glyphs already had art:
-   sheet 1's twelve icons were locked to the dock, where they serve seven
-   rail buttons and twelve sub-tabs and nothing else. The same payload now
-   answers the glyph sweep too, at no download cost — it is inline base64
-   on window.NBIcons. Roughly 130 further nodes on the screens measured.
+   NEW IN 4.74 — NO MORE FLICKER
+   -----------------------------
+   Reported: "the icons switch between different versions when I click on
+   the page." They were not switching between versions; they were
+   alternating between the emoji and the icon. Every click re-renders a
+   screen, art-core rebuilds the HTML with its inline emoji, and this
+   layer only found out afterwards — via a MutationObserver debounced by
+   120 ms. That gap is long enough to see, and 115 (1 s interval) and 117
+   (1.5 s interval) each added their own beat on the dock.
+
+   The fix is to stop reacting after the fact. renderScreen, renderDock,
+   renderAll and render are wrapped, so the sweep runs synchronously at
+   the end of the render that produced the emoji, before the browser gets
+   a chance to paint. The emoji therefore never reach the screen.
+
+   The observer stays as a backstop for DOM written outside those four
+   functions, but its debounce is now a requestAnimationFrame rather than
+   120 ms. Other layers wrap the same render functions on their own
+   schedule and sometimes replace them outright, so the hooks are
+   re-checked every 2 s and re-applied if lost.
 
    Sheet 1 keys resolve through NBIcons.uri(); sheets 3-6 resolve to files
    in art/. If sheet 1 is absent or disabled, its glyphs are left alone
@@ -200,6 +213,12 @@
   }
 
   var origItems = {};
+  var dockDirty = false;
+
+  /* Mutates the dock arrays only. Never calls renderDock itself: when
+     this runs inside a wrapped render, the caller is already painting,
+     and a nested render would be both wasted work and a recursion risk.
+     The flag is drained by run() once the sweep is finished. */
   function applyDock() {
     var items = ev("DOCK_ITEMS"), n = 0;
     if (!items || Object.prototype.toString.call(items) !== "[object Array]") return 0;
@@ -214,7 +233,7 @@
       it.icon = t;
       n++;
     }
-    if (n) { try { if (typeof window.renderDock === "function") window.renderDock(); } catch (e) {} }
+    if (n) dockDirty = true;
     return n;
   }
 
@@ -279,14 +298,14 @@
   }
 
   /* ------------------------------------------------------------------
-     3. Scheduling. The game re-renders whole screens constantly, so a
-        debounced observer beats a fixed timer.
+     3. Running the sweep.
      ------------------------------------------------------------------ */
-  var pending = null, busy = false;
+  var busy = false, rafId = null, runs = 0;
 
   function run() {
     if (busy) return 0;
     busy = true;
+    runs++;
     var n = 0;
     try {
       css();
@@ -300,12 +319,62 @@
       try { console.warn("[icons2]", e); } catch (e2) {}
     }
     busy = false;
+
+    /* Drained outside the guard, so the resulting render re-enters
+       cleanly and picks the new dock strings up. */
+    if (dockDirty) {
+      dockDirty = false;
+      try { if (typeof window.renderDock === "function") window.renderDock(); } catch (e) {}
+    }
     return n;
   }
 
   function schedule() {
-    if (pending) return;
-    pending = setTimeout(function () { pending = null; run(); }, 120);
+    if (rafId !== null) return;
+    var raf = window.requestAnimationFrame;
+    if (typeof raf !== "function") {
+      rafId = setTimeout(function () { rafId = null; run(); }, 16);
+      return;
+    }
+    rafId = raf(function () { rafId = null; run(); });
+  }
+
+  /* ------------------------------------------------------------------
+     4. Render hooks — the actual flicker fix.
+
+     The emoji are written by these functions. Sweeping at the end of the
+     same call means the replacement happens before the browser paints,
+     so the raw emoji is never visible. Other layers wrap the same names
+     and occasionally replace them outright, so the hooks are re-checked
+     periodically and re-applied when lost.
+     ------------------------------------------------------------------ */
+  var HOOKS = ["renderScreen", "renderDock", "renderAll", "render"];
+  var hooked = {};
+
+  function hook() {
+    for (var i = 0; i < HOOKS.length; i++) {
+      var name = HOOKS[i];
+      var fn = window[name];
+      if (typeof fn !== "function" || fn.__nbIcons2) continue;
+      window[name] = (function (inner) {
+        function wrapped() {
+          var out = inner.apply(this, arguments);
+          try { run(); } catch (e) {}
+          return out;
+        }
+        wrapped.__nbIcons2 = true;
+        wrapped.__nbInner = inner;
+        return wrapped;
+      })(fn);
+      hooked[name] = (hooked[name] || 0) + 1;
+    }
+  }
+
+  function unhook() {
+    for (var i = 0; i < HOOKS.length; i++) {
+      var name = HOOKS[i], fn = window[name];
+      if (fn && fn.__nbIcons2 && typeof fn.__nbInner === "function") window[name] = fn.__nbInner;
+    }
   }
 
   function observe() {
@@ -320,14 +389,19 @@
     window.__nbIcons2Observer = mo;
   }
 
+  hook();
   run();
-  setTimeout(run, 0);
-  setTimeout(run, 500);
-  setTimeout(run, 1500);
-  try { document.addEventListener("DOMContentLoaded", function () { run(); observe(); }); } catch (e) {}
+  setTimeout(function () { hook(); run(); }, 0);
+  setTimeout(function () { hook(); run(); }, 500);
+  setTimeout(function () { hook(); run(); }, 1500);
+  /* Cheap: four typeof checks. Catches any later layer that replaces a
+     render function rather than wrapping it. */
+  setInterval(hook, 2000);
+  try { document.addEventListener("DOMContentLoaded", function () { hook(); run(); observe(); }); } catch (e) {}
   if (document.readyState === "complete" || document.readyState === "interactive") observe();
 
   function revert() {
+    unhook();
     var items = ev("DOCK_ITEMS");
     if (items && items.length) {
       for (var i = 0; i < items.length; i++) {
@@ -342,12 +416,13 @@
   }
 
   window.NBIcons2 = {
-    version: "4.73",
+    version: "4.74",
     keys: Object.keys(MAP),
     sheet1: Object.keys(SHEET1),
     apply: run,
     revert: revert,
     sweep: sweep,
+    hook: hook,
     report: function () {
       var placed = [], zero = [];
       Object.keys(MAP).forEach(function (k) {
@@ -359,11 +434,19 @@
           return "\\u" + c.charCodeAt(0).toString(16).toUpperCase();
         }).join("") + ")";
       });
+      var live = [];
+      HOOKS.forEach(function (nm) {
+        var f = window[nm];
+        if (typeof f === "function") live.push(nm + (f.__nbIcons2 ? " *" : " \u2014"));
+      });
       var out = {
-        version: "4.73",
+        version: "4.74",
         files: BASE,
         mapped: Object.keys(MAP).length,
         nodesReplaced: swept,
+        sweeps: runs,
+        renderHooks: live,
+        hookInstalls: hooked,
         placed: placed,
         neverSeen: zero,
         unresolvedSheet1: Object.keys(deferred),
@@ -374,5 +457,5 @@
     }
   };
 
-  try { console.log("[v4.73] icon sheets 1+3-6 live by glyph. NBIcons2.report()"); } catch (e) {}
+  try { console.log("[v4.74] icons applied inside render — no emoji flash. NBIcons2.report()"); } catch (e) {}
 })();
