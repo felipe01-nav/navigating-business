@@ -1,7 +1,11 @@
 # <file>|<regex> for grep, <file>@<start>-<end> for a line range.
-# pass 11: dock CSS blocks in context.
-10-core-v40-v46.js@1826-1852
-art-core.js@5700-5722
-art-core.js@10405-10440
-art-core.js@12340-12360
-art-core.js@10570-10595
+# pass 12: expansion screen composition, decide-duplicate cards, markets, industry unlock.
+art-core.js|function render(Expansion|Market|Decide|Growth|Run)
+art-core.js|Founder hustle|Founder Hustle|founderHustle
+art-core.js|This month.s plan|Last month.s report|Projected revenue|Ending cash|Queue this month|Cash burn
+art-core.js|v417ExpSub|expSub|function subTabBar
+art-core.js|function [A-Za-z0-9_]*[Uu]nlock|unlocked|UNLOCK_|locked:
+art-core.js|function [A-Za-z0-9_]*[Mm]arket
+30-v410-v427.js|v417ExpSub|Facilities|Growth|expansion
+50-v429-v432.js|v417ExpSub|Growth|expansion|market
+60-v433-v437.js|v417ExpSub|Growth|expansion|market
