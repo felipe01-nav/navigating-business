@@ -1,140 +1,382 @@
 # introspect report
-# generated: 2026-09-23 13:51:55Z
-# commit: b54edb37ee5492aec63c7bfb31dc916cfcc15042
+# generated: 2026-09-23 14:26:00Z
+# commit: 308ec376a71cbe3d5eb961f420ad0db9dea9c592
 
-=== FILE: art-core.js  LINES 2795-2840
-2795 }
-2796
-2797 /* ---------------- Personal (shop with images) ---------------- */
-2798 const HOUSES = [
-2799 { key:"starter", name:"Starter Home", price:180000, mortgage:1400, minNetWorth:0, img:"house_starter",
-2800 feat:"3 bed cottage · starter neighborhood · good for first-time buyers" },
-2801 { key:"family", name:"Family House", price:650000, mortgage:3800, minNetWorth:80000, img:"house_family",
-2802 feat:"4 bed · 2-car garage · great school district" },
-2803 { key:"mansion", name:"Luxury Estate", price:6500000, mortgage:32000, minNetWorth:1200000, img:"house_mansion",
-2804 feat:"Modern mansion · pool · guest house · total privacy" },
-2805 ];
-2806 const RENOVATIONS = [
-2807 { key:"pool", name:"Add a Pool", cost:15000, happiness:8, valueBump:0.08 },
-2808 { key:"garage", name:"Add a Garage", cost:8000, happiness:5, valueBump:0.04 },
-2809 ];
-2810 const CARS = [
-2811 { key:"sedan", name:"Used Sedan", price:22000, minNetWorth:0, img:"car_sedan", feat:"Reliable, practical, cheap to maintain" },
-2812 { key:"suv", name:"Sport SUV", price:65000, minNetWorth:40000, img:"car_suv", feat:"Comfortable, confident, room for the family" },
-2813 { key:"sports", name:"Luxury Sports Car", price:420000, minNetWorth:600000, img:"car_sports", feat:"Turns heads. Terrible gas mileage. Worth it." },
-2814 { key:"jet", name:"Private Jet", price:14000000, minNetWorth:10000000, img:"jet", feat:"Skip the airport. Fly on your own schedule." },
-2815 ];
-2816 const VACATIONS = [
-2817 { key:"cabin", name:"Cabin Weekend", price:600, minNetWorth:0, img:"vac_cabin", feat:"Quiet lakeside cabin getaway with ${spouseName()}" },
-2818 { key:"beach", name:"Tropical Beach Resort", price:3500, minNetWorth:40000, img:"vac_beach", feat:"All-inclusive beach resort, a week of doing nothing" },
-2819 { key:"paris", name:"Paris, France", price:9000, minNetWorth:150000, img:"vac_paris", feat:"Romantic trip to France with ${spouseName()} — you might just be doing great" },
-2820 ];
-2821 const DATE_NIGHTS = [
-2822 { key:"casual", name:"Dinner & a Movie", price:100, happiness:6, kenzie:8 },
-2823 { key:"nice", name:"Nice Dinner Out", price:250, happiness:10, kenzie:14 },
-2824 { key:"surprise", name:"Weekend Surprise Trip", price:900, happiness:18, kenzie:25 },
-2825 ];
-2826 const GIFTS = [
-2827 { key:"flowers", name:"Flowers", icon:"💐", price:80, kenzie:6 },
-2828 { key:"jewelry", name:"Fine Jewelry", icon:"💍", price:5000, kenzie:22, minNetWorth:50000 },
-2829 { key:"bag", name:"Designer Bag", icon:"👜", price:2200, kenzie:14, minNetWorth:20000 },
-2830 { key:"car_gift", name:"Surprise Car for Her", icon:"🚗", price:35000, kenzie:35, minNetWorth:300000 },
-2831 ];
-2832 const TOYS = [
-2833 { key:"yacht", name:"Yacht", icon:"🛥️", price:9500000, minNetWorth:6000000, feat:"A 150-foot superyacht for weekends on the water." },
-2834 { key:"island", name:"Private Island", icon:"🏝️", price:45000000, minNetWorth:35000000, feat:"Your own slice of paradise, fully private." },
-2835 ];
-2836
-2837 function shopCard(item, kind){
-2838 const p = G.personal;
-2839 const owned = kind==="house"? p.assets.houses.some(h=>h.key===item.key)
-2840 : kind==="car"? p.assets.cars.some(c=>c.key===item.key) : false;
+=== FILE: 10-core-v40-v46.js
+=== PATTERN: [\U0001F300-\U0001FAFF\u2190-\u27BF]
+1:/* ================= v4.0 ================= */
+3:/* ---------- 1. Legal department ---------- */
+4:(function v40Legal(){
+6:    if(typeof LADDERS === "undefined" || LADDERS.legal) return;
+7:    var mk = function(){
+8:      return { label:"Legal", icon:"\u2696\uFE0F", rungs:[
+9:        { key:"rep", label:"Paralegal", salaryRange:[5000,6000], icon:"\u{1F4C4}" },
+10:        { key:"coordinator", label:"Counsel", salaryRange:[9500,11000], icon:"\u{1F9ED}", under:"rep", per:10,
+11:          desc:"Reviews contracts before they bite \u2014 reduces the odds of a legal event." },
+12:        { key:"teamlead", label:"Senior Counsel", salaryRange:[12000,13500], icon:"\u{1F9D1}\u200D\u{1F3EB}", under:"coordinator", per:5,
+13:          desc:"Handles disputes in-house instead of paying outside firms." },
+14:        { key:"manager", label:"Legal Manager", salaryRange:[14500,16500], icon:"\u{1F4CB}", under:"teamlead", per:5,
+15:          desc:"Keeps compliance current \u2014 softens regulatory penalties." },
+16:        { key:"director", label:"Director of Legal", salaryRange:[17500,20000], icon:"\u{1F3AF}", under:"manager", per:5,
+17:          desc:"Protects IP and clears the way for bigger deals." },
+18:        { key:"clo", label:"Chief Legal Officer", salaryRange:[22000,27000], icon:"\u{1F451}", under:"director", per:2,
+19:          desc:"Board-level cover. Materially cuts the cost of any legal event." }
+20:      ]};
+21:    };
+22:    LADDERS.legal = mk();
+23:    if(typeof BASE_LADDERS !== "undefined" && BASE_LADDERS && !BASE_LADDERS.legal) BASE_LADDERS.legal = mk();
+24:    if(typeof ORDER_OPTIONS !== "undefined" && ORDER_OPTIONS && !ORDER_OPTIONS.legal){
+25:      ORDER_OPTIONS.legal = [ {key:"shield",label:"Risk Shield"}, {key:"contracts",label:"Clear the Contract Backlog"} ];
+28:})();
+30:/* ---------- 2. Legal staffing actually does something ---------- */
+31:(function v40LegalEffect(){
+33:    if(typeof deptEmployees !== "function") return;
+34:    window.v40LegalStrength = function(){
+36:        var staff = deptEmployees("legal") || [];
+37:        if(!staff.length) return 0;
+38:        var senior = staff.filter(function(e){ return e.rung!=="rep"; }).length;
+39:        return Math.min(0.6, staff.length*0.05 + senior*0.05);
+40:      }catch(e){ return 0; }
+41:    };
+42:    if(typeof applyEvent === "function"){
+43:      var prevApply = applyEvent;
+44:      applyEvent = function(ev){
+46:          var legalish = ev && /lawsuit|legal|complian|regulat|contract dispute|fine|penalt/i.test(
+47:            String((ev.title||"") + " " + (ev.text||"") + " " + (ev.desc||"")));
+48:          var s = window.v40LegalStrength();
+49:          if(legalish && s > 0 && typeof ev.cash === "number" && ev.cash < 0){
+50:            var saved = Math.round(Math.abs(ev.cash) * s);
+51:            ev = Object.assign({}, ev, { cash: ev.cash + saved });
+52:            if(typeof logHistory === "function")
+53:              logHistory("Legal absorbed " + (typeof fmt$==="function"?fmt$(saved):saved) + " of the exposure in-house.");
+56:        return prevApply.call(this, ev);
+57:      };
+60:})();
+62:/* ---------- 3. Onboarding: founder name, company name and pitch required ---------- */
+63:(function v40Onboard(){
+65:    if(typeof renderOnboard !== "function") return;
+66:    var css = document.createElement("style");
+67:    css.textContent = ".v40-req{color:#e5534b;margin-left:3px;}"
+68:      + ".v40-hint{font-size:11.5px;color:var(--muted);margin-top:6px;min-height:14px;}"
+69:      + "#obStart[disabled]{opacity:.45;cursor:not-allowed;}"
+70:      + ".v40-miss{border-color:#e5534b !important;}";
+71:    (document.head||document.documentElement).appendChild(css);
+73:    var prev = renderOnboard;
+74:    renderOnboard = function(){
+75:      prev.apply(this, arguments);
 
-=== FILE: art-core.js  LINES 4805-4890
-4805 function addCatalog(arr, items){ items.forEach(i=>{ if(!arr.some(x=>x.key===i.key)) arr.push(i); }); }
-4806
-4807 /* --- Houses: 20 total --- */
-4808 addCatalog(HOUSES, [
-4809 { key:"studio", name:"City Studio", price:95000, emoji:"\u{1F3E2}", feat:"400 sq ft downtown. Small, but it's yours." },
-4810 { key:"townhome", name:"Brick Townhome", price:310000, emoji:"\u{1F3D8}\uFE0F", feat:"3 stories, rooftop deck, walkable neighborhood." },
-4811 { key:"bungalow", name:"Craftsman Bungalow", price:425000, emoji:"\u{1F6D6}", feat:"Original woodwork, big porch, mature trees." },
-4812 { key:"suburban", name:"Suburban Two-Story", price:540000, emoji:"\u{1F3E1}", feat:"Cul-de-sac, fenced yard, absurdly large kitchen." },
-4813 { key:"loft", name:"Converted Warehouse Loft", price:780000, minNetWorth:120000, emoji:"\u{1F3ED}", feat:"Exposed brick, 16-ft ceilings, zero privacy." },
-4814 { key:"lakehouse", name:"Lake House", price:950000, minNetWorth:180000, emoji:"\u{1F6F6}", feat:"Private dock, morning fog, loons at sunrise." },
-4815 { key:"ranch", name:"Working Ranch", price:1400000, minNetWorth:300000, emoji:"\u{1F40E}", feat:"40 acres, barn, and a truck that never quite starts." },
-4816 { key:"brownstone",name:"Historic Brownstone", price:1900000, minNetWorth:400000, emoji:"\u{1F3DB}\uFE0F", feat:"Four floors of old money energy." },
-4817 { key:"ski", name:"Ski-In Ski-Out Chalet",price:2600000, minNetWorth:600000, emoji:"\u{1F3D4}\uFE0F", feat:"Heated driveway. Powder days out the back door." },
-4818 { key:"beachhouse",name:"Oceanfront Beach House",price:3400000, minNetWorth:800000, emoji:"\u{1F3D6}\uFE0F", feat:"Salt air, outdoor shower, permanent vacation." },
-4819 { key:"vineyard", name:"Vineyard Estate", price:4800000, minNetWorth:1000000, emoji:"\u{1F347}", feat:"12 acres of vines and a label with your name on it." },
-4820 { key:"penthouse", name:"Skyline Penthouse", price:7200000, minNetWorth:1500000, emoji:"\u{1F306}", feat:"Top floor, private elevator, the whole city below you." },
-4821 { key:"villa", name:"Mediterranean Villa", price:9500000, minNetWorth:2500000, emoji:"\u{1F3DD}\uFE0F", feat:"Cliffside, infinity pool, olive grove." },
-4822 { key:"modern", name:"Glass Hillside Modern",price:13000000, minNetWorth:4000000, emoji:"\u{1FA9F}", feat:"Architect-designed. Featured in three magazines." },
-4823 { key:"chateau", name:"French Ch\u00e2teau", price:21000000, minNetWorth:8000000, emoji:"\u{1F3F0}", feat:"1700s stonework, 30 rooms, a moat you don't need." },
-4824 { key:"compound", name:"Coastal Compound", price:38000000, minNetWorth:15000000, emoji:"\u{1F30A}", feat:"Three houses, a helipad, and total seclusion." },
-4825 { key:"tower", name:"Private Residential Tower", price:85000000, minNetWorth:40000000, emoji:"\u{1F307}", feat:"You didn't buy a unit. You bought the building." },
-4826 ]);
-4827 HOUSES.forEach(h=>{ if(h.mortgage===undefined) h.mortgage = Math.round(h.price*0.0058/10)*10; if(h.minNetWorth===undefined) h.minNetWorth = 0; });
-4828
-4829 /* --- Cars: 20 total --- */
-4830 addCatalog(CARS, [
-4831 { key:"beater", name:"$3k Beater", price:3200, emoji:"\u{1F697}", feat:"Runs. Mostly. Smells like a previous life." },
-4832 { key:"hatch", name:"Compact Hatchback", price:18500, emoji:"\u{1F695}", feat:"40 mpg and parks anywhere." },
-4833 { key:"pickup", name:"Work Pickup", price:38000, emoji:"\u{1F6FB}", feat:"Hauls anything. Tax-deductible, allegedly." },
-4834 { key:"ev", name:"Electric Sedan", price:52000, emoji:"\u26A1", feat:"Silent, quick, and smug about it." },
-4835 { key:"muscle", name:"American Muscle Coupe", price:74000, minNetWorth:50000, emoji:"\u{1F3C1}", feat:"Loud on purpose. No apologies." },
-4836 { key:"german", name:"German Executive Sedan",price:98000, minNetWorth:80000, emoji:"\u{1F3AF}", feat:"The default car of people who just exited." },
-4837 { key:"landrover",name:"Luxury Off-Roader", price:135000, minNetWorth:120000, emoji:"\u{1F3D4}\uFE0F", feat:"Conquers mountains, mostly conquers school pickup." },
-4838 { key:"gt", name:"Grand Tourer", price:230000, minNetWorth:250000, emoji:"\u{1F6E3}\uFE0F", feat:"Built to cross a continent in one sitting." },
-4839 { key:"restomod", name:"Classic Restomod", price:310000, minNetWorth:350000, emoji:"\u{1F576}\uFE0F", feat:"1967 body, modern everything underneath." },
-4840 { key:"supercar", name:"Mid-Engine Supercar", price:650000, minNetWorth:900000, emoji:"\u{1F3CE}\uFE0F", feat:"Doors go up. Neighbors go quiet." },
-4841 { key:"track", name:"Track-Only Race Car", price:900000, minNetWorth:1200000, emoji:"\u{1F3C6}", feat:"Not street legal. That's the point." },
-4842 { key:"hyper", name:"Hypercar", price:3200000, minNetWorth:5000000, emoji:"\u{1F680}", feat:"Under 300 built. Waiting list handled by invitation." },
-4843 { key:"classic", name:"Auction-Grade Classic", price:6500000, minNetWorth:9000000, emoji:"\u{1F3FA}", feat:"Appreciates faster than your portfolio." },
-4844 { key:"chauffeur",name:"Armored Chauffeur Car", price:1100000, minNetWorth:2000000, emoji:"\u{1F572}\uFE0F", feat:"Bulletproof glass and a driver named Sal." },
-4845 { key:"rv", name:"Luxury Motorcoach", price:1800000, minNetWorth:2500000, emoji:"\u{1F68C}", feat:"A penthouse that does 65 mph." },
-4846 { key:"moto", name:"Superbike", price:28000, minNetWorth:20000, emoji:"\u{1F3CD}\uFE0F", feat:"Fastest thing you'll ever regret buying." },
-4847 ]);
-4848 CARS.forEach(c=>{ if(c.minNetWorth===undefined) c.minNetWorth = 0; });
-4849
-4850 /* --- Aircraft & watercraft: 20 (stored as toys) --- */
-4851 addCatalog(TOYS, [
-4852 { key:"jetski", name:"Jet Ski", icon:"\u{1F30A}", price:18000, minNetWorth:15000, cls:"sea", feat:"Weekend chaos on the lake." },
-4853 { key:"bassboat", name:"Bass Boat", icon:"\u{1F6E5}\uFE0F", price:45000, minNetWorth:40000, cls:"sea", feat:"Early mornings and terrible coffee." },
-4854 { key:"pontoon", name:"Party Pontoon", icon:"\u26F5", price:85000, minNetWorth:70000, cls:"sea", feat:"Slow, loud, and universally loved." },
-4855 { key:"sailboat", name:"Ocean Sailboat", icon:"\u26F5", price:320000, minNetWorth:300000, cls:"sea", feat:"40 feet of wind-powered independence." },
-4856 { key:"cabin_cruiser", name:"Cabin Cruiser", icon:"\u{1F6A4}", price:750000, minNetWorth:600000, cls:"sea", feat:"Sleeps six. Burns fuel like it's free." },
-4857 { key:"sportfish", name:"Sportfishing Yacht", icon:"\u{1F41F}", price:2400000, minNetWorth:2000000, cls:"sea", feat:"Tournament-ready, tower and all." },
-4858 { key:"catamaran", name:"Luxury Catamaran", icon:"\u{1F6F3}\uFE0F", price:4200000, minNetWorth:3500000, cls:"sea", feat:"Crewed, chartered, and endlessly stable." },
-4859 { key:"superyacht",name:"250-ft Superyacht", icon:"\u{1F6F3}\uFE0F", price:48000000, minNetWorth:40000000, cls:"sea", feat:"Helipad, submarine garage, 22 crew." },
-4860 { key:"ultralight",name:"Ultralight Aircraft", icon:"\u{1FA82}", price:38000, minNetWorth:30000, cls:"air", feat:"Basically a lawn chair with wings." },
-4861 { key:"cessna", name:"Single-Engine Prop", icon:"\u{1F6E9}\uFE0F", price:420000, minNetWorth:350000, cls:"air", feat:"Your first real set of wings." },
-4862 { key:"twin", name:"Twin-Engine Turboprop", icon:"\u2708\uFE0F", price:2900000, minNetWorth:2500000, cls:"air", feat:"Six seats, short runways, real range." },
-4863 { key:"heli", name:"Executive Helicopter", icon:"\u{1F681}", price:5500000, minNetWorth:5000000, cls:"air", feat:"Rooftop to rooftop in eleven minutes." },
-4864 { key:"lightjet", name:"Very Light Jet", icon:"\u{1F6E9}\uFE0F", price:9500000, minNetWorth:8000000, cls:"air", feat:"Single pilot, coast to coast with one stop." },
-4865 { key:"midjet", name:"Midsize Business Jet", icon:"\u2708\uFE0F", price:22000000, minNetWorth:18000000, cls:"air", feat:"Eight passengers, stand-up cabin." },
-4866 { key:"heavyjet", name:"Heavy Intercontinental Jet",icon:"\u{1F6EB}", price:68000000, minNetWorth:55000000, cls:"air", feat:"Bedroom, shower, and a 7,000-mile range." },
-4867 { key:"airliner", name:"Converted Airliner", icon:"\u{1F6EC}", price:180000000, minNetWorth:150000000, cls:"air", feat:"A flying house. Absolutely unreasonable." },
-4868 { key:"watch", name:"Grand Complication Watch", icon:"\u231A", price:850000, minNetWorth:700000, cls:"lux", feat:"Perpetual calendar, minute repeater, waiting list." },
-4869 { key:"art", name:"Blue-Chip Art Collection", icon:"\u{1F5BC}\uFE0F", price:12000000, minNetWorth:10000000, cls:"lux", feat:"Appreciating assets you can hang on a wall." },
-4870 { key:"vault", name:"Private Wine Vault", icon:"\u{1F377}", price:1600000, minNetWorth:1400000, cls:"lux", feat:"800 bottles, climate-controlled, mostly unopened." },
-4871 { key:"racing", name:"Pro Racing Team", icon:"\u{1F3C1}", price:35000000, minNetWorth:30000000, cls:"lux", feat:"Two cars, twenty staff, one very expensive hobby." },
-4872 ]);
-4873 TOYS.forEach(t=>{ if(!t.cls) t.cls = "lux"; });
-4874
-4875 /* --- Vacations: 20, solo or with friends --- */
-4876 VACATIONS.length = 0;
-4877 addCatalog(VACATIONS, [
-4878 { key:"staycation", name:"Long Weekend at Home", price:120, emoji:"\u{1F3E1}", happiness:5, feat:"Phone off, nothing scheduled, zero guilt." },
-4879 { key:"cabin", name:"Cabin Weekend", price:600, emoji:"\u{1F332}", happiness:8, feat:"Quiet lakeside cabin. No wifi, on purpose." },
-4880 { key:"roadtrip", name:"Great American Road Trip", price:1400, emoji:"\u{1F6E3}\uFE0F", happiness:10, feat:"Two weeks, six states, bad gas station food." },
-4881 { key:"nationalpark",name:"National Park Tour", price:2200, emoji:"\u{1F3D5}\uFE0F", happiness:12, feat:"Zion, Arches, Yellowstone. Sunrise every day." },
-4882 { key:"beach", name:"Tropical Beach Resort",price:3500, minNetWorth:40000, emoji:"\u{1F334}", happiness:14, feat:"All-inclusive, a week of doing absolutely nothing." },
-4883 { key:"vegas", name:"Vegas With Friends", price:4200, minNetWorth:40000, emoji:"\u{1F3B0}", happiness:13, feat:"What happens there mostly stays on your card statement." },
-4884 { key:"paris", name:"Paris, France", price:9000, minNetWorth:150000, emoji:"\u{1F5FC}", happiness:18, feat:"Museums, pastry, and a week of walking 12 miles a day." },
-4885 { key:"tokyo", name:"Tokyo & Kyoto", price:11000, minNetWorth:150000, emoji:"\u{1F1EF}\u{1F1F5}", happiness:19, feat:"Neon, temples, and the best food of your life." },
-4886 { key:"safari", name:"East African Safari", price:16000, minNetWorth:250000, emoji:"\u{1F981}", happiness:22, feat:"Serengeti migration from a canvas tent." },
-4887 { key:"patagonia", name:"Patagonia Trek", price:14000, minNetWorth:250000, emoji:"\u{1F3D4}\uFE0F", happiness:21, feat:"Ten days of glaciers, granite, and wind." },
-4888 { key:"iceland", name:"Iceland Ring Road", price:12500, minNetWorth:200000, emoji:"\u{1F30B}", happiness:19, feat:"Waterfalls, hot springs, northern lights." },
-4889 { key:"greece", name:"Greek Island Hopping", price:18000, minNetWorth:350000, emoji:"\u{1F6A2}", happiness:22, feat:"Santorini, Milos, Naxos. Boats and blue doors." },
-4890 { key:"maldives", name:"Maldives Overwater Villa", price:32000, minNetWorth:600000, emoji:"\u{1F41A}", happiness:26, feat:"Your own deck straight into the lagoon." },
+=== FILE: 20-v47-v49.js
+=== PATTERN: [\U0001F300-\U0001FAFF\u2190-\u27BF]
+1:/* ============ v4.7 — save recovery + storage diagnostics ============ */
+2:(function v472Recover(){
+4:    var PREFIX = (typeof LS_PREFIX === "string") ? LS_PREFIX : "besim2_";
+5:    var IDX = (typeof LS_SLOTS_INDEX === "string") ? LS_SLOTS_INDEX : PREFIX + "slots_index";
+7:    function storageOk(){
+8:      try{ localStorage.setItem(PREFIX+"__t","1"); localStorage.removeItem(PREFIX+"__t"); return true; }
+9:      catch(e){ return false; }
+11:    window.v472StorageOk = storageOk;
+13:    /* Every key that looks like a saved run, whether or not the index knows about it. */
+14:    function rawSlotKeys(){
+15:      var out = [];
+17:        for(var i=0;i<localStorage.length;i++){
+18:          var k = localStorage.key(i);
+19:          if(!k) continue;
+20:          if(k === IDX) continue;
+21:          if(k.indexOf("slot") === -1 && k.indexOf("autosave") === -1) continue;
+22:          var raw = localStorage.getItem(k);
+23:          if(!raw || raw.charAt(0) !== "{") continue;
+24:          var st = null;
+25:          try{ st = JSON.parse(raw); }catch(e){ continue; }
+26:          var co = st && (st.company || (st.companies && st.companies[0]));
+27:          if(!st || (!co && !st.meta)) continue;
+28:          out.push({ key:k, state:st, co:co||{} });
+31:      return out;
+33:    window.v472RawSlotKeys = rawSlotKeys;
+35:    /* Rebuild the slot index from whatever is actually in storage. */
+36:    window.v472Rescan = function(){
+37:      var found = rawSlotKeys();
+38:      var idx = [];
+39:      try{ idx = JSON.parse(localStorage.getItem(IDX) || "[]") || []; }catch(e){ idx = []; }
+40:      var known = {};
+41:      idx.forEach(function(s){ if(s && s.key) known[s.key] = true; });
+42:      var added = 0;
+43:      found.forEach(function(f){
+44:        if(known[f.key]) return;
+45:        var nm = (f.co && f.co.name) || (f.state.meta && f.state.meta.name) || "Recovered run";
+46:        idx.push({ key:f.key, label:nm, savedAt: (f.state.savedAt || Date.now()),
+47:          month: f.co.month || 1, year: f.co.year || 1, cash: f.co.cash || 0 });
+48:        added++;
+49:      });
+51:      var before = idx.length;
+52:      idx = idx.filter(function(s){ try{ return s && s.key && localStorage.getItem(s.key); }catch(e){ return false; } });
+53:      var pruned = before - idx.length;
+54:      try{ localStorage.setItem(IDX, JSON.stringify(idx)); }catch(e){}
+55:      return { found: found.length, added: added, pruned: pruned, total: idx.length };
+56:    };
+58:    /* Run the rescan once at boot, before the start screen paints. */
+59:    try{ window.__v472boot = window.v472Rescan(); }catch(e){}
+61:    /* ---- Start screen: never show nothing. Explain what storage sees. ---- */
+63:      var css = document.createElement("style");
+64:      css.textContent = ".v472-diag{border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin:0 0 14px;"
+65:        + "background:var(--panel2);font-size:12px;line-height:1.5;}"
+66:        + ".v472-diag .hd{font-size:11px;text-transform:uppercase;letter-spacing:.05em;opacity:.7;margin-bottom:4px;}"
+67:        + ".v472-diag .row{opacity:.8;}"
+68:        + ".v472-diag button{margin-top:8px;width:100%;}";
+69:      document.head.appendChild(css);
+72:    if(typeof renderOnboard === "function"){
+73:      var prev = renderOnboard;
+74:      renderOnboard = function(){
+75:        var out = prev.apply(this, arguments);
+
+=== FILE: 30-v410-v427.js
+=== PATTERN: [\U0001F300-\U0001FAFF\u2190-\u27BF]
+1:/* =====================================================================
+2:   v4.10 — 1. Reputation grows in proportion to the company
+3:   Reputation was easing toward a target dominated by client health and
+4:   morale, both of which sit near 60-70 on day one. A two-person shop
+5:   therefore climbed to "well regarded" within a year. Reputation is now
+6:   capped by how big the company actually is, and eases far more slowly.
+7:   ===================================================================== */
+8:(function v410Rep(){
+9:  "use strict";
+11:    if(typeof v46RepMonth !== "function") return;
+14:    window.v410RepCeiling = function(c){
+16:        var mrr     = Math.max(0, c.mrr || 0);
+17:        var heads   = ((c.employees || []).length);
+18:        var clients = ((c.clients || []).length);
+19:        var years   = Math.max(0, ((c.year || 1) - 1) + ((c.month || 1) - 1) / 12);
+20:        /* each dimension contributes; nobody is famous on one axis alone */
+21:        var byRev   = Math.min(30, Math.log10(Math.max(1, mrr)) * 7.5);
+22:        var byTeam  = Math.min(18, Math.sqrt(heads) * 4.2);
+23:        var byBook  = Math.min(16, Math.sqrt(clients) * 4.6);
+24:        var byAge   = Math.min(14, years * 2.6);
+25:        /* floor of 50 so a young company is not branded disreputable on day one;
+26:           anything above "respectable" has to be earned with actual scale */
+27:        return Math.max(50, Math.min(100, 30 + byRev + byTeam + byBook + byAge));
+28:      }catch(e){ return 100; }
+29:    };
+31:    v46RepMonth = function(){
+32:      var c = G.company, r = v46Rep();
+33:      r.lastCompany = r.company; r.lastFounder = r.founder;
+34:      var clients = c.clients || [];
+35:      var health  = clients.length ? clients.reduce(function(s,x){ return s + (x.health||60); }, 0) / clients.length : 60;
+36:      var morale  = (c.employees||[]).length ? (c.employees.reduce(function(s,e){ return s + (e.morale||70); }, 0) / c.employees.length) : 70;
+37:      var scale   = Math.min(18, Math.log10(Math.max(1, (c.mrr||0))) * 4);
+39:      var target  = clamp(health * 0.45 + morale * 0.2 + (c.successScore || 50) * 0.2 + scale, 0, 100);
+40:      var ceiling = window.v410RepCeiling(c);
+41:      target = Math.min(target, ceiling);
+43:      /* rising is slow and gets slower near the ceiling; falling stays quick */
+44:      var gap  = target - r.company;
+45:      var rate = gap > 0 ? 0.07 : 0.22;
+46:      if(gap > 0){
+47:        var room = Math.max(0, ceiling - r.company);
+48:        if(room < 8) rate *= (room / 8);   /* the last stretch is earned */
+50:      r.company = clamp(r.company + gap * rate, 0, 100);
+52:      var founderTarget = clamp(40 + Math.min(28, (c.founderActionsLifetime||0) * 0.8) + (r.company - 50) * 0.5
+53:        + Math.min(20, ((c.valuation||0) / 5000000) * 10), 0, 100);
+54:      founderTarget = Math.min(founderTarget, ceiling + 6);
+55:      var fgap = founderTarget - r.founder;
+56:      r.founder = clamp(r.founder + fgap * (fgap > 0 ? 0.06 : 0.18), 0, 100);
+58:      var dc = Math.round(r.company - r.lastCompany);
+59:      if(Math.abs(dc) >= 3){
+61:          logHistory((dc > 0 ? "\u2B06\uFE0F" : "\u2B07\uFE0F") + " Company reputation " + (dc > 0 ? "rose" : "fell") + " to "
+62:            + Math.round(r.company) + "/100 \u2014 " + v46RepTier(r.company).label.toLowerCase() + ".");
+65:    };
+66:    window.v46RepMonth = v46RepMonth;
+69:  /* show the ceiling on the reputation card so the limit is legible */
+71:    if(typeof renderScreen === "function"){
+72:      var prevRS = renderScreen;
+73:      renderScreen = function(){
+74:        var out = prevRS.apply(this, arguments);
+76:          var card = document.querySelector("[data-v46rep]");
+77:          if(card && !card.querySelector("[data-v410cap]") && typeof G !== "undefined" && G && G.company){
+
+=== FILE: 40-v428-trucking.js
+=== PATTERN: [\U0001F300-\U0001FAFF\u2190-\u27BF]
+1:/* ============ v4.28d — A: core, rep zero, decisions cleanup, tab moves, LENDING FIX ============ */
+2:(function v426a(){
+3:"use strict";
+4:if(window.__v426) return; window.__v426 = true;
+5:var ERR = window.__v426err = window.__v426err || [];
+6:function T(l,f){ try{ return f(); }catch(e){ ERR.push(l+": "+((e&&e.message)||e)); } }
+7:function C(){ try{ return (typeof G!=="undefined" && G && G.company) || null; }catch(e){ return null; } }
+8:function IND(){ var c=C(); return (c&&c.industry)||"ai_saas"; }
+9:function money(n){ try{ return fmt$(Math.round(n)); }catch(e){ return "$"+Math.round(n); } }
+10:function cl(v,a,b){ return Math.max(a, Math.min(b, v)); }
+11:function num(v,d){ v = Number(v); return isFinite(v) ? v : d; }
+12:function log(t){ try{ logHistory(t); }catch(e){} }
+13:function say(t,k){ try{ toast(t,k||"good"); }catch(e){} }
+14:function redraw(){ try{ renderAll(); }catch(e){} }
+15:function card(html){
+16:  var d = document.createElement("div");
+17:  d.className = "card";
+18:  d.innerHTML = html;
+19:  return d;
+21:window.__v426card = card;
+22:function st(){
+23:  var c = C(); if(!c) return null;
+24:  if(!c.__v426) c.__v426 = {
+25:    attention:{ left:10, max:10, stamp:"" },
+26:    ins:{ policies:{}, claims:[], lifetimePrem:0, lifetimeLoss:0 },
+27:    reqs:[], hires:[],
+28:    chan:{ alloc:{paid:0,content:0,outbound:0,partners:0,referral:0}, sat:{}, last:null },
+29:    rounds:{ closed:[] },
+30:    markets:{ entered:["home"] },
+31:    fleet:{ months:[] },
+32:    debtSnap:0
+33:  };
+34:  return c.__v426;
+36:window.v426 = { state: st, errs: function(){ return ERR; } };
+38:/* ---------- 1. reputation starts at zero ---------- */
+39:function zeroRep(){
+40:  var c = C(); if(!c || c.__v426repZeroed) return;
+41:  var r = c.v46rep;
+42:  if(!r) return;
+43:  if(r.company === 52 && r.founder === 48){
+44:    r.company = 0; r.founder = 0; r.lastCompany = 0; r.lastFounder = 0;
+46:  c.__v426repZeroed = true;
+48:window.__v426ZeroRep = zeroRep;
+49:T("rep-boost", function(){
+50:  if(typeof v46RepInboundBoost !== "function") return;
+51:  window.v46RepInboundBoost = function(){
+52:    var c = C(); if(!c || !c.v46rep) return 0;
+53:    return Math.max(0, (num(c.v46rep.company,0) - 50) / 250);
+54:  };
+55:});
+57:/* ---------- 2. LENDING FIX: stop the runaway rate wrappers ---------- */
+58:/* v4.24 re-wrapped effectiveLoanRate/effectiveLocRate every 700ms because v4.28d
+59:   replaced window[name] with a wrapper that lacked the __v424 guard. Each layer
+60:   multiplied the rate by the credit-tier multiplier, so the rate compounded
+61:   without bound. We install one canonical, clamped rate function and flag it
+62:   with BOTH guards so neither installer ever wraps it again. */
+63:var RATE_MIN = 0.002, RATE_MAX = 0.06;
+64:function creditMult(){
+65:  var score = 580;
+66:  try{ var c = window.v424Credit ? window.v424Credit() : null; if(c) score = num(c.business, 580); }catch(e){}
+
+=== FILE: 50-v429-v432.js
+=== PATTERN: [\U0001F300-\U0001FAFF\u2190-\u27BF]
+1:/* ============ v4.29d — Phase 2: real expense total, honest burn ============
+2:   1. advanceMonthCore now publishes G.company.expensesTotal (source edit above).
+3:      The v4.25 tax engine read c.expensesTotal, which never existed, and fell
+4:      back to "profit = mrr * 0.4" — so a company with no revenue and no profit
+5:      still accrued income tax on a phantom margin, and a heavy-cost company
+6:      was under-taxed.
+7:   2. v44Burn() counted only the company expense ledger. Owner draw and chair
+8:      fees leave company cash every month and were invisible to burn, runway,
+9:      the cashflow strip and the solvency check — a solo founder drawing $3,500
+10:      saw a burn of $500.
+11:============================================================================ */
+12:(function v491(){
+13:"use strict";
+14:if(window.__v491) return;
+15:window.__v491 = true;
+17:function n(v, d){ var x = Number(v); return isFinite(x) ? x : (d || 0); }
+19:function drawCost(){
+21:    var c = G.company; if(!c) return 0;
+22:    if(c.sold || c.passive) return 0;
+23:    return Math.max(0, n(c.ownerDraw, 0)) + Math.max(0, n(c.chairFee, 0));
+24:  }catch(e){ return 0; }
+28:  if(typeof v44Burn === "function" && !v44Burn.__v491){
+29:    var rawBurn = v44Burn;
+30:    var wrapped = function(){
+31:      var base = 0;
+32:      try{ base = n(rawBurn.apply(this, arguments), 0); }catch(e){}
+33:      return base + drawCost();
+34:    };
+35:    wrapped.__v491 = true;
+36:    window.v44Burn = wrapped;
+37:    try{ v44Burn = window.v44Burn; }catch(e){}
+41:window.__v491api = {
+42:  draw: drawCost,
+43:  burn: function(){ try{ return v44Burn(); }catch(e){ return null; } },
+44:  expensesTotal: function(){ try{ return G.company.expensesTotal; }catch(e){ return null; } }
+45:};
+47:try{ window.GAME_VERSION = "v4.37"; }catch(e){}
+48:})();
+49:/* v4.29d — phase 3: run the insolvency ladder at the TRUE end of month.
+50:   The v4.25 layer wraps advanceMonth OUTSIDE the v44 month hook, so taxStep,
+51:   macroStep, contractStep, rivalStep, peopleStep, cardStep and exitStep all
+52:   write cash AFTER both the overdraft rescue and v44SolvencyCheck have run.
+53:   A month could therefore end deeply negative with distressMonths 0 and
+54:   negMonths 0, and the ladder never escalated. This defers the solvency
+55:   check to after the whole chain, and re-runs the (now finite) overdraft
+57:(function(){
+58:  if(window.__v492) return; window.__v492 = true;
+59:  var realSolv = null;
+60:  try{ realSolv = (typeof window.v44SolvencyCheck === "function") ? window.v44SolvencyCheck : (typeof v44SolvencyCheck === "function" ? v44SolvencyCheck : null); }catch(e){}
+61:  if(!realSolv) return;
+62:  var deferring = false;
+63:  var stats = { deferred: 0, finals: 0, lateRescues: 0 };
+64:  window.v44SolvencyCheck = function(){
+65:    if(deferring){ stats.deferred++; return; }
+66:    return realSolv.apply(this, arguments);
+67:  };
+68:  function settle(){
+69:    var lines = [];
+71:      var cash = Number(G.company.cash);
+72:      if(!isFinite(cash)) cash = 0;
+
+=== FILE: 60-v433-v437.js
+=== PATTERN: [\U0001F300-\U0001FAFF\u2190-\u27BF]
+1:/* ============================================================
+2:   v4.33 - Fire anyone, not just C-suite.
+3:   The firing path already existed (card -> employee modal -> Let Go)
+4:   but was invisible: only the C-suite / new business director cards
+5:   carried a real button. This layer puts a "Let go" button on every
+6:   employee card in the roster, wired to the current global
+7:   fireEmployee(), behind a confirm.
+8:   Exports window.__v433api = { mount, errs, count }.
+9:   ============================================================ */
+10:(function(){
+11:  "use strict";
+12:  if (window.__v433on) return;
+13:  window.__v433on = true;
+15:  var ERR = [];
+16:  function err(where, e){ if (ERR.length < 40) ERR.push(where + ": " + ((e && e.message) || e)); }
+20:    var st = document.createElement("style");
+21:    st.textContent = ""
+22:      + ".v433-fire{white-space:nowrap;}"
+23:      + ".v22-mini .v433-fire{font-size:10px;padding:3px 7px;line-height:1.1;}"
+24:      + ".emp-card .v433-fire{margin-left:6px;}";
+25:    document.head.appendChild(st);
+26:  } catch(e){ err("style", e); }
+28:  function empById(id){
+30:      if (typeof G === "undefined" || !G.company || !G.company.employees) return null;
+31:      for (var i=0;i<G.company.employees.length;i++){
+32:        if (G.company.employees[i].id === id) return G.company.employees[i];
+34:    } catch(e){ err("empById", e); }
+35:    return null;
+38:  function makeBtn(id, extraClass){
+39:    var b = document.createElement("button");
+40:    b.className = "btn danger small v433-fire" + (extraClass ? " " + extraClass : "");
+41:    b.setAttribute("data-v433fire", id);
+42:    b.title = "Let this person go";
+43:    b.textContent = "Let go";
+44:    return b;
+47:  /* ---------- mount buttons onto every employee card ---------- */
+48:  var mounted = 0;
+49:  function mount(){
+51:      if (typeof G === "undefined" || !G.company) return 0;
+52:      var n = 0;
+54:      /* compact roster rows + C-suite rows */
+55:      var minis = document.querySelectorAll(".v22-mini[data-empcard]");
+56:      for (var i=0;i<minis.length;i++){
+57:        var c = minis[i];
+58:        if (c.querySelector("[data-v433fire]")) continue;
+59:        var id = c.getAttribute("data-empcard");
+60:        if (!id || !empById(id)) continue;
+61:        c.appendChild(makeBtn(id));
+62:        n++;
+66:      var tops = document.querySelectorAll(".emp-card .top[data-empcard]");
+67:      for (var j=0;j<tops.length;j++){
+68:        var card = tops[j].parentElement;
+69:        if (!card || card.querySelector("[data-v433fire]")) continue;
+70:        var hid = tops[j].getAttribute("data-empcard");
+71:        if (!hid || !empById(hid)) continue;
+72:        card.appendChild(makeBtn(hid, "mt8"));
+73:        n++;
+76:      mounted = n;
+77:      return n;
+78:    } catch(e){ err("mount", e); return 0; }
 
