@@ -1,105 +1,78 @@
 # introspect report
-# generated: 2026-09-23 02:52:20Z
-# commit: 583ecb26fdee429fce3a661defab66591ca73382
+# generated: 2026-09-23 02:52:47Z
+# commit: 2f6e6e6c5361abca5011be6dcc256b8adfb2420f
 
-=== FILE: art-core.js
-=== PATTERN: function\s+(saveGame|save|autosave|persistState|renderAll|toast|logHistory|recomputeNetWorth|personalNetWorth)\s*\(
-381:function logHistory(text){
-1439:function renderAll(){ renderTopbar(); renderDock(); renderScreen(); }
-8152:function toast(msg, kind){
+=== FILE: art-core.js  LINES 13110-13140
+13110 }
+13111 function v26ModalOpen(){
+13112 const o = document.getElementById("modalOverlay");
+13113 if(!o) return false;
+13114 const st = window.getComputedStyle(o);
+13115 return !!(st && st.display !== "none");
+13116 }
+13117 (function v26Keys(){
+13118 try{
+13119 document.addEventListener("keydown", (ev)=>{
+13120 try{
+13121 if(v26Typing() || ev.metaKey || ev.ctrlKey || ev.altKey) return;
+13122 if(typeof G==="undefined" || !G || !G.ui) return;
+13123 const ob = document.getElementById("onboard");
+13124 if(ob && window.getComputedStyle(ob).display !== "none") return;
+13125 if(ev.key==="Escape" && v26ModalOpen()){
+13126 const o = document.getElementById("modalOverlay");
+13127 o.classList.remove("show"); o.style.display = "none";
+13128 ev.preventDefault(); return;
+13129 }
+13130 if(v26ModalOpen()) return;
+13131 if(ev.code==="Space" || ev.key===" "){
+13132 ev.preventDefault();
+13133 if(typeof confirmAndAdvance==="function") confirmAndAdvance();
+13134 return;
+13135 }
+13136 if(/^[1-9]$/.test(ev.key)){
+13137 const rail = document.getElementById("v23Rail");
+13138 if(!rail) return;
+13139 const btns = rail.querySelectorAll("[data-v25rail]");
+13140 const i = Number(ev.key)-1;
 
-=== FILE: art-core.js
-=== PATTERN: totalNetWorth
-251:      totalNetWorth: 6000,
-351:  if(p.totalNetWorth===undefined) p.totalNetWorth = p.netWorth;
-661:  { key:"first_million", name:"First Million", icon:"💰", desc:"Reach $1,000,000 in total net worth.", check:(c,p)=> p.totalNetWorth>=1000000 },
-683:  { key:"decamillionaire", name:"Decamillionaire", icon:"💵", desc:"Reach $10,000,000 in personal net worth.", check:(c,p)=> p.totalNetWorth>=10000000 },
-744:    <div class="card mt14"><h3>Total Net Worth</h3><div class="big">${fmt$(p.totalNetWorth)}</div>
-1302:  G.personal.totalNetWorth = Math.round(G.personal.netWorth + G.company.valuation);
-2867:      <div class="card"><h3>Total Net Worth</h3><div class="big">${fmt$(p.totalNetWorth||p.netWorth)}</div>
-3642:  p.totalNetWorth = Math.round(p.netWorth + stakes);
-3719:  if(p.totalNetWorth===undefined) p.totalNetWorth = p.netWorth;
-4117:      <div class="card"><h3>Total Net Worth</h3><div class="big">${fmt$(p.totalNetWorth||p.netWorth)}</div></div>
-4296:    <div class="card mt14"><h3>Total Net Worth</h3><div class="big">${fmt$(p.totalNetWorth)}</div>
-4794:    return `You run ${(G.companies||[]).length} company(ies); ${(G.companies||[]).filter(x=>x.passive).length} on autopilot. Personal cash ${fmt$(p.cash)}, total net worth ${fmt$(p.totalNetWorth||p.cash)}.<br>Hiring a CEO keeps a company compounding in the background while you start something in a different industry \u2014 diversification smooths the bad months.`;
-5136:      <div class="card"><h3>Total Net Worth</h3><div class="big">${fmt$(p.totalNetWorth||p.netWorth)}</div>
-5235:    <div class="card mt14"><h3>Total Net Worth</h3><div class="big">${fmt$(p.totalNetWorth)}</div>
+=== FILE: art-core.js  LINES 3630-3650
+3630 eq(co).dividendsPaid += payout;
+3631 report.push(`\u{1F4BC} ${co.name} (run by ${co.ceo.name}) netted ${fmt$(profit)} and paid you ${fmt$(mine)} in dividends.`);
+3632 } else if(profit<0){
+3633 report.push(`\u{1F4BC} ${co.name} ran a ${fmt$(-profit)} loss under ${co.ceo.name}. Cash on hand: ${fmt$(co.cash)}.`);
+3634 }
+3635 }
+3636 function passiveCompaniesTick(report){
+3637 G.companies.forEach((co,i)=>{ if(i!==G.activeCompanyIndex && co.passive) simulatePassiveCompany(co, report); });
+3638 }
+3639 function empireNetWorthTick(){
+3640 const p = G.personal;
+3641 const stakes = G.companies.reduce((s,co)=> s + Math.round((co.valuation||0)*founderPct(co)), 0);
+3642 p.totalNetWorth = Math.round(p.netWorth + stakes);
+3643 }
+3644 function activeValuationWithOps(){
+3645 const co = G.company;
+3646 if(!co.ops) return;
+3647 const opsMult = Math.max(0, (co.ops.lastNet||0)*14);
+3648 co.valuation = Math.round(Math.max(co.valuation, co.netWorth, co.mrr*24 + opsMult));
+3649 }
+3650
 
-=== FILE: art-core.js
-=== PATTERN: personal\s*=\s*\{
-
-=== FILE: art-core.js
-=== PATTERN: addEventListener\("keydown"
-13119:    document.addEventListener("keydown", (ev)=>{
-
-=== FILE: 70-cloud-saves.js
-=== PATTERN: (function\s+\w+|NBCloud\.\w+\s*=|save)
-2:   v4.38 — Cloud saves replace the browser save system.
-5:   so the tab renders cloud slots, autosave-to-cloud, imports and
-34:  function err(w, e) { if (ERR.length < 50) ERR.push(w + ': ' + ((e && e.message) || e)); }
-38:  function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-39:  function set(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
-40:  function token() { return get(K_TOKEN); }
-41:  function code() { return get(K_CODE); }
-42:  function autoOn() { return get(K_AUTO) !== '0'; }   /* default ON */
-46:  function rpc(fn, args) {
-71:  function expired(e) {
-82:  function state() {
-86:  function hasGame() {
-90:  function num(v) { var n = Number(v); return isFinite(n) ? n : null; }
-91:  function money(n) {
-98:  function meta() {
-111:  function exportCode() {
-115:      return Promise.reject(new Error('This build has no portable save codes.'));
-119:  function applyCode(payload) {
-121:      return Promise.reject(new Error('This build cannot apply save codes.'));
-128:  function localSlots() {
-135:  function localLoad(key) {
-172:  function esc(s) {
-177:  function when(ts) {
-181:  function say(text, kind) {
-187:  function repaint() {
-191:  /* -------------------------------------------------------- saves screen */
-193:  function accountCard() {
-196:      + '<h3>\u2601\uFE0F Cloud saves</h3>'
-197:      + '<div class="nbc-who">Signed in as <b>' + esc(code() || '\u2014') + '</b> \u00b7 your saves follow this code on any device.</div>'
-200:      +   '<button class="btn small" data-nbc-act="save"' + (hasGame() ? '' : ' disabled') + '>Save this game</button>'
-207:      + 'Autosave to the cloud as you play</label>'
-210:      + '<h3 style="margin-top:16px;">My saves</h3>'
-215:  function signedOutCard() {
-218:      + '<h3>\u2601\uFE0F Cloud saves</h3>'
-225:  function legacyCard() {
-238:      + '<h3>\u{1F4E6} Old browser saves</h3>'
-240:      + 'Left over from the retired browser save system. They are stuck in this one browser. '
-246:  function leaderboardCard() {
-254:  function buildSaves() {
-264:  function refreshList() {
-267:    return rpc('nb_list_saves', { p_token: token() }).then(function (rows) {
-269:        host.innerHTML = '<div class="muted" style="font-size:12px;">No cloud saves yet. '
-288:  function defaultLabel() {
-295:  function putSave(slot, label, payload) {
-297:    return rpc('nb_put_save', {
-303:  function doSave() {
-304:    var label = window.prompt('Name this save:', defaultLabel());
-319:     the current run to the cloud autosave slot, sets the session flag that
-323:     The gate only pushes the current run when cloud autosave is ON, so when
-324:     it is off we say plainly that unsaved progress will be lost. */
-325:  function doNewGame() {
-330:      question = 'Start a new game?\n\nYour current run is saved to the cloud first, so you can load it '
-333:      question = 'Start a new game?\n\nCloud autosave is OFF, so this run will NOT be saved automatically. '
-352:  function doImport(key) {
-354:    say('Reading the old save\u2026', 'info');
-361:      return rpc('nb_put_save', {
-375:  function doLoad(slot) {
-376:    if (!window.confirm('Load this save? Anything unsaved in the current run is replaced.')) return;
-378:    rpc('nb_get_save', { p_token: token(), p_slot: slot })
-384:  function doDelete(slot) {
-
-=== FILE: 94-flags.js
-=== PATTERN: (NBFlags|flag|URLSearchParams)
-1:/* 94-flags.js — v4.47
-2:   One place for the diagnostic URL flags, loaded before the layers
-14:    var q = new URLSearchParams(location.search);
-18:      console.log("[v4.47] tidy layer (95) disabled by URL flag");
-21:    window.NBFlags = {
+=== FILE: art-core.js  LINES 245-260
+245 },
+246 personal:{
+247 cash: 6000,
+248 salaryDraw: 3500,
+249 expenses:{ rent:1600, mortgage:0, food:550, other:300 },
+250 netWorth: 6000,
+251 totalNetWorth: 6000,
+252 assets:{ houses:[], cars:[], vacationHistory:[], toys:[] },
+253 happiness: 72,
+254 kenzie: 70,
+255 monthEvents: [],
+256 giftHistory: [],
+257 },
+258 ui:{ activeTab:"bank", queue:[], activeSlackId:null, openDept:null, openClientGroup:"clientgroup_Enterprise" },
+259 assistantChat:[],
+260 };
 
