@@ -1,4 +1,5 @@
 # <file>|<regex> for grep, <file>@<start>-<end> for a line range.
-art-core.js|inProgress
-art-core.js|reqEngineers|FEATURE_DEFS|const FEATURES
-art-core.js@8320-8365
+art-core.js|no physical operations layer
+art-core.js|getElementById\("screen"\)|getElementById\('screen'\)|id="screen"
+art-core.js|ui\.activeTab\s*=|activeSub|subTab\s*=|\.tab\s*=\s*"industry"
+art-core.js|function subTabBar|function renderScreen
