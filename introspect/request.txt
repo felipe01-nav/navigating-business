@@ -1,5 +1,4 @@
 # <file>|<regex> for grep, <file>@<start>-<end> for a line range.
-art-core.js@5940-6030
-art-core.js@4520-4560
-art-core.js@10240-10290
-art-core.js|setAttribute\("data-tab"|dataset.tab|data-tab\b
+art-core.js|inProgress
+art-core.js|FEATURES *=|reqEngineers|monthsLeft
+art-core.js@8330-8360
