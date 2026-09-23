@@ -1,38 +1,24 @@
-/* 104-dock-shape.js — v4.60 "A Growth group that actually exists"
+/* 104-dock-shape.js — v4.64 "Growth stays, market goes home"
    =====================================================================
-   WHAT THE v4.59 DIAGNOSTIC REVEALED
-   ----------------------------------
-   With 95-tidy.js finally able to see the lexical globals, a live
-   trucking save reported the real dock:
+   HISTORY, HONESTLY RECORDED
+   --------------------------
+   v4.60 did two things at once: it relabelled the "rivals" group to
+   Growth, and it moved the "market" item out of Personal and into that
+   group, on the reasoning that a market screen is commercial, not
+   private.
 
-     run      Decide      [decisions]
-     hq       HQ          [financials, taxes, industry, product,
-                           expansion, clients, people]
-     rivals   Rivals      [rivals]
-     bank     Bank        [bank]
-     invest   Invest      [invest]
-     log      Log         [log]
-     life     Personal    [personal, life, empire, board, market]
-     jarvis   F.E.L.I.P.E [assistant]
-     miles    Milestones  [milestones]
-     board2   Leaderboard [leaderboard]
-     system   System      [saves]
+   Felipe played it on 23 Sep and ruled against the second half:
+   market belongs under Personal. The label change stands; the move is
+   reverted. The original argument is left summarised above rather than
+   quietly deleted, so nobody re-derives it in three months and moves
+   the item back.
 
-   Two things follow immediately:
-
-     1. There is NO group matching /growth/i. 95-tidy's first two dock
-        rules both look for one, so even a working tidy layer could
-        never have placed anything "in Growth". The brief's rule
-        "markets in Growth ONLY" had no destination.
-     2. "market" is sitting in the Personal group, between board and
-        the life/empire entries — a market screen filed under the
-        founder's private life.
-
-   WHAT THIS FILE DOES
-   -------------------
-   Renames the existing "rivals" group to Growth and moves "market"
-   into it, so market and rivals share one commercial home and Personal
-   returns to personal matters.
+   WHAT THIS FILE NOW DOES
+   -----------------------
+     1. Relabels the existing group id "rivals" to "Growth".
+     2. Ensures "market" sits in the "life" (Personal) group, and is
+        NOT in the Growth group.
+     3. De-dupes: no item may appear in two groups.
 
    WHY THE GROUP ID STAYS "rivals"
    -------------------------------
@@ -45,12 +31,8 @@
 
    WHAT THIS FILE DELIBERATELY DOES NOT DO
    ---------------------------------------
-   It does not touch the "industry" item. Per 101-rnd-patch.js that
-   slot is now the R&D screen — relabelled "R&D", or "Ops & R&D" where
-   __nbUsesOpsReal() is true — so the old plan of making Industry Ops
-   vanish in non-ops industries would now delete R&D from every
-   software company. That rule needs Felipe's decision before anyone
-   acts on it.
+   It does not touch the "industry" item; 105-industry-slot.js owns
+   that decision.
 
    Data only: no DOM is read or written, so none of the v4.43 flicker
    risk applies. Idempotent, and re-checks periodically so a new game
@@ -109,32 +91,36 @@
     var growth = byId("rivals");
     var life = byId("life");
 
-    if (growth) {
-      if (growth.label !== LABEL) {
-        growth.label = LABEL;
+    /* 1. Label only. */
+    if (growth && growth.label !== LABEL) {
+      growth.label = LABEL;
+      changed = true;
+      note('group "rivals" relabelled to ' + LABEL);
+    }
+
+    /* 2. market out of Growth... */
+    if (growth && growth.items) {
+      var g_at = growth.items.indexOf("market");
+      while (g_at >= 0) {
+        growth.items.splice(g_at, 1);
         changed = true;
-        note('group "rivals" relabelled to ' + LABEL);
-      }
-      if (!growth.items) growth.items = [];
-      if (growth.items.indexOf("market") < 0) {
-        /* market first: the wider view before the head-to-head one */
-        growth.items.unshift("market");
-        changed = true;
-        note('"market" placed in ' + LABEL);
+        note('"market" removed from ' + LABEL);
+        g_at = growth.items.indexOf("market");
       }
     }
 
-    if (life && life.items) {
-      var at = life.items.indexOf("market");
-      while (at >= 0) {
-        life.items.splice(at, 1);
+    /* ...and back into Personal, after "board" if that exists so the
+       order reads personal -> life -> empire -> board -> market. */
+    if (life) {
+      if (!life.items) life.items = [];
+      if (life.items.indexOf("market") < 0) {
+        life.items.push("market");
         changed = true;
-        note('"market" removed from Personal');
-        at = life.items.indexOf("market");
+        note('"market" placed in Personal');
       }
     }
 
-    /* No item should appear in two groups. */
+    /* 3. No item should appear in two groups. */
     var seen = {};
     for (var i = 0; i < gs.length; i++) {
       var g = gs[i]; if (!g || !g.items) continue;
@@ -166,12 +152,12 @@
   setInterval(tick, 1000);
 
   window.NBDockShape = {
-    version: "4.60",
+    version: "4.64",
     apply: function () { lastSig = ""; return apply(); },
     report: function () {
       var gs = groups() || [];
       var out = {
-        version: "4.60",
+        version: "4.64",
         dockReachable: !!gs.length,
         dock: gs.map(function (g) {
           return { id: g.id, label: g.label, items: (g.items || []).slice() };
@@ -183,5 +169,5 @@
     }
   };
 
-  try { console.log("[v4.60] dock shape armed — Growth group, market rehoused."); } catch (e) {}
+  try { console.log("[v4.64] dock shape armed — Growth label kept, market back under Personal."); } catch (e) {}
 })();
