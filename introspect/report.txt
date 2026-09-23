@@ -1,100 +1,199 @@
 # introspect report
-# generated: 2026-09-23 01:12:28Z
-# commit: 7ff48be912310d467cef8548926b457f98afa3fa
+# generated: 2026-09-23 01:13:30Z
+# commit: 02f3864163e028606846d901f6e400af29faee94
 
-## file sizes
-2333 00-scheduler.js
-117731 10-core-v40-v46.js
-22488 100-rnd.js
-66855 20-v47-v49.js
-238178 30-v410-v427.js
-159662 40-v428-trucking.js
-71573 50-v429-v432.js
-40877 60-v433-v437.js
-21220 70-cloud-saves.js
-19480 80-account-gate.js
-12134 85-art-override.js
-9485 85-save-codes.js
-20759 90-hq-stages.js
-986 94-flags.js
-15629 95-tidy.js
-7395 96-hq-value.js
-6460 97-onboard-copy.js
-8448 98-debt-compat.js
-12491 99-v454-ui.js
-2687361 art-core.js
-92777 art-merge.js
-158151 art-v47.js
-2054 sw.js
+=== FILE: art-core.js  LINES 5940-6030
+5940 ob.querySelectorAll("[data-load]").forEach(b=> b.onclick = ()=>{
+5941 G = normalizeGame(loadSlot(b.getAttribute("data-load")));
+5942 applyIndustryLabels();
+5943 ob.style.display="none";
+5944 renderAll();
+5945 });
+5946 ob.querySelectorAll("[data-del]").forEach(b=> b.onclick = (e)=>{ e.stopPropagation(); deleteSlot(b.getAttribute("data-del")); renderOnboard(); });
+5947 }
+5948
+5949 /* ---------- Dock: label inside the button ---------- */
+5950 function renderDock(){
+5951 let dock = document.getElementById("dock");
+5952 if(!dock){
+5953 const main = document.createElement("div");
+5954 main.id = "main";
+5955 main.innerHTML = `<div id="dock"></div><div id="screen"></div>`;
+5956 document.getElementById("app").appendChild(main);
+5957 dock = document.getElementById("dock");
+5958 }
+5959 const active = groupOfTab(G.ui.activeTab);
+5960 dock.innerHTML = DOCK_GROUPS.map(g=>`
+5961 <div class="dock-btn ${active.id===g.id?"active":""}" data-group="${g.id}" title="${g.items.map(i=>dockItem(i).label).join(" \u00b7 ")}">
+5962 <span>${g.icon}</span><span class="dock-in">${g.label.toUpperCase()}</span>
+5963 <span class="dot ${groupNeedsAttention(g)?"show":""}"></span>
+5964 </div>`).join("");
+5965 dock.querySelectorAll("[data-group]").forEach(b=> b.onclick = ()=>{
+5966 const g = DOCK_GROUPS.find(x=>x.id===b.getAttribute("data-group"));
+5967 if(!g) return;
+5968 G.ui.lastTabByGroup = G.ui.lastTabByGroup || {};
+5969 G.ui.activeTab = G.ui.lastTabByGroup[g.id] && g.items.indexOf(G.ui.lastTabByGroup[g.id])>=0
+5970 ? G.ui.lastTabByGroup[g.id] : g.items[0];
+5971 renderDock(); renderScreen();
+5972 });
+5973 }
+5974
+5975 /* ---------- Tier-1 tab bar: biggest line on the screen ---------- */
+5976 function subTabBar(){
+5977 const g = groupOfTab(G.ui.activeTab);
+5978 if(g.items.length<2) return null;
+5979 const cur = dockItem(G.ui.activeTab);
+5980 const bar = el(`<div class="tierbar1">
+5981 <div class="muted tier1-crumb">${g.icon} ${g.label} <span style="opacity:.5;">\u203A</span> <b style="color:var(--accent);">${cur.label}</b></div>
+5982 <div class="flexrow" style="flex-wrap:wrap;gap:6px;">
+5983 ${g.items.map(id=>{ const it = dockItem(id); const on = G.ui.activeTab===id; const dot = tabNeedsAttention(id);
+5984 return `<button class="btn ${on?"":"secondary"}" data-subtab="${id}"
+5985 style="${on?"box-shadow:inset 0 -3px 0 rgba(255,255,255,.5);font-weight:700;":""}">${it.icon} ${it.label}${dot?` <span style="color:${on?"#fff":"var(--warn)"};">\u25CF</span>`:""}</button>`; }).join("")}
+5986 </div></div>`);
+5987 bar.querySelectorAll("[data-subtab]").forEach(b=> b.onclick = ()=>{
+5988 G.ui.activeTab = b.getAttribute("data-subtab");
+5989 G.ui.lastTabByGroup = G.ui.lastTabByGroup || {};
+5990 G.ui.lastTabByGroup[groupOfTab(G.ui.activeTab).id] = G.ui.activeTab;
+5991 renderDock(); renderScreen();
+5992 });
+5993 return bar;
+5994 }
+5995
+5996 /* ---------- Activity log ---------- */
+5997 DOCK_ITEMS.push({ id:"log", icon:"\u{1F9FE}", label:"Activity Log" });
+5998 (function addLogTab(){
+5999 const run = DOCK_GROUPS.find(g=>g.id==="run");
+6000 if(run && run.items.indexOf("log")<0) run.items.push("log");
+6001 })();
+6002 function renderLog(){
+6003 const c = G.company;
+6004 const p = pInit();
+6005 if(!G.ui.logScope) G.ui.logScope = "company";
+6006 const wrap = el(`<div></div>`);
+6007 const coRows = (c.history||[]).map(h=>({ when:`Y${h.year} M${h.month}`, text:h.text }));
+6008 const perRows = ((p.fulfillHistory||[]).map(f=>({ when:`Y${f.year||1} M${f.month||1}`, text:f.text || f.name })))
+6009 .concat((p.assets && p.assets.vacationHistory || []).map(v=>({ when:`Y${v.year} M${v.month}`, text:`Trip: ${v.name}` })));
+6010 const rows = G.ui.logScope==="personal" ? perRows : coRows;
+6011 wrap.innerHTML = `
+6012 <div class="window-title"><h2>\u{1F9FE} Activity Log</h2><span class="sub">${c.name} \u00b7 Year ${c.year}, Month ${c.month}</span></div>
+6013 <div class="flexrow tierbar2 mb14" style="gap:6px;">
+6014 <button class="btn ${G.ui.logScope==="company"?"":"secondary"} small" data-logscope="company">Company (${coRows.length})</button>
+6015 <button class="btn ${G.ui.logScope==="personal"?"":"secondary"} small" data-logscope="personal">Personal (${perRows.length})</button>
+6016 </div>
+6017 <div class="flatsec">
+6018 <h3>Newest first</h3>
+6019 ${rows.length? rows.slice(0,200).map(r=>`<div class="logrow"><span class="when">${r.when}</span><span>${r.text}</span></div>`).join("")
+6020 : `<div class="muted">Nothing logged yet \u2014 advance a month or make a decision.</div>`}
+6021 </div>`;
+6022 wrap.querySelectorAll("[data-logscope]").forEach(b=> b.onclick = ()=>{ G.ui.logScope = b.getAttribute("data-logscope"); renderScreen(); });
+6023 return wrap;
+6024 }
+6025 function renderScreen(){
+6026 if(G.ui.activeTab==="log"){
+6027 const screen = document.getElementById("screen");
+6028 screen.innerHTML = "";
+6029 try { screen.appendChild(renderLog()); }
+6030 catch(err){ screen.innerHTML = `<div class="card"><h3 class="bad">Log hit an error</h3><div class="muted">${(err&&err.message)||err}</div></div>`; }
+
+=== FILE: art-core.js  LINES 4520-4560
+4520 const DOCK_GROUPS = [
+4521 { id:"run", icon:"\u{1F9ED}", label:"Run", items:["decisions","bank","financials","industry"] },
+4522 { id:"people", icon:"\u{1F9D1}\u200D\u{1F4BC}", label:"People", items:["team","hr","orgchart","slack","zoom"] },
+4523 { id:"market", icon:"\u{1F4E6}", label:"Product", items:["product","clients","research"] },
+4524 { id:"empire", icon:"\u{1F3D7}\uFE0F", label:"Empire", items:["empire","invest","milestones"] },
+4525 { id:"life", icon:"\u{1F3E1}", label:"Life", items:["personal","market","life"] },
+4526 { id:"jarvis", icon:"\u{1F916}", label:"F.E.L.I.P.E AI", items:["assistant"] },
+4527 { id:"system", icon:"\u{1F4BE}", label:"System", items:["saves"] },
+4528 ];
+4529 function dockItem(id){ return DOCK_ITEMS.find(i=>i.id===id) || { id, icon:"\u{1F4C4}", label:id }; }
+4530 function groupOfTab(tabId){ return DOCK_GROUPS.find(g=>g.items.indexOf(tabId)>=0) || DOCK_GROUPS[0]; }
+4531 function groupNeedsAttention(g){
+4532 if(g.items.indexOf("decisions")>=0 && G.company.pendingEvent) return true;
+4533 return false;
+4534 }
+4535 function renderDock(){
+4536 let dock = document.getElementById("dock");
+4537 if(!dock){
+4538 const main = document.createElement("div");
+4539 main.id = "main";
+4540 main.innerHTML = `<div id="dock"></div><div id="screen"></div>`;
+4541 document.getElementById("app").appendChild(main);
+4542 dock = document.getElementById("dock");
+4543 }
+4544 const active = groupOfTab(G.ui.activeTab);
+4545 dock.innerHTML = DOCK_GROUPS.map(g=>`
+4546 <div>
+4547 <div class="dock-btn ${active.id===g.id?"active":""}" data-group="${g.id}" title="${g.items.map(i=>dockItem(i).label).join(" \u00b7 ")}">${g.icon}
+4548 <span class="dot ${groupNeedsAttention(g)?"show":""}"></span></div>
+4549 <div class="dock-label">${g.label}</div>
+4550 </div>`).join("");
+4551 dock.querySelectorAll("[data-group]").forEach(b=> b.onclick = ()=>{
+4552 const g = DOCK_GROUPS.find(x=>x.id===b.getAttribute("data-group"));
+4553 if(!g) return;
+4554 G.ui.lastTabByGroup = G.ui.lastTabByGroup || {};
+4555 G.ui.activeTab = G.ui.lastTabByGroup[g.id] && g.items.indexOf(G.ui.lastTabByGroup[g.id])>=0
+4556 ? G.ui.lastTabByGroup[g.id] : g.items[0];
+4557 renderDock(); renderScreen();
+4558 });
+4559 }
+4560 function subTabBar(){
+
+=== FILE: art-core.js  LINES 10240-10290
+10240 if(id==="people") id = v22LastPeopleTab();
+10241 G.ui.activeTab = id;
+10242 if(v22IsPeopleTab(id)) G.ui.lastPeopleTab = id;
+10243 G.ui.lastTabByGroup = G.ui.lastTabByGroup || {};
+10244 G.ui.lastTabByGroup[groupOfTab(id).id] = id;
+10245 renderDock(); renderScreen();
+10246 const sc = document.getElementById("screen"); if(sc) sc.scrollTop = 0;
+10247 };
+10248 bar.querySelectorAll("[data-subtab]").forEach(b=> b.onclick = ()=> go(b.getAttribute("data-subtab")));
+10249 bar.querySelectorAll("[data-subtab2]").forEach(b=> b.onclick = ()=> go(b.getAttribute("data-subtab2")));
+10250 return bar;
+10251 };
+10252
+10253 /* ---- 4. Route the "people" umbrella tab + drop the HQ-inside-HQ tab ---- */
+10254 (function v22Route(){
+10255 const prev = renderScreen;
+10256 renderScreen = function(){
+10257 if(G.ui.activeTab === "people" || G.ui.activeTab === "hq"){
+10258 G.ui.activeTab = (G.ui.activeTab==="hq") ? "financials" : v22LastPeopleTab();
+10259 }
+10260 if(v22IsPeopleTab(G.ui.activeTab)) G.ui.lastPeopleTab = G.ui.activeTab;
+10261 return prev.apply(this, arguments);
+10262 };
+10263 const prevDock = renderDock;
+10264 renderDock = function(){
+10265 const r = prevDock.apply(this, arguments);
+10266 const dock = document.getElementById("dock");
+10267 if(dock){
+10268 dock.querySelectorAll("[data-group]").forEach(b=>{
+10269 b.onclick = ()=>{
+10270 const g = DOCK_GROUPS.find(x=>x.id===b.getAttribute("data-group"));
+10271 if(!g) return;
+10272 G.ui.lastTabByGroup = G.ui.lastTabByGroup || {};
+10273 let target = G.ui.lastTabByGroup[g.id];
+10274 const valid = target && (g.items.indexOf(target)>=0 || (g.id==="hq" && v22IsPeopleTab(target)));
+10275 if(!valid) target = g.items[0];
+10276 if(target==="people") target = v22LastPeopleTab();
+10277 G.ui.activeTab = target;
+10278 renderDock(); renderScreen();
+10279 const sc = document.getElementById("screen"); if(sc) sc.scrollTop = 0;
+10280 };
+10281 });
+10282 }
+10283 return r;
+10284 };
+10285 })();
+10286
+10287 /* ---- 5. Team roster: department head large, everyone else half-height rows ---- */
+10288 function v22MiniCard(e){
+10289 return `<div class="v22-mini" data-empcard="${e.id}">
+10290 <span class="av">${e.icon}</span>
 
 === FILE: art-core.js
-=== PATTERN: DOCK_ITEMS|DOCK_GROUPS
-1466:const DOCK_ITEMS = [
-1498:  dock.innerHTML = DOCK_ITEMS.map(it=>`
-4520:const DOCK_GROUPS = [
-4529:function dockItem(id){ return DOCK_ITEMS.find(i=>i.id===id) || { id, icon:"\u{1F4C4}", label:id }; }
-4530:function groupOfTab(tabId){ return DOCK_GROUPS.find(g=>g.items.indexOf(tabId)>=0) || DOCK_GROUPS[0]; }
-4545:  dock.innerHTML = DOCK_GROUPS.map(g=>`
-4552:    const g = DOCK_GROUPS.find(x=>x.id===b.getAttribute("data-group"));
-5960:  dock.innerHTML = DOCK_GROUPS.map(g=>`
-5966:    const g = DOCK_GROUPS.find(x=>x.id===b.getAttribute("data-group"));
-5997:DOCK_ITEMS.push({ id:"log", icon:"\u{1F9FE}", label:"Activity Log" });
-5999:  const run = DOCK_GROUPS.find(g=>g.id==="run");
-7088:    const g = DOCK_GROUPS.find(x=> x.id==="life" || x.key==="life");
-9143:DOCK_ITEMS.push({ id:"leaderboard", icon:"\u{1F3C6}", label:"Leaderboard" });
-9145:  const g = DOCK_GROUPS.find(x=>x.id==="empire") || DOCK_GROUPS[0];
-9352:DOCK_ITEMS.push({ id:"facilities", icon:"\u{1F3D7}\uFE0F", label:"Facilities" });
-9354:  const people = DOCK_GROUPS.find(g=>g.id==="people");
-9356:  DOCK_GROUPS.forEach(g=>{ const i = g.items.indexOf("leaderboard"); if(i>=0) g.items.splice(i,1); });
-9357:  const sys = DOCK_GROUPS.find(g=>g.id==="system");
-9424:  const item = DOCK_ITEMS.find(i=>i.id==="assistant");
-9544:DOCK_ITEMS.push({ id:"hq", icon:"\u{1F3E2}", label:"Business HQ" });
-9546:  const run = DOCK_GROUPS.find(g=>g.id==="run");
-9752:DOCK_ITEMS.push({ id:"board", icon:"\u{1F3DB}\uFE0F", label:"Boardroom" });
-9768:  DOCK_GROUPS.length = 0;
-9769:  next.forEach(x=>DOCK_GROUPS.push(x));
-10187:DOCK_ITEMS.push({ id:"people", icon:"\u{1F9D1}\u200D\u{1F4BC}", label:"People" });
-10189:  const l = DOCK_ITEMS.find(i=>i.id==="log"); if(l) l.label = "Log";
-10190:  const h = DOCK_ITEMS.find(i=>i.id==="hq"); if(h) h.label = "HQ";
-10206:  DOCK_GROUPS.length = 0;
-10207:  next.forEach(x=>DOCK_GROUPS.push(x));
-10212:  if(v22IsPeopleTab(tabId)) return DOCK_GROUPS.find(g=>g.id==="hq") || DOCK_GROUPS[0];
-10213:  return DOCK_GROUPS.find(g=>g.items.indexOf(tabId)>=0) || DOCK_GROUPS[0];
-10270:          const g = DOCK_GROUPS.find(x=>x.id===b.getAttribute("data-group"));
-10582:      const g = DOCK_GROUPS.find(x=>x.id===btn.getAttribute("data-group"));
-10634:  const it = DOCK_ITEMS.find(i=>i.id==="assistant");
-10655:  DOCK_ITEMS.push({ id:"csuite", icon:"\u{1F454}", label:"C-Suite" });
-10656:  DOCK_ITEMS.push({ id:"expansion", icon:"\u{1F30D}", label:"Expansion" });
-10660:  DOCK_GROUPS.forEach(g=>{
-10678:  const g = DOCK_GROUPS.find(x=>x.id==="hq");
-15976:    if(typeof DOCK_ITEMS !== "undefined" && !DOCK_ITEMS.some(d=>d.id==="sponsor")){
-15977:      DOCK_ITEMS.push({ id:"sponsor", label:"Sponsorships", icon:"\u{1F3DF}\uFE0F", group:"personal" });
-16698:    if(typeof DOCK_ITEMS !== "undefined" && !DOCK_ITEMS.some(d=>d.id==="rivals")){
-16699:      DOCK_ITEMS.push({ id:"rivals", label:"Market & Rivals", icon:"\u2694\uFE0F", group:"company" });
-
-=== FILE: art-core.js
-=== PATTERN: dock-label|class="dock"|id="dock"
-1494:    main.innerHTML = `<div id="dock"></div><div id="screen"></div>`;
-1502:      <div class="dock-label">${it.label}</div>
-4540:    main.innerHTML = `<div id="dock"></div><div id="screen"></div>`;
-4549:      <div class="dock-label">${g.label}</div>
-5716:  .dock-label{display:none;}
-5955:    main.innerHTML = `<div id="dock"></div><div id="screen"></div>`;
-10114:  .dock-label{text-align:center;}
-
-=== FILE: art-core.js
-=== PATTERN: data-tab=|function renderDock|function buildDock|function dock\(
-1489:function renderDock(){
+=== PATTERN: setAttribute\("data-tab"|dataset.tab|data-tab\b
 1500:      <div class="dock-btn ${G.ui.activeTab===it.id?"active":""}" data-tab="${it.id}">${it.icon}
-4535:function renderDock(){
-5950:function renderDock(){
-
-=== FILE: art-core.js
-=== PATTERN: industry.*(label|name) *:|label *: *"Industry
-1484:  {id:"industry", icon:"🏭", label:"Industry Ops"},
-5275:  G.companies.forEach((co,i)=> list.push({ id:"co:"+i, icon:industryOf(co).icon, name:co.name, cash:co.cash,
-
-=== FILE: art-core.js
-=== PATTERN: function renderScreen\(\)
-6025:function renderScreen(){
+1504:  dock.querySelectorAll("[data-tab]").forEach(b=> b.onclick = ()=>{ G.ui.activeTab = b.getAttribute("data-tab"); renderDock(); renderScreen(); });
+8784:  const CLICKY = "button,select,option,a,input[type=checkbox],input[type=radio],.radio-chip,.chip,.pill.clickable,.qi,.shop-card,.ladder-card,.dock-btn,.tab,.tabbtn,.stat.clickable,[data-tab],[data-group],[data-ops-open],[data-ops-price],[data-ops-quality],[data-toggledept],[data-qremove],[role=button],[onclick]";
 
