@@ -1,6 +1,5 @@
-# <file>|<extended regex>   Lines starting with # are ignored.
-art-core.js|DOCK_ITEMS|DOCK_GROUPS
-art-core.js|dock-label|class="dock"|id="dock"
-art-core.js|data-tab=|function renderDock|function buildDock|function dock\(
-art-core.js|industry.*(label|name) *:|label *: *"Industry
-art-core.js|function renderScreen\(\)
+# <file>|<regex> for grep, <file>@<start>-<end> for a line range.
+art-core.js@5940-6030
+art-core.js@4520-4560
+art-core.js@10240-10290
+art-core.js|setAttribute\("data-tab"|dataset.tab|data-tab\b
