@@ -4,15 +4,15 @@
 # code search, and raw fetches of it time out. That makes the single most
 # important file in the game invisible to tooling.
 #
-# This runs grep inside CI instead. Push a line to introspect/request.txt
-# in the form
+# This runs grep and sed inside CI instead. Push lines to
+# introspect/request.txt in either form:
 #
-#     <file>|<extended regex>
+#     <file>|<extended regex>     -> numbered grep matches
+#     <file>@<start>-<end>        -> that exact line range
 #
-# and the job writes the matches, truncated to 400 characters per line,
-# into introspect/report.txt and commits it back. Lines starting with #
-# are ignored. The path filter means the report commit cannot retrigger
-# the workflow.
+# Output lands in introspect/report.txt, truncated to 400 characters per
+# line, and is committed back. Lines starting with # are ignored. The
+# path filter means the report commit cannot retrigger the workflow.
 
 name: introspect
 
@@ -39,21 +39,35 @@ jobs:
             echo "# generated: $(date -u '+%Y-%m-%d %H:%M:%SZ')"
             echo "# commit: ${GITHUB_SHA}"
             echo
-            echo "## file sizes"
-            ls -l *.js 2>/dev/null | awk '{print $5, $9}'
-            echo
             while IFS= read -r line || [ -n "$line" ]; do
               case "$line" in ''|'#'*) continue ;; esac
-              file="${line%%|*}"
-              pat="${line#*|}"
-              echo "=== FILE: $file"
-              echo "=== PATTERN: $pat"
-              if [ -f "$file" ]; then
-                grep -n -E -m 60 "$pat" "$file" | cut -c1-400 || echo "(no match)"
-              else
-                echo "(file not found)"
-              fi
-              echo
+              case "$line" in
+                *@*-*)
+                  file="${line%%@*}"
+                  range="${line#*@}"
+                  from="${range%%-*}"
+                  to="${range##*-}"
+                  echo "=== FILE: $file  LINES $from-$to"
+                  if [ -f "$file" ]; then
+                    sed -n "${from},${to}p" "$file" | cat -n | awk -v s="$from" '{ $1 = $1 + s - 1; print }' | cut -c1-400
+                  else
+                    echo "(file not found)"
+                  fi
+                  echo
+                  ;;
+                *)
+                  file="${line%%|*}"
+                  pat="${line#*|}"
+                  echo "=== FILE: $file"
+                  echo "=== PATTERN: $pat"
+                  if [ -f "$file" ]; then
+                    grep -n -E -m 60 "$pat" "$file" | cut -c1-400 || echo "(no match)"
+                  else
+                    echo "(file not found)"
+                  fi
+                  echo
+                  ;;
+              esac
             done < introspect/request.txt
           } > introspect/report.txt 2>&1
 
