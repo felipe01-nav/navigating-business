@@ -1,19 +1,84 @@
 # introspect report
-# generated: 2026-09-23 15:53:30Z
-# commit: 265b777cfd27d1a8a6dcaf694af1dba110cbedd6
+# generated: 2026-09-23 15:54:30Z
+# commit: df2cb0f4a2a9d8dca6239793ab931c0c6b4a5bd2
 
 === FILE: 113-icons.js
-=== PATTERN: ^\s*"?[A-Za-z_]+"?\s*:\s*"data:image
-
-=== FILE: 113-icons.js
-=== PATTERN: groupMap
+=== PATTERN: GROUP_ICON
+38:  var GROUP_ICON = {
+81:        var g = groups[k], key = GROUP_ICON[k];
 147:    groupMap: GROUP_ICON,
-154:    add: function (more, groupMap, itemMap) {
 156:      if (groupMap) Object.keys(groupMap).forEach(function (k) { GROUP_ICON[k] = groupMap[k]; });
 
 === FILE: 113-icons.js
-=== PATTERN: itemMap
+=== PATTERN: ITEM_ICON
+45:  var ITEM_ICON = {
+91:        var it = items[k], key = ITEM_ICON[k];
 148:    itemMap: ITEM_ICON,
-154:    add: function (more, groupMap, itemMap) {
 157:      if (itemMap) Object.keys(itemMap).forEach(function (k) { ITEM_ICON[k] = itemMap[k]; });
+
+=== FILE: 113-icons.js
+=== PATTERN: data:image
+52:    return ICONS[key] ? 'data:image/webp;base64,' + ICONS[key] : '';
+
+=== FILE: 113-icons.js  LINES 1-60
+1 /* 113-icons.js — custom icon set, sheet 1.
+2 *
+3 * Retires the dock emoji in favour of a commissioned flat-vector icon
+4 * family, inlined as 48px WebP data URIs: no extra requests, nothing to
+5 * cache-bust separately. Ink recoloured to #9FBCD6 so the glyphs read on
+6 * the #20242c dock tiles; amber accents left alone.
+7 *
+8 * DOCK_GROUPS and DOCK_ITEMS are top-level `const`s in art-core, so they
+9 * are not on window: they are reached by indirect eval below. Both are
+10 * mutated in place, which is why this file must load after
+11 * 104-dock-shape.js, which reshapes them.
+12 *
+13 * Later sheets should ship as their own file and simply call
+14 * NBIcons.add({ key: '<base64>' }, { group: 'key' }, { item: 'key' });
+15 * which merges, re-applies and re-renders. No need to touch this file.
+16 *
+17 * Escape hatch: append ?noicons=1 to the URL to restore the emoji.
+18 */
+19 (function () {
+20 'use strict';
+21
+22 var ICONS = {
+23 compass: "UklGRnwEAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSA8CAAABoGRtu2nb+f7/n9e2bdu2bSNOiS1gG1Ky7aRm27Zt7jHnml+wNFcLImICULcqGq0CqDZIgaGDAG2MYsGDv/9y3yRoQwwLfifJbyeINkKce5qtGFu8W10DxBl6/B0jGeN3AjNJZAAmX8hIkrF1wTgAlkIFXU5/IjCysPXg0XZQqc2AEx+QDCwMJF/fB1hNDsMfIEMWWTKGQN7aD1aLw+qv6TNWzgI/nA1Xg8OOv+lZq+eva2GVDCtaDKw58Nfp0Aoqg75hYO2BH/ZUKWd4gJ4JPW+AlTIcpmdSzw2wEiId3o9ZmhBfcVLC4TgDEwduhhWpPBmT+XgXtEAx3se
+24 people: "UklGRu4EAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSFgCAAABoCzZtmnb6mPMdW3btp9t27b9PsG2WbNtv1eybdvaZ84xemHtNdc6+6kaEROA/5miIah0UEDboB0iCsxcd/35/YDQEUGw03NdpH9y5QJoByjCUSTNSP5xMLRCQtBmFFu9TktOukdyR4SSBAAQlXoBqxiNlck/HSACKDB89Y3nAwgN3MkWMxN3QQHFmCu+Je2h5QW0hqD3J+450S9GoZjxEelG+ht7QvMUo35iVuLdCNrzBbacZCK5NUKWYOBXde5FT+zByPZd/loPkTy8QMuJvBY9cadX0X0BNEsGf5SXeCe0eJtWZdwMIafA9kzMdf4+FoO+oFcl7oYib1+L
+25 box: "UklGRtADAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSKQBAAABkEPbtqk9+9zzx7Zt265s226d1H86p/rT2UZn26ls2/mSd+/dxaf3XpsmIiYAYRuDWKsB1MRHBahTFVCNhSiAbjsTX/OaA6KRSQ4gg44yOdjVA4BKFCYHKDL5Mumt95bk8aEGyJGwjAJl598jnWWyt568PqMIoCYMo0DN5a9J65ihdeTDhRUBNdmoAZrmfSOtY5bOku9X1geMZqIAumz7RwaeITpL/trQBhBNB/Q+QtJ6huwD0u3rBUgKkdEXSG89I/SW5Mn+EACKkaSzjNpbR7aHAXKw1CUYy79+MnKS5jOIh+W4VAviM/5/jfk+Lj7NMiZ8HHyCE5IUvUlaH5U
+26 crane: "UklGRp4FAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSF0DAAABoLZt2xlJHtL9vM9baMysbdu2jcLatm2zsbZt2zbGtq1yNZLcHyqVpCoiJgChBc0tBkaliRRYGYCqNIcoWp9e8vWZywCwpgkUOHAWyd7KOwcaQKxpjFjEH+Pbc73pa5/9F+c+sjUAoxKdArtNWnTgSr0uDwfWv2UCR161GgBViUQs9F6+vxzO4i2lj00MwI7PLna+P6EdgDXhFNhpbP44qD7HZT/rWdrErADJzBd9xdf3BSBWghnE7+K7ywLA5Kk4jcejVgAse+4/3ox7tgRgJIBg53/d0xFvX+GJQSz9Pc6b9+lOiWQ8nmhtV2CL+yp9P5y3OiB1FOc7LI6aN
+27 house: "UklGRsQDAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSJwBAAABkGttmyIp3/9XLe7uEg+hcwmWubu7M5BzBw6xp0Tu7u7kuxFuVdVf0D0zVY1nETEB+F1bK6USASAlEsGspYCWRkV2kcfawADQnEgSRauj/PGDp7rBoIwGXU/SkY53B6AVdjy49+DBreHQaBb9b9ORpOPLCvQR86tgY1lUXtCx0LF5LG6EH+G7XxzNYmwLHWt6fp5wgZ6OS2JZTPxAzzoDs89kPLGY4xlYd8Z8LDHYxCywwSyBKHbSZ4waR4GDdBljLdWGFK2P0zG243y0asCg61k6Rg/Z7YGwdVkMuEvHhIFvh8HWYVF5S8ekns1jYWtYjGqhY2LPz+NhCxTjP
+28 robot: "UklGRhAEAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSN4BAAABkGxtmyFJ3/9nVI9t27Zt4wLMle1aje0b8Cxby7GxNJc2qyIz/kFWZEWcM/uImADkmxleMwAijwho0xIgbxgtL+lMSV2wJ0QV7osxciXlS4ApkjVGywAEfijMNFmRUCb4wmiSERPJh5pEfoAx43sUfZoOhq8BRsqPHmB4y9xCPlVnckSByl2gOsvnRiqlcgeUB4Z9PflUBvaciIEhK9Obt8SmNx2SzO5NW+I3p5cOBDgBo9cNcXqlPdiK0eubRNpaRFtH8qolsQWxuidZcZqRUtgEGC2hOI6kMziXQtpoV1rmQNkcFQ82WFCZ4LgP6aBMDgAHfViLeKKy24tfi
+29 save: "UklGRpoCAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSMUAAAABgCPZtmpln3s+9jzDmQH1p4e7xKSeMSWPvv8Id+59bieDKCImAGlStRMKE0MgFwLs6Zl6p2dcUB6Re9x+eqn5qbsDpiyFy1DkIRqUUlj4/tWmdv0d7qFBGc1QpPkJ98CUWpQRhj/hHlhU+BMugUVpPbRBkkz4MAklSYctGySr/e+pZUkbBtL6nrSWJa3rSOvY0tp/BE1JTmrm4/fXaIHm57c1CoLCRSh2HQwQWUf3bZFXy1DIHnUsu3bLYeQSQyjnACQUaQBWUDggrgEAALAJAJ0BKjAAMAA+pUSXSiYkIiG42SwAwBSJbACdM1nQokx/mZWdl70AbenndbJnK+
+30 bank: "UklGRiQEAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSMkBAAABkIPtn2E7v//M3ntj27ZtO6Urp3Iq1+5uHzvp7KSzKtu2k7Mz/1+w59yzU6WMiAlAvkUQtFjASkARULUcYEOxgqpr3zxaWgbGhGAsZNZjkrw6AbCSlkTA4NNkrBqTB7sAkaRigSabSKck6T0zxbUAmz9jUHbpB6pnVke+mBvBmvxIBEy4TjrmqjF5cTQQSR4s0Pkw6ZQlVEfuaQ3YkligRnGG3jOP3vPLikoQm4uxiGY/Jx3z7Mh7UwBrslhg2AUyVuZdY/JUf8AmCJptI50yVe/IdQ0hAAzmfqZ6pu6U7yfDQFDPM8MgM3xfEWLQ3quGofq5Nsw/cRxGHP8jqO
+31 chart: "UklGRkYDAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSD8BAAABCsnWthmS9Edk28vuMe/EWNk2dzYuwPbMNXhmadvY2XZik1FTHePd9/0REROA36GF8ay5GeUbh9H15zoLi2fkR4nGL9kyKSmakTa9e/ZS7d2lDCav6UWyvHjWdHia5e8S63iVNUOEgfyaAPiO+1aMF33TmCQTXvOlX+a48VvTkKv+FOiJkW6TJkwkOCDyQ9GXzpniRcDi9PN3VQ3xHl/mUklSuc2Xea7tfzMm5EfeoEBPooZFa1at5kodZzzBZjq7iydH9IuqakjG+rKfMUkGjvDlgGvkf6kVlgddoyznu3ZYDiigxIacxpfZQsFe12BglmuzoI/ruuRatHob3
+32 bag: "UklGRm4EAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSDsCAAABoHZtmyFJVv+8ETG2bdu2bds2P9m2XRjP2rZt27YTz6IytyIiYgKQVREBRARuihYAWgMQIw4oAPmL5QJyFMwHQFlTyDXr/q9/fj99+u3vvn5kaUFoSwr1nyZ/+o4kf/qRfKMtlBUlVT7nHb2L3syPPuDdRTtd5U8toazgLu4BRvKDyuXf5FRgFV/NI5I9jc58ViHny+wBtPQ/yCe4g6NhsmewN5wMqcsXoAzuZltI9/ASdPYU7mYzQV+eEm1kfTgJqMwXALFwH1sCk7gDxmApJ//nlSwpo7XOYR5gA2OmcrfJlcus4FRjqvEVrY3WRv6HIPPdLAuM5CYAmMuRQDG
+33 factory: "UklGRiwEAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSOABAAABkIPtnyFJv6rq2bNt27ataKOzbV/qiy6ybdsMfaFt211Vv6Cre3DOImIC8NtUMigc0p2kVJeYcuLosWMHKkJCosXRo8ePHu8OmTiBDC8ZnAYPHtYzeD45eV5oX3/Tc+FBYZv+pn/oK0IkTqLYJ1r6XAYPEqepaXg3I0QSKlqSmtuhBHCFhpavcydBoSFt4CSkQOy240sJyCS0oQlcFEIg53NaWppqUAnzkE5NGt6MQaLwe1rSsmlSBtMnLZ9nh0JZHTDslpSJro9F4KEuLUmfveElYVaANJURQ2sax9ikLHRYNkAGL53aMR1pXhSloq1xGHaRHnrRd8xXiCg
+34 handshake: "UklGRmYEAABXRUJQVlA4WAoAAAAQAAAALwAALwAAQUxQSAMCAAABoEPbtmlbmmvt823btm3bdmRktiP/sl0VWWFFropsMzTvP2vtGVycc2/0w4iYANzCVs1NguYiQNB8AgDJQTBwFBAkmyqwaDAkk2r33+PDQ5FdgLlv8NcuqlkCHmHKwt0dREpokiRJUEWfZ8kC70PIEDDCLJrz5aRuEkISULbBFzSPfnOQaJZXaGRqd6J05+13333/gdldFK+akcbnESoKmEEnGfnR1f3rVq/dcf03Fv/z8YsfM5J0TkWoRPUtGjOmaZo6yxvfgFaQYA2NJT1NzSxNI4ujWyxB4yqEMqL1Po1eKn+Ln9ZTKRWwi8aqG/cglBBt9nP06nn8p
+35 };
+36
+37 /* Rail buttons: one icon each, all seven covered. */
+38 var GROUP_ICON = {
+39 run: 'compass', people: 'people', market: 'box',
+40 empire: 'crane', life: 'house', jarvis: 'robot', system: 'save'
+41 };
+42
+43 /* Sub-tabs. Anything absent keeps its emoji until the next sheet lands
+44 (hr, slack, zoom, research, invest, life, milestones, orgchart). */
+45 var ITEM_ICON = {
+46 bank: 'bank', decisions: 'compass', team: 'people', clients: 'handshake',
+47 product: 'box', financials: 'chart', personal: 'house', market: 'bag',
+48 assistant: 'robot', saves: 'save', industry: 'factory', empire: 'crane'
+49 };
+50
+51 function uri(key) {
+52 return ICONS[key] ? 'data:image/webp;base64,' + ICONS[key] : '';
+53 }
+54
+55 function tag(key, big) {
+56 var u = uri(key);
+57 if (!u) return '';
+58 return '<img class="nb-ico' + (big ? ' nb-ico-lg' : '') +
+59 '" data-nb-ico="' + key + '" src="' + u + '" alt="" />';
+60 }
 
