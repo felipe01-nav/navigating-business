@@ -1,6 +1,6 @@
 {
   "_comment": "Single source of truth for external art. Key = the art key used by the game's art maps (ART_IMG, IMG, FAC_IMG, ...) or declared by a layer (hq_* from 90-hq-stages.js). Value = filename, resolved against art/ first and the repo root second. Two keys may point at the same file when different bundles name the same subject differently \u2014 see the aliases section. Assets are registered as soon as the file lands in art/; visual QA is done by the project owner outside this repo, so a known cosmetic defect is not a blocker \u2014 it is recorded in accepted_with_defects and shipped. 85-art-override.js reads this file at boot and reports coverage to the console.",
-  "version": 7,
+  "version": 8,
 
   "assets": {
     "beachhouse": "beachhouse.webp",
@@ -43,6 +43,15 @@
     "suv": "suv.webp",
     "track": "track.webp",
 
+    "bassboat": "bassboat.webp",
+    "cabin_cruiser": "cabin_cruiser.webp",
+    "catamaran": "catamaran.webp",
+    "jetski": "jetski.webp",
+    "pontoon": "pontoon.webp",
+    "sportfish": "sportfish.webp",
+    "superyacht": "superyacht.webp",
+    "yacht": "yacht.webp",
+
     "hq_0": "hq_0.webp",
     "hq_1": "hq_1.webp",
     "hq_2": "hq_2.webp",
@@ -64,6 +73,8 @@
 
   "_aliases_comment": "house_* and car_* are the legacy IMG bundle's names for subjects that ART_IMG calls starter, family, mansion, sedan, sports and suv. Both keys are listed so a screen reading either map gets the new art. IMG's remaining keys \u2014 jet, vac_beach, vac_cabin, vac_paris \u2014 have no external asset yet.",
 
+  "_watercraft_comment": "The watercraft block covers the boat subjects in the toy/collectible ladder. Still unrepresented in that group: sailboat. The aircraft and collectible keys alongside them (cessna, lightjet, midjet, heavyjet, twin, ultralight, airliner, heli, art, watch, vault, island, racing) have no external asset yet.",
+
   "accepted_with_defects": {
     "_comment": "Live in assets by explicit decision, but they violate their prompt's strict exclusions. Regenerate these first when image credits allow.",
     "brownstone": "Legible street signage, pedestrians and a taxi. Text and people are both excluded.",
@@ -73,7 +84,8 @@
     "hq_1": "Isometric cutaway office floor on a flat green/blue background. Same failure mode as studio. Shipped because an empty slot on stage 2 of the ladder reads as a broken build.",
     "chauffeur": "Strongly resembles a specific luxury marque's grille and bonnet ornament. Real-world marques are excluded. Shipped by explicit decision \u2014 no badges or lettering present.",
     "track": "Reads as a specific manufacturer's GT race car silhouette. Same class of issue as chauffeur, shipped on the same decision.",
-    "pickup": "Translucent vertical bands overlaying the left and right edges, same artifact class as ski. Previously held; shipped by explicit decision."
+    "pickup": "Translucent vertical bands overlaying the left and right edges, same artifact class as ski. Previously held; shipped by explicit decision.",
+    "superyacht": "Helipad marked with the letter H, plus a helicopter. Lettering is excluded \u2014 same class as compound."
   },
 
   "held": {
