@@ -1,112 +1,114 @@
 # introspect report
-# generated: 2026-09-23 01:34:09Z
-# commit: 7a0a8a47b5f828148b3c59fca768fa84e39768c8
+# generated: 2026-09-23 01:42:20Z
+# commit: 0e7b2778ea34f77ad4f8e9a8f43454dc597fde52
 
 === FILE: art-core.js
-=== PATTERN: inProgress
-225:      product:{ maturity:5, features:[], inProgress:null, shipped:[] },
-323:  if(c.product.inProgress===undefined) c.product.inProgress = null;
-546:  const ip = G.company.product.inProgress;
-549:  if(!def) { G.company.product.inProgress = null; return; }
-567:    G.company.product.inProgress = null;
-2556:    ${p.inProgress? (()=>{ const def = FEATURE_DEFS.find(f=>f.key===p.inProgress.key);
-2558:        <div class="progress-track"><div class="progress-fill" style="width:${100*(1-(p.inProgress.monthsLeft/def.months))}%;"></div></div>
-2559:        <div class="muted mt8" style="font-size:11.5px;">${p.inProgress.monthsLeft} month(s) left. Needs ${def.reqEngineers} engineer(s)${def.reqTeamLeads?` + ${def.reqTeamLeads} team lead(s)`:""} to keep moving.
-2581:    G.company.product.inProgress = { key, monthsLeft: def.months };
-8278:  if(!c.product) c.product = { maturity:5, features:[], inProgress:null, shipped:[] };
-8279:  if(!c.product.active) c.product.active = c.product.inProgress ? [ { ...c.product.inProgress } ] : [];
-8331:  p.inProgress = null;
+=== PATTERN: no physical operations layer
+3868:      <div class="card">This industry has no physical operations layer. Your revenue engine is the <b>Clients</b> tab (MRR) and the <b>Product</b> tab (features into pricing power).</div>`;
 
 === FILE: art-core.js
-=== PATTERN: reqEngineers|FEATURE_DEFS|const FEATURES
-535:const FEATURE_DEFS = [
-536:  { key:"onboarding_wizard", name:"Guided Onboarding Wizard", reqEngineers:2, reqTeamLeads:0, months:2, impact:{clientHealth:15, maturity:8} },
-537:  { key:"enterprise_sso", name:"Enterprise SSO & Permissions", reqEngineers:3, reqTeamLeads:1, months:3, impact:{clientHealth:20, maturity:12} },
-538:  { key:"mobile_app", name:"Native Mobile App", reqEngineers:4, reqTeamLeads:1, months:4, impact:{clientHealth:25, maturity:18} },
-539:  { key:"ai_assist", name:"AI-Powered Assistant", reqEngineers:3, reqTeamLeads:1, months:3, impact:{clientHealth:18, maturity:15} },
-540:  { key:"platform_api", name:"Public Platform API", reqEngineers:2, reqTeamLeads:0, months:2, impact:{clientHealth:12, maturity:10} },
-543:  return rungCount("product","rep")>=def.reqEngineers && rungCount("product","teamlead")>=def.reqTeamLeads;
-548:  const def = FEATURE_DEFS.find(f=>f.key===ip.key);
-563:    const effort = def.reqEngineers * def.months;
-566:    report.push(`🚀 Shipped major feature: ${def.name}! Client health +${def.impact.clientHealth}, maturity +${def.impact.maturity}, pricing power +${Math.round(priceBoost*100)}% (built with ${def.reqEngineers} engineer(s) over ${def.months} month(s)).`);
-680:  { key:"all_features", name:"Feature Complete", icon:"🧩", desc:"Ship every major product feature.", check:(c,p)=> (c.product.shipped||[]).length>=FEATURE_DEFS.length },
-2556:    ${p.inProgress? (()=>{ const def = FEATURE_DEFS.find(f=>f.key===p.inProgress.key);
-2559:        <div class="muted mt8" style="font-size:11.5px;">${p.inProgress.monthsLeft} month(s) left. Needs ${def.reqEngineers} engineer(s)${def.reqTeamLeads?` + ${def.reqTeamLeads} team lead(s)`:""} to keep moving.
-2563:      ${FEATURE_DEFS.filter(f=>!p.shipped.includes(f.key)).map(f=>`<div class="ladder-card"><div class="row"><div>
-2565:        <div class="desc">Needs ${f.reqEngineers} engineer(s)${f.reqTeamLeads?` + ${f.reqTeamLeads} team lead(s)`:""} · ${f.months} month(s) to ship</div>
-2579:    const def = FEATURE_DEFS.find(f=>f.key===key);
-3420:  { key:"palletizer", name:"Warehouse Palletizer", months:3, reqEngineers:2, unitPrice:48000, unitCost:26000 },
-3421:  { key:"cobot", name:"Collaborative Arm (Cobot)", months:4, reqEngineers:3, unitPrice:82000, unitCost:41000 },
-3422:  { key:"amr", name:"Autonomous Mobile Robot", months:5, reqEngineers:4, unitPrice:135000, unitCost:62000 },
-3423:  { key:"surgical", name:"Surgical Assist Platform", months:7, reqEngineers:6, unitPrice:410000, unitCost:180000 },
-3531:    if(engineers >= def.reqEngineers){
-3540:      report.push(`\u{1F9BE} ${def.name} R&D stalled \u2014 needs ${def.reqEngineers} engineer(s), you have ${engineers}.`);
-3920:            <div class="desc mt8">${o.rnd.monthsLeft} month(s) left \u00b7 needs ${d.reqEngineers} engineer(s) ${engineers>=d.reqEngineers?'<span class="pill good">Staffed</span>':'<span class="pill bad">Stalled</span>'}</div></div>`; })()
-3923:            <div class="desc">${m.months} month(s) \u00b7 needs ${m.reqEngineers} engineer(s) \u00b7 sells ${fmt$(m.unitPrice)} / builds ${fmt$(m.unitCost)}</div></div>
-3924:            <button class="btn small" data-ops-rnd="${m.key}" ${engineers>=m.reqEngineers?"":"disabled"}>${engineers>=m.reqEngineers?"Start R&D":"Understaffed"}</button>
-7761:    if(engineers >= def.reqEngineers){
-7770:      report.push(`\u{1F9BE} ${def.name} R&D stalled \u2014 needs ${def.reqEngineers} engineer(s), you have ${engineers}.`);
-8322:function engineersCommitted(){ return activeProjects().reduce((s,a)=>{ const d=FEATURE_DEFS.find(f=>f.key===a.key); return s+(d?d.reqEngineers:0); },0); }
-8323:function leadsCommitted(){ return activeProjects().reduce((s,a)=>{ const d=FEATURE_DEFS.find(f=>f.key===a.key); return s+(d?d.reqTeamLeads:0); },0); }
-8325:  return (rungCount("product","rep") - engineersCommitted()) >= def.reqEngineers
-8337:    const def = FEATURE_DEFS.find(f=>f.key===a.key);
-8339:    const staffed = (engUsed + def.reqEngineers <= engineers) && (leadUsed + def.reqTeamLeads <= leads);
-8345:    engUsed += def.reqEngineers; leadUsed += def.reqTeamLeads;
-8352:      const effort = def.reqEngineers * def.months;
-8384:      ${p.active.map(a=>{ const def = FEATURE_DEFS.find(f=>f.key===a.key); if(!def) return "";
-8387:          <div class="muted mt8" style="font-size:11.5px;">${a.monthsLeft} month(s) left \u00b7 holds ${def.reqEngineers} engineer(s)${def.reqTeamLeads?` + ${def.reqTeamLeads} lead(s)`:""}
-8393:      ${FEATURE_DEFS.filter(f=>!p.shipped.includes(f.key) && !p.active.some(a=>a.key===f.key)).map(f=>`<div class="ladder-card"><div class="row"><div>
-8395:        <div class="desc">Needs ${f.reqEngineers} engineer(s)${f.reqTeamLeads?` + ${f.reqTeamLeads} team lead(s)`:""} \u00b7 ${f.months} month(s) to ship</div>
-8396:        <div class="desc">Impact: +${f.impact.clientHealth} client health, +${f.impact.maturity} maturity, +${Math.round(f.reqEngineers*f.months*1.5)}% pricing power</div></div>
-8397:        <button class="btn small" data-start-feature="${f.key}" ${canStartFeature(f)?'':'disabled'}>${canStartFeature(f)?'Start Building':`Need ${f.reqEngineers} free engineer(s)`}</button>
-8409:    const def = FEATURE_DEFS.find(f=>f.key===key);
-8412:    toast(`<b>${def.name} started.</b> ${def.reqEngineers} engineer(s) reserved for ${def.months} month(s). ${G.company.product.active.length} project(s) now in flight.`);
+=== PATTERN: getElementById\("screen"\)|getElementById\('screen'\)|id="screen"
+1494:    main.innerHTML = `<div id="dock"></div><div id="screen"></div>`;
+1508:  const screen = document.getElementById("screen");
+3851:  const screen = document.getElementById("screen");
+4540:    main.innerHTML = `<div id="dock"></div><div id="screen"></div>`;
+4578:  const screen = document.getElementById("screen");
+5955:    main.innerHTML = `<div id="dock"></div><div id="screen"></div>`;
+6027:    const screen = document.getElementById("screen");
+9153:    const host = document.getElementById("screen");
+9162:    const host = document.getElementById("screen");
+9429:  const host = document.getElementById("screen");
+9438:      const h = document.getElementById("screen");
+9521:  const host = document.getElementById("screen");
+9787:    const sc = document.getElementById("screen"); if(sc) sc.scrollTop = 0;
+9939:  const host = document.getElementById("screen");
+10246:    const sc = document.getElementById("screen"); if(sc) sc.scrollTop = 0;
+10279:          const sc = document.getElementById("screen"); if(sc) sc.scrollTop = 0;
+10676:  const main = document.getElementById("main"), screen = document.getElementById("screen");
+10702:    const sc = document.getElementById("screen"); if(sc) sc.scrollTop = 0;
+11134:    const sc = document.getElementById("screen"); if(sc) sc.scrollTop = 0;
+11365:        const sc = document.getElementById("screen");
+12513:    const main = document.getElementById("main"), screen = document.getElementById("screen");
+12543:      const sc = document.getElementById("screen"); if(sc) sc.scrollTop = 0;
+15123:        const host = document.getElementById("screen");
+15983:          const host = document.getElementById("screen");
+16067:        const host = document.getElementById("screen");
+16207:        const host = document.getElementById("screen");
+16228:        const host = document.getElementById("screen");
+16705:          const host = document.getElementById("screen");
+17092:          const host = document.getElementById("screen");
+17096:          const host = document.getElementById("screen");
 
-=== FILE: art-core.js  LINES 8320-8365
-8320 /* ---------------- 5. Parallel product R&D ---------------- */
-8321 function activeProjects(){ v17Migrate(); return G.company.product.active; }
-8322 function engineersCommitted(){ return activeProjects().reduce((s,a)=>{ const d=FEATURE_DEFS.find(f=>f.key===a.key); return s+(d?d.reqEngineers:0); },0); }
-8323 function leadsCommitted(){ return activeProjects().reduce((s,a)=>{ const d=FEATURE_DEFS.find(f=>f.key===a.key); return s+(d?d.reqTeamLeads:0); },0); }
-8324 function canStartFeature(def){
-8325 return (rungCount("product","rep") - engineersCommitted()) >= def.reqEngineers
-8326 && (rungCount("product","teamlead") - leadsCommitted()) >= def.reqTeamLeads;
-8327 }
-8328 function resolvePlannedFeature(report){
-8329 v17Migrate();
-8330 const p = G.company.product;
-8331 p.inProgress = null;
-8332 const engineers = rungCount("product","rep");
-8333 const leads = rungCount("product","teamlead");
-8334 let engUsed = 0, leadUsed = 0;
-8335 const still = [];
-8336 p.active.forEach(a=>{
-8337 const def = FEATURE_DEFS.find(f=>f.key===a.key);
-8338 if(!def) return;
-8339 const staffed = (engUsed + def.reqEngineers <= engineers) && (leadUsed + def.reqTeamLeads <= leads);
-8340 if(!staffed){
-8341 report.push(`${def.name} is stalled \u2014 not enough engineers to cover every active project.`);
-8342 still.push(a);
-8343 return;
-8344 }
-8345 engUsed += def.reqEngineers; leadUsed += def.reqTeamLeads;
-8346 a.monthsLeft--;
-8347 if(a.monthsLeft<=0){
-8348 p.features.push({ name:def.name, month:G.company.month, year:G.company.year, impact:def.impact });
-8349 p.shipped.push(def.key);
-8350 p.maturity = clamp(p.maturity + def.impact.maturity, 0, 100);
-8351 G.company.clients.forEach(c=> c.health = clamp(c.health+def.impact.clientHealth, 0, 100));
-8352 const effort = def.reqEngineers * def.months;
-8353 const priceBoost = Math.round(effort * 1.5) / 100;
-8354 G.company.pricingBoostFromFeatures = Math.round(((G.company.pricingBoostFromFeatures||0) + priceBoost) * 1000) / 1000;
-8355 report.push(`\u{1F680} Shipped major feature: ${def.name}! Client health +${def.impact.clientHealth}, maturity +${def.impact.maturity}, pricing power +${Math.round(priceBoost*100)}%.`);
-8356 } else {
-8357 report.push(`${def.name} is in progress \u2014 ${a.monthsLeft} month(s) left.`);
-8358 still.push(a);
-8359 }
-8360 });
-8361 p.active = still;
-8362 }
-8363 function renderProduct(){
-8364 v17Migrate();
-8365 const p = G.company.product;
+=== FILE: art-core.js
+=== PATTERN: ui\.activeTab\s*=|activeSub|subTab\s*=|\.tab\s*=\s*"industry"
+1500:      <div class="dock-btn ${G.ui.activeTab===it.id?"active":""}" data-tab="${it.id}">${it.icon}
+1504:  dock.querySelectorAll("[data-tab]").forEach(b=> b.onclick = ()=>{ G.ui.activeTab = b.getAttribute("data-tab"); renderDock(); renderScreen(); });
+2351:    G.ui.activeTab = "slack";
+4497:  if(!ok) G.ui.activeTab = "bank";
+4555:    G.ui.activeTab = G.ui.lastTabByGroup[g.id] && g.items.indexOf(G.ui.lastTabByGroup[g.id])>=0
+4567:        return `<button class="btn ${G.ui.activeTab===id?"":"secondary"} small" data-subtab="${id}">${it.icon} ${it.label}</button>`; }).join("")}
+4570:    G.ui.activeTab = b.getAttribute("data-subtab");
+4720:    G.ui.activeTab = b.getAttribute("data-goto");
+5187:  wrap.querySelector("#goShop").onclick = ()=>{ G.ui.activeTab="market"; renderDock(); renderScreen(); };
+5188:  wrap.querySelector("#goBank").onclick = ()=>{ G.ui.activeTab="bank"; G.ui.bankAccount="personal"; renderDock(); renderScreen(); };
+5664:    G.ui.activeTab = b.getAttribute("data-gate-go");
+5694:      ${g.items.map(id=>{ const it = dockItem(id); const on = G.ui.activeTab===id; const dot = tabNeedsAttention(id);
+5699:    G.ui.activeTab = b.getAttribute("data-subtab");
+5969:    G.ui.activeTab = G.ui.lastTabByGroup[g.id] && g.items.indexOf(G.ui.lastTabByGroup[g.id])>=0
+5983:      ${g.items.map(id=>{ const it = dockItem(id); const on = G.ui.activeTab===id; const dot = tabNeedsAttention(id);
+5988:    G.ui.activeTab = b.getAttribute("data-subtab");
+6026:  if(G.ui.activeTab==="log"){
+6103:  wrap.querySelectorAll("[data-expgo]").forEach(b=> b.onclick = ()=>{ G.ui.activeTab = b.getAttribute("data-expgo"); renderDock(); renderScreen(); });
+6924:    if(gf) gf.onclick = ()=>{ G.ui.activeTab="financials"; renderDock(); renderScreen(); };
+6926:    if(gs) gs.onclick = ()=>{ G.ui.activeTab="market"; renderDock(); renderScreen(); };
+6928:    if(gb) gb.onclick = ()=>{ G.ui.activeTab="bank"; G.ui.bankAccount="personal"; renderDock(); renderScreen(); };
+8888:  if(hc) hc.onclick = ()=>{ G.ui.activeTab = "hr"; renderAll(); toast("Facilities & Campus is at the bottom of HR & Hiring \u2014 that is where you add seats."); };
+9077:  box.querySelectorAll("[data-v18fac]").forEach(b=> b.onclick=()=>{ G.ui.activeTab="hr"; renderAll();
+9152:  if(G.ui.activeTab === "leaderboard"){
+9282:  if(hc) hc.onclick = ()=>{ G.ui.activeTab = "facilities"; renderAll(); };
+9430:  if(G.ui.activeTab === "facilities" && host){
+9437:    if(G.ui.activeTab === "assistant"){
+9510:  ["#hcStat","#hcStatVal"].forEach(sel=>{ const n = bar.querySelector(sel); if(n) n.onclick = ()=>{ G.ui.activeTab = "facilities"; renderAll(); }; });
+9522:  if(host && G.ui.activeTab === "facilities"){
+9531:  if(host && G.ui.activeTab === "hq"){
+9617:  wrap.querySelectorAll("[data-v20go]").forEach(b=> b.onclick = ()=>{ G.ui.activeTab = b.getAttribute("data-v20go"); renderAll(); });
+9746:  if(hv) hv.onclick = ()=>{ G.ui.activeTab = "facilities"; renderAll(); };
+9780:        return `<button class="btn ${G.ui.activeTab===id?"":"secondary"} small" data-subtab="${id}">${it.icon} ${it.label}</button>`; }).join("")}
+9783:    G.ui.activeTab = b.getAttribute("data-subtab");
+9932:  wrap.querySelectorAll("[data-v20go]").forEach(b=> b.onclick = ()=>{ G.ui.activeTab = b.getAttribute("data-v20go"); renderAll(); });
+9940:  if(host && G.ui.activeTab === "board"){
+9946:  if(host && G.ui.activeTab === "saves" && !host.querySelector(".v21-version")){
+9954:  if(host && G.ui.activeTab === "board"){
+10180:  if(hv) hv.onclick = ()=>{ G.ui.activeTab = "facilities"; renderAll(); };
+10237:        return `<button class="btn ${G.ui.activeTab===id?"":"secondary"} small" data-subtab2="${id}">${it.icon} ${it.label}</button>`; }).join("")}</div>`:""}
+10241:    G.ui.activeTab = id;
+10257:    if(G.ui.activeTab === "people" || G.ui.activeTab === "hq"){
+10258:      G.ui.activeTab = (G.ui.activeTab==="hq") ? "financials" : v22LastPeopleTab();
+10277:          G.ui.activeTab = target;
+10331:    G.ui.activeTab = "slack";
+10414:    if(G && G.ui && (G.ui.activeTab==="hq" || G.ui.activeTab==="people")) G.ui.activeTab = "financials";
+10689:        return `<button class="v23-railbtn ${G.ui.activeTab===sid?"active":""}" data-v23rail="${sid}"><span>${s.icon}</span><span>${s.label}</span></button>`; }).join("")}</div>`;
+10697:    G.ui.activeTab = id;
+10865:      if(G.ui.activeTab==="decisions"){
+10954:    G.ui.activeTab = "hr"; G.ui.lastPeopleTab = "hr"; renderDock(); renderScreen();
+11359:    if(G.ui.activeTab==="orgchart") G.ui.activeTab = "csuite";
+12529:          return `<button class="v23-railbtn ${G.ui.activeTab===sid?"active":""}" data-v25rail="${sid}"><span>${s.icon}</span><span>${s.label}</span></button>`;
+12538:      G.ui.activeTab = id;
+13816:    G.ui.activeTab = t.getAttribute("data-v29tab");
+13824:    if(!multi){ G.ui.activeTab = "financials"; renderAll(); return; }
+14208:          host.querySelectorAll("[data-v29tab]").forEach(t=> t.onclick = ()=>{ G.ui.activeTab = t.getAttribute("data-v29tab"); renderAll(); });
+14792:        host.querySelectorAll("[data-v29tab]").forEach(t=> t.onclick = ()=>{ G.ui.activeTab = t.getAttribute("data-v29tab"); renderAll(); });
+14799:        row2.querySelectorAll("[data-v29tab]").forEach(t=> t.onclick = ()=>{ G.ui.activeTab = t.getAttribute("data-v29tab"); renderAll(); });
+14932:        host.querySelectorAll("[data-v29tab]").forEach(t=> t.onclick = ()=>{ G.ui.activeTab = t.getAttribute("data-v29tab"); renderAll(); });
+14939:          row.querySelectorAll("[data-v32alert]").forEach(x=> x.onclick = ()=>{ G.ui.activeTab = x.getAttribute("data-v32alert"); renderAll(); });
+
+=== FILE: art-core.js
+=== PATTERN: function subTabBar|function renderScreen
+1507:function renderScreenBase(){
+3850:function renderScreenBase(){
+4560:function subTabBar(){
+4577:function renderScreenV11(){
+5687:function subTabBar(){
+5976:function subTabBar(){
+6025:function renderScreen(){
 
