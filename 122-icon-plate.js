@@ -62,7 +62,7 @@
       label: "Cool blue-grey (default)",
       fill:  "#9FB0C4",
       edge:  "rgba(255,255,255,.14)",
-      hot:   "#BACAD C".replace(" ", ""),
+      hot:   "#BACADC",
       note:  "~6.9:1 against the artwork ink; 55% of white's luminance."
     },
     warm: {
