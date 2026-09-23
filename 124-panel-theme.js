@@ -1,54 +1,44 @@
-/* 124-panel-theme.js — v4.79
+/* 124-panel-theme.js — v4.80
    =====================================================================
-   HISTORY, BRIEFLY
-   ----------------
-   v4.75-v4.77 put a light placard behind every icon. v4.78 threw the
-   placards away and repainted the application light instead. Felipe's
-   verdict on the light surface: tolerable, not wanted — and the side
-   panel still looked layered.
+   WHAT THIS FILE IS FOR
+   ---------------------
+   The application is built out of boxes inside boxes. base.css paints
+   the page one colour, a panel another, and then a great many children
+   *inside* that panel a third (var(--panel2)) with a border of their
+   own. Stacked three deep it reads as sheets of paper laid on sheets of
+   paper — the "layers" complaint.
 
-   He was right about the layering, and the plate was never the whole
-   of it. The dock is built as a stack of three surfaces: the rail
-   (#dock, var(--panel)), a rounded 44 px tile per button (.dock-btn,
-   var(--panel2) with a 1 px border), and then the icon on top. Removing
-   the plate in v4.78 left two of those three still stacked, which is
-   exactly the "layered images" complaint. A dock should be glyphs on a
-   rail, not glyphs on tiles on a rail.
+   v4.79 dealt with the dock: the per-button tile and the rail fill both
+   went transparent, leaving glyphs on an edge. The complaint persisted
+   one level further in, on the screens themselves, which is exactly
+   where the remaining --panel2 children live.
 
-   WHAT THIS VERSION DOES
-   ----------------------
-     1. Flattens the dock in every theme. The per-button tile and its
-        border go transparent; the rail loses its own fill and sits on
-        the page colour; the current tab is marked by a short accent
-        bar at the edge rather than by a filled box. Hover gets a faint
-        wash so the buttons still feel like buttons.
+   v4.80 DOES THREE THINGS
+   -----------------------
+     1. Flattens the nested content surfaces. Cards, rows, tiles and
+        sections that sat on their own --panel2 fill inside a panel now
+        sit on the panel itself and are described by their hairline
+        border alone. Hover restores a faint wash so they still feel
+        like things one can click. Selected states are left untouched —
+        those are two-class rules in base.css and outrank these, so
+        selection stays visible.
 
-     2. Keeps the plates retired. 122 goes to 'off', 123's inline
-        colouring is switched off, and 122's leftover padding and
-        corner radius on the icon itself are zeroed — that padding was
-        compensation for a tile that no longer exists.
+        Deliberately NOT flattened: text inputs, selects, steppers and
+        radio chips. A form control that is indistinguishable from the
+        paper behind it is not minimalism, it is a bug.
 
-     3. Restores dark as the default and adds a darker one. Three
-        surfaces now:
+     2. Makes 'deep' the default surface. It was the one that was liked.
+        Anyone who has already chosen a surface by hand keeps it.
 
-            NBTheme.dark()   base.css as shipped        #15171c
-            NBTheme.deep()   a genuinely darker room    #0c0e12
-            NBTheme.light()  v4.78's white panel        #e9edf3
-
-        'deep' also drops the panel and rail nearer the page, so the
-        flattened dock reads as one continuous dark edge.
-
-     4. The pale-icon invert stopgap now applies only in 'light'. On a
-        dark surface today's pale artwork is correct as drawn and is
-        left alone.
+     3. Keeps everything v4.79 established: flat dock, plates retired,
+        pale-icon invert stopgap confined to the light theme.
 
    CONSOLE
    -------
-       NBTheme.dark() / .deep() / .light() / .cycle()
+       NBTheme.deep() / .dark() / .light() / .cycle()
+       NBTheme.layers(false)      put the nested card fills back
        NBTheme.flat(false)        put the dock tiles back
        NBTheme.plate(true)        put the icon placards back
-       NBTheme.invert(true|false) pale-icon stopgap, light theme only
-       NBTheme.threshold(0.38)
        NBTheme.report()
 
    Persists in localStorage. Per-load: ?theme=dark|deep|light.
@@ -67,20 +57,11 @@
   var STORE_INV  = "nb.themeInvert";
   var STORE_THR  = "nb.themeInvertThreshold";
   var STORE_FLAT = "nb.dockFlat";
+  var STORE_LAY  = "nb.flatLayers";
   var LUMCACHE   = "nb.panelLum.v1";
 
   /* ------------------------------------------------------------------
-     Palettes
-     --------
-     'dark' is base.css itself, so it declares no overrides. 'deep' and
-     'light' are full declarations.
-
-     On 'deep' the point is not merely a lower number. The page, the
-     panel and the rail are pulled close together (#0c0e12 / #12151b /
-     #171b22) so that with the dock flattened there is no visible seam
-     between rail and page — one dark edge, glyphs sitting on it. The
-     border lightens slightly rather than darkening, because at this
-     depth a dark border is invisible and cards lose their shape.
+     Palettes. 'dark' is base.css itself and declares no overrides.
   ------------------------------------------------------------------ */
   var PALETTES = {
     dark: null,
@@ -160,12 +141,7 @@
   }
 
   /* ------------------------------------------------------------------
-     The dock, flattened
-     -------------------
-     Theme-independent: the layering was wrong on the dark surface too,
-     it was simply less obvious there. The active marker is a 3 px
-     accent bar on the inside edge of the rail — on desktop at the left,
-     on the mobile horizontal dock along the bottom.
+     The dock, flattened (v4.79, unchanged)
   ------------------------------------------------------------------ */
   function flatDockCss() {
     return [
@@ -193,8 +169,6 @@
         "border-radius:0 2px 2px 0;",
         "background:var(--accent);",
       "}",
-      /* The tile is gone, so the padding that compensated for it must
-         go too, or every icon carries 2 px of dead margin. */
       "img[data-nb-ico]:not(.nb-ico-lg){",
         "padding:0 !important;",
         "border-radius:0 !important;",
@@ -219,6 +193,64 @@
           "width:24px !important;height:24px !important;",
         "}",
       "}"
+    ].join("");
+  }
+
+  /* ------------------------------------------------------------------
+     The screens, flattened (v4.80)
+     ------------------------------
+     Three groups, treated differently:
+
+       CARDS      keep their border, lose their fill, gain a hover wash.
+                  These are the things one clicks or reads down a list.
+       CONTAINERS lose both fill and border. A wrapper around cards has
+                  no business drawing a box of its own; the cards inside
+                  it already describe the group.
+       CONTROLS   untouched, and explicitly re-asserted, because an
+                  input that looks like paper cannot be typed into.
+
+     Every selector here is a single class, so base.css's two-class
+     state rules (.opt-card.sel and friends) still outrank it and
+     selection remains visible.
+  ------------------------------------------------------------------ */
+  var CARDS = [
+    ".opt-card",
+    ".ladder-card",
+    ".feed-item",
+    ".emp-card",
+    ".invest-row",
+    ".saveslot",
+    "#queuedList .qi",
+    ".folder-tile",
+    ".shop-card",
+    ".slack-topic"
+  ];
+
+  var CONTAINERS = [
+    ".dept-section",
+    ".dept-header",
+    ".folder-panel",
+    "#slackChat"
+  ];
+
+  function flatLayersCss() {
+    return [
+      CARDS.join(",") + "{background:transparent;transition:background .12s ease;}",
+      CARDS.join(":hover,") + ":hover{background:var(--panel2);}",
+      CONTAINERS.join(",") + "{background:transparent;border-color:transparent;box-shadow:none;}",
+
+      /* The active conversation was a filled block inside a filled
+         list inside a panel. An accent edge says the same thing with
+         one surface instead of three. */
+      ".slack-item.active{background:transparent;box-shadow:inset 2px 0 0 var(--accent);}",
+
+      /* Controls stay legible as controls. */
+      "#customInput,select,textarea,input[type=\"text\"],input[type=\"number\"]{",
+        "background:var(--panel2);",
+        "border:1px solid var(--border);",
+      "}",
+      ".stepper button{background:var(--panel2);}",
+      ".radio-chip{background:var(--panel2);}"
     ].join("");
   }
 
@@ -250,9 +282,8 @@
   }
 
   /* v4.78 briefly defaulted to light and wrote that choice to storage
-     for anyone who loaded it. That is not a decision the user made, so
-     it is discarded once; a deliberate choice made from v4.79 onward
-     carries a marker and is respected. */
+     for anyone who loaded it. Discarded once; a deliberate choice made
+     from v4.79 onward carries a marker and is respected. */
   (function migrate() {
     try {
       if (readStore("nb.themeChosen", "") !== "1" && readStore(STORE, "") === "light") {
@@ -261,10 +292,14 @@
     } catch (e) {}
   })();
 
-  var theme = fromQuery() || readStore(STORE, "dark");
-  if (!(theme in PALETTES)) theme = "dark";
+  /* v4.80: 'deep' is the house surface. An explicit choice still wins. */
+  var DEFAULT_THEME = "deep";
+  var chosen = readStore("nb.themeChosen", "") === "1";
+  var theme = fromQuery() || (chosen ? readStore(STORE, DEFAULT_THEME) : DEFAULT_THEME);
+  if (!(theme in PALETTES)) theme = DEFAULT_THEME;
 
   var doFlat   = readStore(STORE_FLAT, "1") !== "0";
+  var doLayers = readStore(STORE_LAY, "1") !== "0";
   var doInvert = readStore(STORE_INV, "1") !== "0";
   var threshold = parseFloat(readStore(STORE_THR, "0.38"));
   if (!isFinite(threshold) || threshold <= 0 || threshold >= 1) threshold = 0.38;
@@ -321,8 +356,6 @@
   }
 
   function applyTo(img) {
-    /* Only the light surface needs the stopgap. On dark, the artwork is
-       correct as drawn. */
     if (theme !== "light" || !doInvert) {
       try { img.classList.remove("nb-inv"); } catch (e) {}
       return;
@@ -397,6 +430,7 @@
       styleNode("nb-panel-theme-css").textContent = paletteCss(theme);
       styleNode("nb-plate-off-css").textContent   = platesRetired ? plateOffCss() : "";
       styleNode("nb-dock-flat-css").textContent   = doFlat ? flatDockCss() : "";
+      styleNode("nb-flat-layers-css").textContent = doLayers ? flatLayersCss() : "";
       styleNode("nb-invert-css").textContent      = invertCss();
       try { document.documentElement.setAttribute("data-nb-theme", theme); } catch (e) {}
       setThemeColorMeta();
@@ -420,10 +454,10 @@
 
   /* ---------------- console API ---------------- */
 
-  var ORDER = ["dark", "deep", "light"];
+  var ORDER = ["deep", "dark", "light"];
 
   function setTheme(next) {
-    theme = (next in PALETTES) ? next : "dark";
+    theme = (next in PALETTES) ? next : DEFAULT_THEME;
     writeStore(STORE, theme);
     writeStore("nb.themeChosen", "1");
     paint();
@@ -435,7 +469,7 @@
   }
 
   window.NBTheme = {
-    version: "4.79",
+    version: "4.80",
     dark:  function () { return setTheme("dark"); },
     deep:  function () { return setTheme("deep"); },
     light: function () { return setTheme("light"); },
@@ -444,6 +478,14 @@
       return setTheme(ORDER[(ORDER.indexOf(theme) + 1) % ORDER.length]);
     },
     toggle: function () { return this.cycle(); },
+    layers: function (on) {
+      if (on === undefined) return doLayers;
+      doLayers = !!on;
+      writeStore(STORE_LAY, doLayers ? "1" : "0");
+      paint();
+      try { console.log("Nested card fills: " + (doLayers ? "flattened" : "restored (base.css original)")); } catch (e) {}
+      return doLayers;
+    },
     flat: function (on) {
       if (on === undefined) return doFlat;
       doFlat = !!on;
@@ -498,19 +540,31 @@
           try { if (list[i].classList.contains("nb-inv")) inverted.push(name); } catch (e) {}
         }
       }
+      /* How many of the flattened surfaces are actually on screen right
+         now — useful when the complaint is "I still see a layer". */
+      var present = [];
+      try {
+        CARDS.concat(CONTAINERS).forEach(function (sel) {
+          var n = document.querySelectorAll(sel).length;
+          if (n) present.push(sel + " x" + n);
+        });
+      } catch (e) {}
+
       var P = PALETTES[theme];
       var out = {
-        version: "4.79",
+        version: "4.80",
         theme: theme,
         surface: P ? { bg: P.bg, panel: P.panel, panel2: P.panel2, border: P.border }
                    : { bg: "#15171c", panel: "#1b1e25", panel2: "#20242c", border: "#2a2f3a" },
         dockFlat: doFlat,
+        layersFlat: doLayers,
+        flattenedOnScreen: present,
         platesRetired: platesRetired,
         invertActive: (theme === "light" && doInvert),
         iconsOnScreen: list.length,
         distinctIcons: Object.keys(seen).length,
         invertedNow: inverted.sort(),
-        change: "NBTheme.dark() | .deep() | .light() | .flat(false) | .plate(true)"
+        change: "NBTheme.deep() | .dark() | .light() | .layers(false) | .flat(false)"
       };
       try { console.log(JSON.stringify(out, null, 2)); } catch (e) { console.log(out); }
       return out;
@@ -518,7 +572,7 @@
   };
 
   try {
-    console.log("[v4.79] theme: " + theme + "; dock flattened; plates retired. " +
-                "NBTheme.deep() for a darker room, NBTheme.report() for detail.");
+    console.log("[v4.80] theme: " + theme + "; dock and screen cards flattened. " +
+                "NBTheme.report() for detail.");
   } catch (e) {}
 })();
