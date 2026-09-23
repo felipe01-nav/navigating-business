@@ -1,6 +1,6 @@
 {
-  "_comment": "Single source of truth for external art. Key = the art key used by the game's art maps (ART_IMG, IMG, FAC_IMG, ...) or declared by a layer (hq_* from 90-hq-stages.js). Value = filename, resolved against art/ first and the repo root second. Two keys may point at the same file when different bundles name the same subject differently — see the aliases section. Add an entry only after the asset has passed prompt review, or after an explicit decision to ship it anyway — see accepted_with_defects. 85-art-override.js reads this file at boot and reports coverage to the console.",
-  "version": 5,
+  "_comment": "Single source of truth for external art. Key = the art key used by the game's art maps (ART_IMG, IMG, FAC_IMG, ...) or declared by a layer (hq_* from 90-hq-stages.js). Value = filename, resolved against art/ first and the repo root second. Two keys may point at the same file when different bundles name the same subject differently \u2014 see the aliases section. Add an entry only after the asset has passed prompt review, or after an explicit decision to ship it anyway \u2014 see accepted_with_defects. 85-art-override.js reads this file at boot and reports coverage to the console.",
+  "version": 6,
 
   "assets": {
     "beachhouse": "beachhouse.webp",
@@ -25,14 +25,22 @@
     "vineyard": "vineyard.webp",
 
     "beater": "beater.webp",
+    "chauffeur": "chauffeur.webp",
     "ev": "ev.webp",
     "german": "german.webp",
+    "gt": "gt.webp",
     "hatch": "hatch.webp",
+    "hyper": "hyper.webp",
     "landrover": "landrover.webp",
+    "moto": "moto.webp",
     "muscle": "muscle.webp",
+    "restomod": "restomod.webp",
+    "rv": "rv.webp",
     "sedan": "sedan.webp",
     "sports": "sports.webp",
+    "supercar": "supercar.webp",
     "suv": "suv.webp",
+    "track": "track.webp",
 
     "hq_0": "hq_0.webp",
     "hq_1": "hq_1.webp",
@@ -53,7 +61,7 @@
     "car_suv": "suv.webp"
   },
 
-  "_aliases_comment": "house_* and car_* are the legacy IMG bundle's names for subjects that ART_IMG calls starter, family, mansion, sedan, sports and suv. Both keys are listed so a screen reading either map gets the new art. IMG's remaining keys — jet, vac_beach, vac_cabin, vac_paris — have no external asset yet.",
+  "_aliases_comment": "house_* and car_* are the legacy IMG bundle's names for subjects that ART_IMG calls starter, family, mansion, sedan, sports and suv. Both keys are listed so a screen reading either map gets the new art. IMG's remaining keys \u2014 jet, vac_beach, vac_cabin, vac_paris \u2014 have no external asset yet.",
 
   "accepted_with_defects": {
     "_comment": "Live in assets by explicit decision, but they violate their prompt's strict exclusions. Regenerate these first when image credits allow.",
@@ -61,7 +69,9 @@
     "ski": "Translucent inset border roughly 3% in from each edge. Borders are excluded.",
     "studio": "Isometric dollhouse cutaway on a flat dark background. Flat backgrounds are excluded.",
     "compound": "Helipad marked with the letter H. Lettering is excluded.",
-    "hq_1": "Isometric cutaway office floor on a flat green/blue background. Same failure mode as studio. Shipped because an empty slot on stage 2 of the ladder reads as a broken build."
+    "hq_1": "Isometric cutaway office floor on a flat green/blue background. Same failure mode as studio. Shipped because an empty slot on stage 2 of the ladder reads as a broken build.",
+    "chauffeur": "Strongly resembles a specific luxury marque's grille and bonnet ornament. Real-world marques are excluded. Shipped by explicit decision \u2014 no badges or lettering present.",
+    "track": "Reads as a specific manufacturer's GT race car silhouette. Same class of issue as chauffeur, shipped on the same decision."
   },
 
   "held": {
