@@ -1,11 +1,7 @@
 # <file>|<regex> for grep, <file>@<start>-<end> for a line range.
-# pass 12: expansion screen composition, decide-duplicate cards, markets, industry unlock.
-art-core.js|function render(Expansion|Market|Decide|Growth|Run)
-art-core.js|Founder hustle|Founder Hustle|founderHustle
-art-core.js|This month.s plan|Last month.s report|Projected revenue|Ending cash|Queue this month|Cash burn
-art-core.js|v417ExpSub|expSub|function subTabBar
-art-core.js|function [A-Za-z0-9_]*[Uu]nlock|unlocked|UNLOCK_|locked:
-art-core.js|function [A-Za-z0-9_]*[Mm]arket
-30-v410-v427.js|v417ExpSub|Facilities|Growth|expansion
-50-v429-v432.js|v417ExpSub|Growth|expansion|market
-60-v433-v437.js|v417ExpSub|Growth|expansion|market
+# pass 13: does Markets do anything; how industries unlock; empire founding gate.
+art-core.js@5845-5880
+art-core.js@5600-5645
+art-core.js@6830-6900
+art-core.js@6215-6235
+art-core.js|Projected revenue|Ending cash|Queue this month|month.s plan|last month|Cash burn
