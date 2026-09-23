@@ -1,7 +1,4 @@
 # <file>|<regex> for grep, <file>@<start>-<end> for a line range.
-# pass 13: does Markets do anything; how industries unlock; empire founding gate.
-art-core.js@5845-5880
-art-core.js@5600-5645
-art-core.js@6830-6900
-art-core.js@6215-6235
-art-core.js|Projected revenue|Ending cash|Queue this month|month.s plan|last month|Cash burn
+# pass 14: what the Markets screen actually does.
+art-core.js@6127-6215
+art-core.js|data-market|data-enter|enterMarket|marketShare
