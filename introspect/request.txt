@@ -1,1 +1,3 @@
-base.css|(#dock|--bg|--panel|--ink|body\s*\{)
+art-core.js|(superyacht|sportfish|cabin_cruiser|bassboat|jetski|pontoon)
+art-core.js|(ultralight|heavyjet|lightjet|midjet)
+art-core.js|(netWorth\s*[><]=?|minNet|unlockNet|requireNet)
