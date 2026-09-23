@@ -1,6 +1,6 @@
 # introspect report
-# generated: 2026-09-23 01:14:24Z
-# commit: cbbf7a63e9d6108a19330941d7e40526d5906c47
+# generated: 2026-09-23 01:34:09Z
+# commit: 7a0a8a47b5f828148b3c59fca768fa84e39768c8
 
 === FILE: art-core.js
 === PATTERN: inProgress
@@ -18,68 +18,61 @@
 8331:  p.inProgress = null;
 
 === FILE: art-core.js
-=== PATTERN: FEATURES *=|reqEngineers|monthsLeft
+=== PATTERN: reqEngineers|FEATURE_DEFS|const FEATURES
+535:const FEATURE_DEFS = [
 536:  { key:"onboarding_wizard", name:"Guided Onboarding Wizard", reqEngineers:2, reqTeamLeads:0, months:2, impact:{clientHealth:15, maturity:8} },
 537:  { key:"enterprise_sso", name:"Enterprise SSO & Permissions", reqEngineers:3, reqTeamLeads:1, months:3, impact:{clientHealth:20, maturity:12} },
 538:  { key:"mobile_app", name:"Native Mobile App", reqEngineers:4, reqTeamLeads:1, months:4, impact:{clientHealth:25, maturity:18} },
 539:  { key:"ai_assist", name:"AI-Powered Assistant", reqEngineers:3, reqTeamLeads:1, months:3, impact:{clientHealth:18, maturity:15} },
 540:  { key:"platform_api", name:"Public Platform API", reqEngineers:2, reqTeamLeads:0, months:2, impact:{clientHealth:12, maturity:10} },
 543:  return rungCount("product","rep")>=def.reqEngineers && rungCount("product","teamlead")>=def.reqTeamLeads;
-554:  ip.monthsLeft--;
-555:  if(ip.monthsLeft<=0){
+548:  const def = FEATURE_DEFS.find(f=>f.key===ip.key);
 563:    const effort = def.reqEngineers * def.months;
 566:    report.push(`🚀 Shipped major feature: ${def.name}! Client health +${def.impact.clientHealth}, maturity +${def.impact.maturity}, pricing power +${Math.round(priceBoost*100)}% (built with ${def.reqEngineers} engineer(s) over ${def.months} month(s)).`);
-569:    report.push(`${def.name} is in progress — ${ip.monthsLeft} month(s) left.`);
-2558:        <div class="progress-track"><div class="progress-fill" style="width:${100*(1-(p.inProgress.monthsLeft/def.months))}%;"></div></div>
+680:  { key:"all_features", name:"Feature Complete", icon:"🧩", desc:"Ship every major product feature.", check:(c,p)=> (c.product.shipped||[]).length>=FEATURE_DEFS.length },
+2556:    ${p.inProgress? (()=>{ const def = FEATURE_DEFS.find(f=>f.key===p.inProgress.key);
 2559:        <div class="muted mt8" style="font-size:11.5px;">${p.inProgress.monthsLeft} month(s) left. Needs ${def.reqEngineers} engineer(s)${def.reqTeamLeads?` + ${def.reqTeamLeads} team lead(s)`:""} to keep moving.
+2563:      ${FEATURE_DEFS.filter(f=>!p.shipped.includes(f.key)).map(f=>`<div class="ladder-card"><div class="row"><div>
 2565:        <div class="desc">Needs ${f.reqEngineers} engineer(s)${f.reqTeamLeads?` + ${f.reqTeamLeads} team lead(s)`:""} · ${f.months} month(s) to ship</div>
-2581:    G.company.product.inProgress = { key, monthsLeft: def.months };
+2579:    const def = FEATURE_DEFS.find(f=>f.key===key);
 3420:  { key:"palletizer", name:"Warehouse Palletizer", months:3, reqEngineers:2, unitPrice:48000, unitCost:26000 },
 3421:  { key:"cobot", name:"Collaborative Arm (Cobot)", months:4, reqEngineers:3, unitPrice:82000, unitCost:41000 },
 3422:  { key:"amr", name:"Autonomous Mobile Robot", months:5, reqEngineers:4, unitPrice:135000, unitCost:62000 },
 3423:  { key:"surgical", name:"Surgical Assist Platform", months:7, reqEngineers:6, unitPrice:410000, unitCost:180000 },
 3531:    if(engineers >= def.reqEngineers){
-3532:      o.rnd.monthsLeft--;
-3533:      if(o.rnd.monthsLeft<=0){
-3538:      } else report.push(`\u{1F9BE} ${def.name} R&D in progress \u2014 ${o.rnd.monthsLeft} month(s) left.`);
 3540:      report.push(`\u{1F9BE} ${def.name} R&D stalled \u2014 needs ${def.reqEngineers} engineer(s), you have ${engineers}.`);
-3919:            <div class="progress-track"><div class="progress-fill" style="width:${100*(1-o.rnd.monthsLeft/d.months)}%;"></div></div>
 3920:            <div class="desc mt8">${o.rnd.monthsLeft} month(s) left \u00b7 needs ${d.reqEngineers} engineer(s) ${engineers>=d.reqEngineers?'<span class="pill good">Staffed</span>':'<span class="pill bad">Stalled</span>'}</div></div>`; })()
 3923:            <div class="desc">${m.months} month(s) \u00b7 needs ${m.reqEngineers} engineer(s) \u00b7 sells ${fmt$(m.unitPrice)} / builds ${fmt$(m.unitCost)}</div></div>
 3924:            <button class="btn small" data-ops-rnd="${m.key}" ${engineers>=m.reqEngineers?"":"disabled"}>${engineers>=m.reqEngineers?"Start R&D":"Understaffed"}</button>
-4027:    o.rnd = { key:m.key, monthsLeft:m.months };
 7761:    if(engineers >= def.reqEngineers){
-7762:      o.rnd.monthsLeft--;
-7763:      if(o.rnd.monthsLeft<=0){
-7768:      } else report.push(`\u{1F9BE} ${def.name} R&D in progress \u2014 ${o.rnd.monthsLeft} month(s) left.`);
 7770:      report.push(`\u{1F9BE} ${def.name} R&D stalled \u2014 needs ${def.reqEngineers} engineer(s), you have ${engineers}.`);
 8322:function engineersCommitted(){ return activeProjects().reduce((s,a)=>{ const d=FEATURE_DEFS.find(f=>f.key===a.key); return s+(d?d.reqEngineers:0); },0); }
+8323:function leadsCommitted(){ return activeProjects().reduce((s,a)=>{ const d=FEATURE_DEFS.find(f=>f.key===a.key); return s+(d?d.reqTeamLeads:0); },0); }
 8325:  return (rungCount("product","rep") - engineersCommitted()) >= def.reqEngineers
+8337:    const def = FEATURE_DEFS.find(f=>f.key===a.key);
 8339:    const staffed = (engUsed + def.reqEngineers <= engineers) && (leadUsed + def.reqTeamLeads <= leads);
 8345:    engUsed += def.reqEngineers; leadUsed += def.reqTeamLeads;
-8346:    a.monthsLeft--;
-8347:    if(a.monthsLeft<=0){
 8352:      const effort = def.reqEngineers * def.months;
-8357:      report.push(`${def.name} is in progress \u2014 ${a.monthsLeft} month(s) left.`);
-8386:          <div class="progress-track"><div class="progress-fill" style="width:${100*(1-(a.monthsLeft/def.months))}%;"></div></div>
+8384:      ${p.active.map(a=>{ const def = FEATURE_DEFS.find(f=>f.key===a.key); if(!def) return "";
 8387:          <div class="muted mt8" style="font-size:11.5px;">${a.monthsLeft} month(s) left \u00b7 holds ${def.reqEngineers} engineer(s)${def.reqTeamLeads?` + ${def.reqTeamLeads} lead(s)`:""}
+8393:      ${FEATURE_DEFS.filter(f=>!p.shipped.includes(f.key) && !p.active.some(a=>a.key===f.key)).map(f=>`<div class="ladder-card"><div class="row"><div>
 8395:        <div class="desc">Needs ${f.reqEngineers} engineer(s)${f.reqTeamLeads?` + ${f.reqTeamLeads} team lead(s)`:""} \u00b7 ${f.months} month(s) to ship</div>
 8396:        <div class="desc">Impact: +${f.impact.clientHealth} client health, +${f.impact.maturity} maturity, +${Math.round(f.reqEngineers*f.months*1.5)}% pricing power</div></div>
 8397:        <button class="btn small" data-start-feature="${f.key}" ${canStartFeature(f)?'':'disabled'}>${canStartFeature(f)?'Start Building':`Need ${f.reqEngineers} free engineer(s)`}</button>
-8411:    G.company.product.active.push({ key, monthsLeft: def.months });
+8409:    const def = FEATURE_DEFS.find(f=>f.key===key);
 8412:    toast(`<b>${def.name} started.</b> ${def.reqEngineers} engineer(s) reserved for ${def.months} month(s). ${G.company.product.active.length} project(s) now in flight.`);
-15597:  if(!c.supplyContract) c.supplyContract = { tier:1, monthsLeft:0, committed:0, shortfalls:0 };
-15604:    return (s.monthsLeft>0 || s.tier===1) ? def.discount : 0;
-15611:  if(s.monthsLeft > 0 && s.tier !== 1){
-15612:    const breakFee = Math.round(s.committed * 18 * (s.monthsLeft/12));
-15617:  s.monthsLeft = def.term;
-15627:    if(s.tier === 1 || s.monthsLeft <= 0) return;
-15638:    s.monthsLeft -= 1;
-15639:    if(s.monthsLeft <= 0){
-15653:      ${s.monthsLeft>0? `<span class="pill">${s.monthsLeft} months left</span>`:""}
-16306:          c.supplyContract = c.supplyContract || { tier:1, monthsLeft:0, committed:0, shortfalls:0 };
 
-=== FILE: art-core.js  LINES 8330-8360
+=== FILE: art-core.js  LINES 8320-8365
+8320 /* ---------------- 5. Parallel product R&D ---------------- */
+8321 function activeProjects(){ v17Migrate(); return G.company.product.active; }
+8322 function engineersCommitted(){ return activeProjects().reduce((s,a)=>{ const d=FEATURE_DEFS.find(f=>f.key===a.key); return s+(d?d.reqEngineers:0); },0); }
+8323 function leadsCommitted(){ return activeProjects().reduce((s,a)=>{ const d=FEATURE_DEFS.find(f=>f.key===a.key); return s+(d?d.reqTeamLeads:0); },0); }
+8324 function canStartFeature(def){
+8325 return (rungCount("product","rep") - engineersCommitted()) >= def.reqEngineers
+8326 && (rungCount("product","teamlead") - leadsCommitted()) >= def.reqTeamLeads;
+8327 }
+8328 function resolvePlannedFeature(report){
+8329 v17Migrate();
 8330 const p = G.company.product;
 8331 p.inProgress = null;
 8332 const engineers = rungCount("product","rep");
@@ -111,4 +104,9 @@
 8358 still.push(a);
 8359 }
 8360 });
+8361 p.active = still;
+8362 }
+8363 function renderProduct(){
+8364 v17Migrate();
+8365 const p = G.company.product;
 
