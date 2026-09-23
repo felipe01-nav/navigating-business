@@ -1,6 +1,6 @@
 {
-  "_comment": "Single source of truth for external art. Key = the art key used by the game's art maps (ART_IMG, IMG, FAC_IMG, ...) or declared by a layer (hq_* from 90-hq-stages.js). Value = filename, resolved against art/ first and the repo root second. Two keys may point at the same file when different bundles name the same subject differently \u2014 see the aliases section. Add an entry only after the asset has passed prompt review, or after an explicit decision to ship it anyway \u2014 see accepted_with_defects. 85-art-override.js reads this file at boot and reports coverage to the console.",
-  "version": 6,
+  "_comment": "Single source of truth for external art. Key = the art key used by the game's art maps (ART_IMG, IMG, FAC_IMG, ...) or declared by a layer (hq_* from 90-hq-stages.js). Value = filename, resolved against art/ first and the repo root second. Two keys may point at the same file when different bundles name the same subject differently \u2014 see the aliases section. Assets are registered as soon as the file lands in art/; visual QA is done by the project owner outside this repo, so a known cosmetic defect is not a blocker \u2014 it is recorded in accepted_with_defects and shipped. 85-art-override.js reads this file at boot and reports coverage to the console.",
+  "version": 7,
 
   "assets": {
     "beachhouse": "beachhouse.webp",
@@ -34,6 +34,7 @@
     "landrover": "landrover.webp",
     "moto": "moto.webp",
     "muscle": "muscle.webp",
+    "pickup": "pickup.webp",
     "restomod": "restomod.webp",
     "rv": "rv.webp",
     "sedan": "sedan.webp",
@@ -71,10 +72,11 @@
     "compound": "Helipad marked with the letter H. Lettering is excluded.",
     "hq_1": "Isometric cutaway office floor on a flat green/blue background. Same failure mode as studio. Shipped because an empty slot on stage 2 of the ladder reads as a broken build.",
     "chauffeur": "Strongly resembles a specific luxury marque's grille and bonnet ornament. Real-world marques are excluded. Shipped by explicit decision \u2014 no badges or lettering present.",
-    "track": "Reads as a specific manufacturer's GT race car silhouette. Same class of issue as chauffeur, shipped on the same decision."
+    "track": "Reads as a specific manufacturer's GT race car silhouette. Same class of issue as chauffeur, shipped on the same decision.",
+    "pickup": "Translucent vertical bands overlaying the left and right edges, same artifact class as ski. Previously held; shipped by explicit decision."
   },
 
   "held": {
-    "pickup": "Translucent vertical bands overlaying the left and right edges, same artifact class as ski."
+    "_comment": "Empty by policy. Assets are no longer withheld for cosmetic defects \u2014 register them and record the defect in accepted_with_defects instead."
   }
 }
