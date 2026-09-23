@@ -1,12 +1,11 @@
 # <file>|<regex> for grep, <file>@<start>-<end> for a line range.
-# pass 4: remaining hooks for the four-item build.
-art-core.js@8908-8950
-art-core.js@4776-4800
-art-core.js@7636-7690
-art-core.js@1730-1760
-art-core.js@4050-4075
-art-core.js@8267-8300
-art-core.js|ops\s*:\s*\{\s*type\s*:\s*"[a-z_]+"
-art-core.js|type\s*:\s*"(store|stores|restaurant|production|fleet|salon|chairs|line|lines)"
-40-v428-trucking.js|(ops\.type|ops\s*=|"trucking"|trucks)
-50-v429-v432.js|(nail_salon|salon|agency|ops\.type)
+# pass 5: late industries, ops defaults, HR dept render.
+30-v410-v427.js|(nail_salon|agency)
+50-v429-v432.js|(INDUSTRIES\[|nail_salon|agency|v45\s*:)
+60-v433-v437.js|(nail_salon|agency|INDUSTRIES\[)
+art-core.js@3425-3450
+art-core.js@1702-1734
+art-core.js@4610-4650
+art-core.js|function\s+(rungCount|rungCapacity|rungRemaining|applyIndustryLabels|assistantAnswerBase|industry)
+art-core.js@1846-1900
+40-v428-trucking.js@1938-1960
