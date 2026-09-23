@@ -1,4 +1,5 @@
-# <file>|<regex> for grep, <file>@<start>-<end> for a line range.
-# pass 14: what the Markets screen actually does.
-art-core.js@6127-6215
-art-core.js|data-market|data-enter|enterMarket|marketShare
+10-core-v40-v46.js|[^ -~]
+104-dock-shape.js|[^ -~]
+111-expansion-scope.js|[^ -~]
+112-kpi-scope.js|[^ -~]
+30-v410-v427.js|[^ -~]
