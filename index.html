@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="NAVigating" />
-<link rel="stylesheet" href="base.css?v=464">
+<link rel="stylesheet" href="base.css?v=465">
 </head>
 <body>
 <div id="app"></div>
@@ -24,73 +24,76 @@
      ignores a great deal of persuasion; changing the URL is the only reliable
      way to guarantee a new release is actually executed. Bump the number on
      every release, alongside CACHE_VERSION in sw.js. -->
-<script>window.NB_BUILD = '4.64';</script>
+<script>window.NB_BUILD = '4.65';</script>
 
-<script src="00-scheduler.js?v=464"></script>
-<script src="art-core.js?v=464"></script>
+<script src="00-scheduler.js?v=465"></script>
+<script src="art-core.js?v=465"></script>
 
-<link rel="stylesheet" href="facilities.css?v=464">
-<script src="art-merge.js?v=464"></script>
+<link rel="stylesheet" href="facilities.css?v=465">
+<script src="art-merge.js?v=465"></script>
 
-<script src="10-core-v40-v46.js?v=464"></script>
+<script src="10-core-v40-v46.js?v=465"></script>
 
-<script src="art-v47.js?v=464"></script>
-<script src="20-v47-v49.js?v=464"></script>
+<script src="art-v47.js?v=465"></script>
+<script src="20-v47-v49.js?v=465"></script>
 
-<script src="30-v410-v427.js?v=464"></script>
+<script src="30-v410-v427.js?v=465"></script>
 
-<script src="40-v428-trucking.js?v=464"></script>
+<script src="40-v428-trucking.js?v=465"></script>
 
-<script src="50-v429-v432.js?v=464"></script>
+<script src="50-v429-v432.js?v=465"></script>
 
-<script src="60-v433-v437.js?v=464"></script>
+<script src="60-v433-v437.js?v=465"></script>
 
-<script src="70-cloud-saves.js?v=464"></script>
-<script src="80-account-gate.js?v=464"></script>
-<script src="85-save-codes.js?v=464"></script>
+<script src="70-cloud-saves.js?v=465"></script>
+<script src="80-account-gate.js?v=465"></script>
+<script src="85-save-codes.js?v=465"></script>
 <!-- Must load after every art bundle, so the maps exist to be patched. -->
-<script src="85-art-override.js?v=464"></script>
-<script src="90-hq-stages.js?v=464"></script>
-<script src="94-flags.js?v=464"></script>
-<script src="95-tidy.js?v=464"></script>
+<script src="85-art-override.js?v=465"></script>
+<script src="90-hq-stages.js?v=465"></script>
+<script src="94-flags.js?v=465"></script>
+<script src="95-tidy.js?v=465"></script>
 <!-- Loads last: rewrites the retired HQ valuation table wherever it survives. -->
-<script src="96-hq-value.js?v=464"></script>
+<script src="96-hq-value.js?v=465"></script>
 <!-- Retires the pre-account "go and fetch a save code" instructions. -->
-<script src="97-onboard-copy.js?v=464"></script>
+<script src="97-onboard-copy.js?v=465"></script>
 <!-- Teaches c.debt to behave like the array the asset statement expects. -->
-<script src="98-debt-compat.js?v=464"></script>
+<script src="98-debt-compat.js?v=465"></script>
 <!-- Must load after 90-hq-stages.js: it wraps renderFacilitiesTab. -->
-<script src="99-v454-ui.js?v=464"></script>
+<script src="99-v454-ui.js?v=465"></script>
 <!-- R&D screen in the Industry Ops slot: wraps renderScreen. -->
-<script src="100-rnd.js?v=464"></script>
+<script src="100-rnd.js?v=465"></script>
 <!-- Renames the tab through the lexical DOCK_ITEMS and applies R&D
      effects to product.maturity / v33.product. Must load after 100. -->
-<script src="101-rnd-patch.js?v=464"></script>
+<script src="101-rnd-patch.js?v=465"></script>
 <!-- Turns the velocity track into real shipping speed: wraps
      resolvePlannedFeature. Must load after 100 and 101. -->
-<script src="102-rnd-speed.js?v=464"></script>
+<script src="102-rnd-speed.js?v=465"></script>
 <!-- Forces the R&D screen to mount past 100's dead #nbGate guard, and
      shows an on-screen diagnostic if it still cannot. Loads last. -->
-<script src="103-rnd-mount.js?v=464"></script>
+<script src="103-rnd-mount.js?v=465"></script>
 <!-- Dock shape: Growth group label; market lives under Personal. Data only. -->
-<script src="104-dock-shape.js?v=464"></script>
+<script src="104-dock-shape.js?v=465"></script>
 <!-- Decides who owns the industry slot per industry: Industry Ops or
      R&D. Must load after 100-103, whose behaviour it overrides. -->
-<script src="105-industry-slot.js?v=464"></script>
+<script src="105-industry-slot.js?v=465"></script>
 <!-- Advisor: rebuilds the growth answer, which said "undefined" in every
      industry added after art-core. Wraps assistantAnswer. -->
-<script src="106-industry-advice.js?v=464"></script>
+<script src="106-industry-advice.js?v=465"></script>
 <!-- Hides trucking-only rungs and the Drivers department in non-fleet
      companies. Display-time only; never splices LADDERS. -->
-<script src="107-hr-scope.js?v=464"></script>
+<script src="107-hr-scope.js?v=465"></script>
 <!-- Industry-appropriate facility names. Wraps facilitiesSection. -->
-<script src="108-facilities-flavor.js?v=464"></script>
-<!-- Typed cheat codes for testing: navcash, navmega, navpoor, navhelp.
-     Letters only, so it cannot collide with art-core's key handler. -->
-<script src="109-cheat.js?v=464"></script>
+<script src="108-facilities-flavor.js?v=465"></script>
+<!-- Typed cheat codes for testing: navcash, navmega, navpoor, navopen,
+     navlock, navhelp. Letters only, so it cannot collide with art-core. -->
+<script src="109-cheat.js?v=465"></script>
 <!-- Phone portrait: makes the stacked dock scroll sideways again.
      Injects a runtime <style>, so it must load after every CSS layer. -->
-<script src="110-mobile-dock.js?v=464"></script>
+<script src="110-mobile-dock.js?v=465"></script>
+<!-- Expansion screen: Decide duplicates off both sub-tabs, marketing and
+     markets confined to Growth, HQ sub-tab actually called HQ. -->
+<script src="111-expansion-scope.js?v=465"></script>
 
 <script>
 /* Build stamp, so "which version am I actually running?" is never a mystery. */
