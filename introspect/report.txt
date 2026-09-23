@@ -1,116 +1,301 @@
 # introspect report
-# generated: 2026-09-23 02:09:17Z
-# commit: a9f4e5e28f97df477fd5fca001c45e7491ec0745
+# generated: 2026-09-23 02:10:12Z
+# commit: 72e27be86cb43635782a2b59c7bbaf31d99ff85b
+
+=== FILE: art-core.js  LINES 3177-3262
+3177 const INDUSTRIES = {
+3178 ai_saas: {
+3179 key:"ai_saas", label:"AI Dashboard (SaaS)", icon:"\u{1F916}", startCash:30000, opsType:null,
+3180 desc:"Subscription software. Revenue is MRR from clients; engineers ship features that raise pricing power.",
+3181 revenueLabel:"Platform Operations", accountLabel:"Clients",
+3182 deptLabels:{},
+3183 accounts:{ Enterprise:["Titan Manufacturing","Argent Bank","Meridian Health","Vantage Logistics"],
+3184 "Mid-Market":["Harbor Analytics","Nimbus Foods","Cobalt Studio","Junction Coffee","Lark & Co"],
+3185 Small:["Acme Retail","Bluepeak Co","Fenwick Group","Willow Cafe","Redstone Fitness","Sable Goods","Pixel Studio"] },
+3186 roles:{}
+3187 },
+3188 retail: {
+3189 key:"retail", label:"Retail Chain", icon:"\u{1F6CD}\uFE0F", startCash:45000, opsType:"retail",
+3190 desc:"Open stores, buy inventory, price your goods. Revenue comes from foot traffic and sell-through \u2014 stock out and you lose the sale.",
+3191 revenueLabel:"Store Operations", accountLabel:"Wholesale Accounts",
+3192 deptLabels:{ sales:"Store Sales", marketing:"Brand & Promotions", product:"Merchandising", support:"Customer Service", operations:"Supply Chain" },
+3193 accounts:{ Enterprise:["Regional Mall Group","Big Box Partner","National Distributor"],
+3194 "Mid-Market":["Boutique Collective","Airport Retail Group","Campus Bookstore Chain"],
+3195 Small:["Local Consignment Shop","Pop-Up Partner","Corner Market"] },
+3196 roles:{
+3197 sales:["Retail Associate","Shift Lead","Assistant Store Manager","Store Manager","District Manager","Chief Retail Officer"],
+3198 marketing:["Promotions Specialist","Promotions Coordinator","Campaign Lead","Marketing Manager","Director of Brand","Chief Marketing Officer"],
+3199 product:["Merchandiser","Category Buyer","Senior Buyer","Merchandising Manager","Director of Merchandising","Chief Merchandising Officer"],
+3200 support:["Customer Service Rep","CS Lead","CS Team Lead","CS Manager","Director of Customer Experience","Chief Customer Officer"],
+3201 finance:["Store Accountant","Finance Coordinator","Finance Team Lead","Finance Manager","Director of Finance","Chief Financial Officer"],
+3202 operations:["Warehouse Associate","Inventory Coordinator","Logistics Lead","Distribution Manager","Director of Supply Chain","Chief Supply Chain Officer"],
+3203 hr:["Recruiter","People Coordinator","People Team Lead","HR Manager","Director of People","Chief People Officer"]
+3204 }
+3205 },
+3206 restaurant: {
+3207 key:"restaurant", label:"Restaurant Group", icon:"\u{1F37D}\uFE0F", startCash:40000, opsType:"restaurant",
+3208 desc:"Open restaurants, set your menu price, keep quality up. Covers drive revenue; food cost and rent eat it. Health inspections are real.",
+3209 revenueLabel:"Restaurant Operations", accountLabel:"Catering Contracts",
+3210 deptLabels:{ sales:"Catering & Events", marketing:"Marketing & Social", product:"Kitchen & Menu", support:"Front of House", operations:"Purchasing & Facilities" },
+3211 accounts:{ Enterprise:["Corporate Catering Contract","Convention Center Account","Stadium Concession Deal"],
+3212 "Mid-Market":["Wedding Venue Partner","Office Park Catering","Hotel Breakfast Contract"],
+3213 Small:["Neighborhood Catering Client","Delivery Channel Partner","Farmers Market Stall"] },
+3214 roles:{
+3215 sales:["Catering Sales Rep","Catering Coordinator","Events Lead","Catering Manager","Director of Catering","Chief Revenue Officer"],
+3216 marketing:["Social Media Specialist","Promotions Coordinator","Marketing Lead","Marketing Manager","Director of Marketing","Chief Marketing Officer"],
+3217 product:["Line Cook","Sous Chef","Head Chef","Kitchen Manager","Culinary Director","Executive Chef"],
+3218 support:["Server","Head Server","FOH Lead","General Manager","Director of Hospitality","Chief Hospitality Officer"],
+3219 finance:["Bookkeeper","Finance Coordinator","Finance Team Lead","Finance Manager","Director of Finance","Chief Financial Officer"],
+3220 operations:["Prep & Dish Staff","Purchasing Coordinator","Facilities Lead","Area Manager","Director of Operations","Chief Operating Officer"],
+3221 hr:["Staffing Coordinator","People Coordinator","People Team Lead","HR Manager","Director of People","Chief People Officer"]
+3222 }
+3223 },
+3224 robotics: {
+3225 key:"robotics", label:"Robotics Manufacturer", icon:"\u{1F9BE}", startCash:60000, opsType:"robotics",
+3226 desc:"R&D a robot model, build production capacity, then fill an order backlog. No released model means no revenue \u2014 engineering is the gate.",
+3227 revenueLabel:"Manufacturing", accountLabel:"Service Contracts",
+3228 deptLabels:{ sales:"Enterprise Sales", marketing:"Marketing", product:"Robotics R&D", support:"Field Service", operations:"Manufacturing Ops" },
+3229 accounts:{ Enterprise:["Titan Manufacturing","Meridian Health Systems","Vantage Logistics"],
+3230 "Mid-Market":["Harbor Fabrication","Cobalt Foods","Junction Warehousing"],
+3231 Small:["Fenwick Machine Shop","Redstone Packaging","Sable Assembly"] },
+3232 roles:{
+3233 sales:["Account Executive","Sales Engineer","Regional Sales Lead","Sales Manager","Director of Sales","Chief Revenue Officer"],
+3234 marketing:["Product Marketer","Marketing Coordinator","Campaign Lead","Marketing Manager","Director of Marketing","Chief Marketing Officer"],
+3235 product:["Robotics Engineer","Lead Engineer","Principal Engineer","Engineering Manager","Director of Robotics","Chief Technology Officer"],
+3236 support:["Field Service Tech","Service Lead","Regional Service Lead","Service Manager","Director of Field Service","Chief Customer Officer"],
+3237 finance:["Cost Accountant","Finance Coordinator","Finance Team Lead","Finance Manager","Director of Finance","Chief Financial Officer"],
+3238 operations:["Assembly Technician","Line Supervisor","Production Lead","Plant Manager","Director of Manufacturing","Chief Operating Officer"],
+3239 hr:["Technical Recruiter","People Coordinator","People Team Lead","HR Manager","Director of People","Chief People Officer"]
+3240 }
+3241 },
+3242 finance: {
+3243 key:"finance", label:"Bank & Insurance", icon:"\u{1F3E6}", startCash:150000, opsType:"finance",
+3244 desc:"Gather deposits, originate a loan book, earn the spread. Underwrite loosely and charge-offs will find you. An optional insurance book adds premiums vs. claims.",
+3245 revenueLabel:"Lending & Underwriting", accountLabel:"Commercial Clients",
+3246 deptLabels:{ sales:"Lending", marketing:"Deposit Growth", product:"Risk & Underwriting", support:"Client Services", finance:"Treasury", operations:"Back Office" },
+3247 accounts:{ Enterprise:["Argent Holdings","Meridian Health Payroll","Vantage Fleet Financing"],
+3248 "Mid-Market":["Harbor Analytics","Nimbus Foods","Cobalt Studio"],
+3249 Small:["Willow Cafe","Redstone Fitness","Fenwick Group"] },
+3250 roles:{
+3251 sales:["Loan Officer","Senior Loan Officer","Branch Lending Lead","Lending Manager","Director of Lending","Chief Lending Officer"],
+3252 marketing:["Deposit Marketing Specialist","Marketing Coordinator","Campaign Lead","Marketing Manager","Director of Growth","Chief Marketing Officer"],
+3253 product:["Underwriter","Senior Underwriter","Risk Lead","Risk Manager","Director of Risk","Chief Risk Officer"],
+3254 support:["Teller","Head Teller","Client Service Lead","Branch Manager","Director of Client Service","Chief Customer Officer"],
+3255 finance:["Treasury Analyst","Treasury Coordinator","Treasury Lead","Treasury Manager","Director of Treasury","Chief Financial Officer"],
+3256 operations:["Operations Clerk","Settlement Coordinator","Ops Lead","Ops Manager","Director of Operations","Chief Operating Officer"],
+3257 hr:["Recruiter","People Coordinator","People Team Lead","HR Manager","Director of People","Chief People Officer"]
+3258 }
+3259 },
+3260 };
+3261 const INDUSTRY_KEYS = ["ai_saas","retail","restaurant","robotics","finance"];
+3262 function industryOf(co){ return INDUSTRIES[(co && co.industry) || "ai_saas"] || INDUSTRIES.ai_saas; }
+
+=== FILE: art-core.js  LINES 7635-7700
+7635 (c.employees||[]).forEach(e=>{ if(e.lineId===undefined) e.lineId = null; });
+7636 }
+7637
+7638 /* ---------------- Line crews: dedicated staff per operating line ---------------- */
+7639 const LINE_CREW_DEF = {
+7640 retail: { dept:"sales", label:"Store Associate", noun:"store" },
+7641 restaurant: { dept:"support", label:"Server / FOH", noun:"restaurant" },
+7642 robotics: { dept:"operations", label:"Assembly Technician", noun:"production line" }
+7643 };
+7644 const LINE_REQ_CREW = {
+7645 kiosk:2, shop:4, flagship:9, store:4, boutique:5,
+7646 truck:3, bistro:8, fine:15,
+7647 cell:4, line:10, plant:22
+7648 };
+7649 function opsLines(co){
+7650 const o = (co||G.company).ops; if(!o) return [];
+7651 return o.stores || o.locations || o.lines || [];
+7652 }
+7653 function lineReqCrew(l){
+7654 if(LINE_REQ_CREW[l.key]) return LINE_REQ_CREW[l.key];
+7655 if(l.baseDemand) return Math.max(2, Math.round(l.baseDemand/900));
+7656 if(l.baseCovers) return Math.max(3, Math.round(l.baseCovers/260));
+7657 if(l.capacity) return Math.max(4, Math.round(l.capacity/1.3));
+7658 return 4;
+7659 }
+7660 function lineCrew(l){ return (G.company.employees||[]).filter(e=>e.lineId===l.id); }
+7661 function lineStaffRatio(l){
+7662 const req = lineReqCrew(l);
+7663 const have = lineCrew(l).length;
+7664 if(have===0) return 0.4; // skeleton crew from HQ staff
+7665 return clamp(0.4 + 0.75*(have/req), 0.4, 1.2); // full crew ~1.15, overstaffed caps at 1.2
+7666 }
+7667 function lineStaffLabel(l){
+7668 const r = lineStaffRatio(l), have = lineCrew(l).length, req = lineReqCrew(l);
+7669 const cls = have>=req ? "good" : have >= req*0.6 ? "" : "bad";
+7670 return `<span class="pill ${cls}">${have}/${req} crew \u00b7 ${Math.round(r*100)}% output</span>`;
+7671 }
+7672 function crewDefForOps(){ return LINE_CREW_DEF[(G.company.ops||{}).type] || null; }
+7673 function hireLineCrew(l, qty){
+7674 const def = crewDefForOps(); if(!def) return 0;
+7675 const room = headcountCap() - G.company.employees.length - G.ui.queue.filter(q=>q.hireDept).length;
+7676 qty = Math.min(qty, Math.max(0, room));
+7677 if(qty<=0){ alert("Office/headcount cap is full \u2014 upgrade your workspace first."); return 0; }
+7678 for(let i=0;i<qty;i++){
+7679 queueAdd({ id:uid(), label:`Hire ${def.label} \u2014 ${l.name}`, hireDept:def.dept, hireRung:"rep", run:(report)=>{
+7680 const e = hire(def.dept, "rep");
+7681 e.lineId = l.id; e.lineName = l.name;
+7682 report.push(`${e.name} joined ${l.name} as ${def.label}.`);
+7683 }});
+7684 }
+7685 return qty;
+7686 }
+7687
+7688 /* ---------------- Ops resolvers, now crew-aware ---------------- */
+7689 function opsResolveRetail(co, report){
+7690 const o = co.ops;
+7691 if(o.stores.length===0){ o.lastNet=0; o.lastGross=0; return 0; }
+7692 const assoc = rungCount("sales","rep");
+7693 const merch = rungCount("product","rep");
+7694 const supply = rungCount("operations","rep");
+7695 const price = 42 * o.priceTier;
+7696 const unitCost = 19 * (supply>0 ? 0.92 : 1);
+7697 const elasticity = o.priceTier>1.1 ? 0.8 : o.priceTier<0.95 ? 1.18 : 1;
+7698 let gross=0, cogs=0, rent=0, sold=0, stockouts=0, understaffed=[];
+7699 o.stores.forEach(s=>{
+7700 rent += s.rent;
+
+=== FILE: art-core.js  LINES 8267-8300
+8267 const FACILITIES = [
+8268 { key:"annex", name:"Office Annex", cost:150000, rent:9000, cap:150, icon:"\u{1F3E2}" },
+8269 { key:"campus", name:"Corporate Campus", cost:750000, rent:38000, cap:900, icon:"\u{1F3DB}\uFE0F" },
+8270 { key:"tower", name:"Headquarters Tower", cost:3200000, rent:135000, cap:3000, icon:"\u{1F3EC}" },
+8271 { key:"global", name:"Global Campus Network", cost:12000000, rent:430000, cap:9000, icon:"\u{1F30D}" }
+8272 ];
+8273 function v17Migrate(){
+8274 const c = G.company; if(!c) return;
+8275 if(typeof c.marketingBudget !== "number") c.marketingBudget = 0;
+8276 if(!c.mkt) c.mkt = { spendTotal:0, leads:0, mrrTotal:0, months:0, last:{ spend:0, leads:0, mrr:0 } };
+8277 if(!c.facilities) c.facilities = [];
+8278 if(!c.product) c.product = { maturity:5, features:[], inProgress:null, shipped:[] };
+8279 if(!c.product.active) c.product.active = c.product.inProgress ? [ { ...c.product.inProgress } ] : [];
+8280 if(!c.acquisitions) c.acquisitions = [];
+8281 if(typeof c.acquiredShare !== "number") c.acquiredShare = 0;
+8282 }
+8283 function facilityCap(){ return (G.company.facilities||[]).reduce((s,f)=>s+f.cap, 0); }
+8284 function facilityRent(){ return (G.company.facilities||[]).reduce((s,f)=>{ const r=Number(f&&f.rent); return s + (isFinite(r)? r : 0); }, 0); }
+8285 function headcountCap(){
+8286 let cap = HEADCOUNT_CAP[G.company.hqStage] || 8;
+8287 if(deptHas("operations","manager")) cap += 5;
+8288 if(deptHas("operations","coo")) cap += 15;
+8289 return cap + facilityCap();
+8290 }
+8291 function facilitiesSection(){
+8292 v17Migrate();
+8293 const c = G.company;
+8294 const owned = c.facilities || [];
+8295 const box = el(`<div class="card mt14"><h3>\u{1F3D7}\uFE0F Facilities & Campus</h3>
+8296 <div class="muted mb8" style="font-size:12px;">Headcount capacity: <b>${c.employees.length}</b> on team of <b>${headcountCap()}</b> (base office ${HEADCOUNT_CAP[c.hqStage]||8} + ${facilityCap()} from facilities). Facilities are permanent and stack, so you can buy several of the same kind. Combined facility rent: <b>${fmt$(facilityRent())}/mo</b>.</div>
+8297 <div class="flexrow" style="gap:6px;flex-wrap:wrap;">
+8298 ${FACILITIES.map(f=>`<button class="btn secondary small" data-v17fac="${f.key}">${f.icon} Build ${f.name} \u2014 ${fmt$(f.cost)} \u00b7 +${f.cap.toLocaleString()} seats \u00b7 ${fmt$(f.rent)}/mo</button>`).join("")}
+8299 </div>
+8300 ${owned.length? `<div class="mt8">${owned.map(f=>`<span class="pill good">${f.icon||"\u{1F3E2}"} ${f.name} \u00b7 +${f.cap.toLocaleString()} seats \u00b7 ${fmt$(f.rent)}/mo</span>`).join(" ")}</div>`
+
+=== FILE: art-core.js  LINES 8900-8950
+8900 G.company.cash += amt;
+8901 p.monthEvents.push(`Invested ${fmt$(amt)} of personal cash into ${G.company.name}`);
+8902 logHistory(`Founder injected ${fmt$(amt)} of personal capital.`);
+8903 toast(`<b>${fmt$(amt)} injected.</b> Company cash is now ${fmt$(G.company.cash)}; your personal cash is ${fmt$(p.cash)}.`);
+8904 renderAll();
+8905 }
+8906
+8907 /* ---------------- 4. Founder hustle, per industry ---------------- */
+8908 const FOUNDER_ACTIONS_BY_INDUSTRY = {
+8909 ai_saas: [
+8910 { key:"outreach", label:"\u{1F976} Cold Outreach Pitch", desc:"Pitch small prospects yourself \u2014 no reps needed." },
+8911 { key:"consulting", label:"\u{1F4BC} Paid Implementation Gig", desc:"Bill a client for setup work. One-time cash." },
+8912 { key:"network", label:"\u{1F91D} Work the Network", desc:"Founder meetups and referrals." },
+8913 { key:"v18_demo", label:"\u{1F4BB} Run a Live Demo Day", desc:"Host a public demo. Shot at two clients at once." },
+8914 { key:"content", label:"\u270D\uFE0F Write a Viral Post", desc:"Publish under your own name for buzz." },
+8915 { key:"negotiate", label:"\u{1F911} Renegotiate a Vendor Contract", desc:"Trim a recurring cost." },
+8916 ],
+8917 retail: [
+8918 { key:"v18_sidewalk", label:"\u{1F6CD}\uFE0F Work the Sales Floor", desc:"Spend the week selling in-store. Direct cash bump." },
+8919 { key:"v18_supplier", label:"\u{1F4E6} Squeeze a Supplier", desc:"Negotiate better unit costs on your next restock." },
+8920 { key:"v18_popup", label:"\u26FA Run a Weekend Pop-Up", desc:"One-time cash from a market stall." },
+8921 { key:"network", label:"\u{1F91D} Court a Landlord", desc:"Better lease terms and a shot at a wholesale account." },
+8922 { key:"content", label:"\u{1F4F8} Local Press & Social Push", desc:"Free foot traffic if it lands." },
+8923 { key:"negotiate", label:"\u{1F911} Renegotiate a Vendor Contract", desc:"Trim a recurring cost." },
+8924 ],
+8925 restaurant: [
+8926 { key:"v18_kitchen", label:"\u{1F468}\u200D\u{1F373} Work the Line Yourself", desc:"Cover shifts. Saves labor cash this month." },
+8927 { key:"v18_tasting", label:"\u{1F37D}\uFE0F Host a Tasting Night", desc:"Fill seats and win regulars." },
+8928 { key:"v18_critic", label:"\u{1F4DD} Invite a Food Critic", desc:"High risk, high reward reputation swing." },
+8929 { key:"v18_catering", label:"\u{1F372} Take a Catering Job", desc:"One-time cash from an event." },
+8930 { key:"network", label:"\u{1F91D} Work the Local Scene", desc:"Suppliers, chefs, and referrals." },
+8931 { key:"negotiate", label:"\u{1F911} Renegotiate a Food Contract", desc:"Trim recurring food cost." },
+8932 ],
+8933 robotics: [
+8934 { key:"v18_prototype", label:"\u{1F527} Bench-Build a Prototype", desc:"Personally shave time off the next unit." },
+8935 { key:"v18_pilot", label:"\u{1F3ED} Land a Pilot Install", desc:"Pitch a plant manager on a paid pilot." },
+8936 { key:"v18_grant", label:"\u{1F4DC} Chase an R&D Grant", desc:"Paperwork now, one-time non-dilutive cash if it lands." },
+8937 { key:"v18_tradeshow", label:"\u{1F916} Work a Trade Show Booth", desc:"Industrial buyers in one room." },
+8938 { key:"network", label:"\u{1F91D} Work the Network", desc:"Integrators and distributors." },
+8939 { key:"negotiate", label:"\u{1F911} Renegotiate a Parts Contract", desc:"Trim recurring component cost." },
+8940 ],
+8941 finance: [
+8942 { key:"v18_bigdep", label:"\u{1F3E6} Court a Large Depositor", desc:"Personally land a commercial deposit relationship." },
+8943 { key:"v18_loanpitch", label:"\u{1F4CB} Originate a Loan Yourself", desc:"Write one good-quality loan by hand." },
+8944 { key:"v18_reinsure", label:"\u{1F6E1}\uFE0F Negotiate Reinsurance", desc:"Cap your claims exposure for the year." },
+8945 { key:"v18_regulator", label:"\u{1F3DB}\uFE0F Charm the Regulator", desc:"Smoother exams, fewer surprises, small reputation lift." },
+8946 { key:"network", label:"\u{1F91D} Work the Chamber of Commerce", desc:"Deposits and loan leads." },
+8947 { key:"negotiate", label:"\u{1F911} Renegotiate a Core Systems Contract", desc:"Trim a recurring cost." },
+8948 ]
+8949 };
+8950 function founderActionsForIndustry(){
+
+=== FILE: art-core.js  LINES 4770-4790
+4770 if(!deptHas("support","rep") && (c.clients||[]).length>3) gaps.push("Support \u2014 client health has no coverage");
+4771 if((c.product&&c.product.maturity<40)) gaps.push("Product/engineering \u2014 maturity is low");
+4772 if(!deptHas("finance","cfo") && c.debt.loanBalance>0) gaps.push("a CFO \u2014 cuts your interest rates 40%");
+4773 return `Headcount ${c.employees.length}/${cap}. Payroll ${fmt$(c.employees.reduce((s,e)=>s+e.salary,0))}/mo against ${fmt$(Math.round(rev))}/mo revenue.<br>${gaps.length? "Biggest gaps: "+gaps.join("; ")+"." : "Coverage looks balanced \u2014 promote before you add headcount."}`;
+4774 }
+4775 if(/grow|faster|scale|revenue|expand/.test(t)){
+4776 const ind = c.industry||"ai_saas";
+4777 const play = { retail:"open another store format and push the price tier up a notch once demand holds",
+4778 restaurant:"add a location, but only after quality is above 60 \u2014 bad inspections are expensive",
+4779 robotics:"finish the R&D program in flight, then add production capacity to clear backlog",
+4780 finance:"raise deposits first, then lend up to ~80% of them at balanced underwriting",
+4781 ai_saas:"pair a sales rung with a shipped feature \u2014 pipeline plus product beats either alone" }[ind];
+4782 return `At ${fmt$(Math.round(rev))}/mo, your fastest lever in ${industry().name} is to ${play}.<br>Then reinvest: ${c.cash>rev*4? "you're sitting on cash, deploy it" : "fund it with the credit line rather than stalling"}.`;
+4783 }
+4784 if(/overpay|salary|payroll|cost|cut/.test(t)){
+4785 const sorted = [...c.employees].sort((a,b)=>b.salary-a.salary).slice(0,3);
+4786 const weak = c.employees.filter(e=>e.performance<45);
+4787 return `Payroll is ${fmt$(c.employees.reduce((s,e)=>s+e.salary,0))}/mo. Top earners: ${sorted.map(e=>`${e.name} (${fmt$(e.salary)})`).join(", ")||"none"}.<br>${weak.length? `Underperformers to coach or cut: ${weak.map(e=>e.name).join(", ")}.` : "No clear underperformers \u2014 cutting here would cost you output."}`;
+4788 }
+4789 if(/equity|stock|option|cap table|vest|dilut/.test(t)){
+4790 const e = eq(c);
 
 === FILE: art-core.js
-=== PATTERN: (const|let|var)\s+(INDUSTRIES|LADDERS|DOCK_ITEMS|DOCK_GROUPS|HQ_STAGES|FACILITIES|FACILITY)\s*=
-75:const LADDERS = {
-1466:const DOCK_ITEMS = [
-3177:const INDUSTRIES = {
-4520:const DOCK_GROUPS = [
-8267:const FACILITIES = [
+=== PATTERN: (nail_salon|agency|trucking)
 
-=== FILE: art-core.js
-=== PATTERN: ^\s{0,8}(ai_saas|trucking|nail_salon|restaurant|robotics|finance|retail|agency)\s*:
-128:  finance: { label:"Finance", icon:"💰", rungs:[
-1781:  finance:[ {key:"tighten",label:"Tighten Budget"}, {key:"invest",label:"Push Investment Returns"} ],
-3178:  ai_saas: {
-3188:  retail: {
-3201:      finance:["Store Accountant","Finance Coordinator","Finance Team Lead","Finance Manager","Director of Finance","Chief Financial Officer"],
-3206:  restaurant: {
-3219:      finance:["Bookkeeper","Finance Coordinator","Finance Team Lead","Finance Manager","Director of Finance","Chief Financial Officer"],
-3224:  robotics: {
-3237:      finance:["Cost Accountant","Finance Coordinator","Finance Team Lead","Finance Manager","Director of Finance","Chief Financial Officer"],
-3242:  finance: {
-3255:      finance:["Treasury Analyst","Treasury Coordinator","Treasury Lead","Treasury Manager","Director of Treasury","Chief Financial Officer"],
-4778:      restaurant:"add a location, but only after quality is above 60 \u2014 bad inspections are expensive",
-4779:      robotics:"finish the R&D program in flight, then add production capacity to clear backlog",
-4780:      finance:"raise deposits first, then lend up to ~80% of them at balanced underwriting",
-4781:      ai_saas:"pair a sales rung with a shipped feature \u2014 pipeline plus product beats either alone" }[ind];
-7640:  retail:      { dept:"sales",      label:"Store Associate",     noun:"store" },
-7641:  restaurant:  { dept:"support",    label:"Server / FOH",        noun:"restaurant" },
-7642:  robotics:    { dept:"operations", label:"Assembly Technician", noun:"production line" }
-8236:  finance: {
-8909:  ai_saas: [
-8917:  retail: [
-8925:  restaurant: [
-8933:  robotics: [
-8941:  finance: [
-15381:  finance:    ["Accounting", "FP&A", "Treasury", "Procurement"],
+=== FILE: 50-v429-v432.js
+=== PATTERN: (nail_salon|agency|INDUSTRIES\[|INDUSTRIES\.)
+334:  if(typeof INDUSTRIES !== "undefined" && INDUSTRIES && INDUSTRIES.trucking){
+335:    INDUSTRIES.trucking.deptLabels = INDUSTRIES.trucking.deptLabels || {};
+336:    INDUSTRIES.trucking.deptLabels.operations = "Fleet, Drivers & Maintenance";
+337:    INDUSTRIES.trucking.deptLabels.sales = "Freight Sales";
+338:    try{ delete INDUSTRIES.trucking.deptLabels.drivers; }catch(e){}
+339:    try{ delete INDUSTRIES.trucking.roles.drivers; }catch(e){}
+354:      var old = (INDUSTRIES.trucking.roles && INDUSTRIES.trucking.roles[dk]) || [];
+355:      INDUSTRIES.trucking.roles[dk] = LADDERS[dk].rungs.map(function(r, i){
+1032:     robotics and finance do. SaaS, salon, trucking and agency do not. */
 
-=== FILE: art-core.js
-=== PATTERN: function\s+(usesOps|IND|industryCfg|industryOf|isFleet)
-3262:function industryOf(co){ return INDUSTRIES[(co && co.industry) || "ai_saas"] || INDUSTRIES.ai_saas; }
-
-=== FILE: art-core.js
-=== PATTERN: (opsType|v45)\s*:\s*["']
-3189:    key:"retail", label:"Retail Chain", icon:"\u{1F6CD}\uFE0F", startCash:45000, opsType:"retail",
-3207:    key:"restaurant", label:"Restaurant Group", icon:"\u{1F37D}\uFE0F", startCash:40000, opsType:"restaurant",
-3225:    key:"robotics", label:"Robotics Manufacturer", icon:"\u{1F9BE}", startCash:60000, opsType:"robotics",
-3243:    key:"finance", label:"Bank & Insurance", icon:"\u{1F3E6}", startCash:150000, opsType:"finance",
-
-=== FILE: art-core.js
-=== PATTERN: function\s+(renderFacilitiesTab|renderBusinessHQ|renderExpansion|renderPeople|renderHiring|renderClients|renderProduct)
-1952:function renderExpansionBucket(){
-2446:function renderClients(){
-2545:function renderProduct(){
-8363:function renderProduct(){
-9336:function renderFacilitiesTab(){
-9558:function renderBusinessHQ(){
-
-=== FILE: art-core.js
-=== PATTERN: c\.industry\s*===|company\.industry\s*===|industry\s*===\s*["']
-5861:    const owned = (G.companies||[]).some(c=>c.industry===k);
-8806:function isFinanceCo(co){ return ((co||G.company).industry === "finance"); }
-13741:  const cfg = (typeof industry==="function") ? industry() : { icon:"\u{1F4BC}" };
-
-=== FILE: art-core.js
-=== PATTERN: function\s+(hire|canHire|rungAvailable|ladderFor|rungsFor)
-361:function hire(deptKey, rungKey){
-4481:function hireGateAllows(item){
-7673:function hireLineCrew(l, qty){
-8170:function hireGateAllows(){ return true; }
+=== FILE: 60-v433-v437.js
+=== PATTERN: (nail_salon|agency|INDUSTRIES\[|INDUSTRIES\.)
 
 === FILE: 40-v428-trucking.js
-=== PATTERN: (usesOps|isFleet|industry\s*===|gateDock|LADDERS)
-214:function usesOps(){
-220:window.__v426UsesOps = usesOps;
-221:function gateDock(){
-225:  var show = usesOps();
-237:window.__v426GateDock = gateDock;
+=== PATTERN: (INDUSTRIES\[|INDUSTRIES\.|roles\s*:)
+216:    var cfg = INDUSTRIES[IND()];
+230:      var cfg = INDUSTRIES[IND()];
 256:function isFleet(){ try{ return INDUSTRIES[IND()].v45 === "fleet"; }catch(e){ return false; } }
-257:window.__v426IsFleet = isFleet;
-321:  if(!isFleet()) return null;
-450:  if(!isFleet()) return null;
-759:  try{ depts = DEPT_KEYS.slice(); }catch(e){ try{ depts = Object.keys(LADDERS); }catch(e2){ depts = []; } }
-763:  try{ rungs = LADDERS[dept].rungs; }catch(e){ return null; }
-940:    var r = LADDERS[e.dept].rungs.filter(function(x){ return x.key === e.rung; })[0];
-1172:function isTruck(){ var c=C(); return !!(c && c.industry === "trucking"); }
-1461:      if(c && (!co || co === c) && c.industry === "trucking" && c.__v427) base += num(c.__v427.lastGross, 0);
-1723:function isTruck(){ var x=c(); return !!(x && x.industry === "trucking"); }
-1908:function isTruck(){ var c = C(); return !!c && c.industry === "trucking"; }
-1943:  if(typeof LADDERS === "undefined" || !LADDERS || !LADDERS.sales) return;
-1945:  if(!LADDERS.drivers){
-1946:    LADDERS.drivers = { label:"Drivers & Fleet", icon:"\u{1F69B}", rungs: clone(DRIVER_RUNGS) };
-1948:  if(typeof BASE_LADDERS !== "undefined" && BASE_LADDERS && !BASE_LADDERS.drivers){
-1949:    BASE_LADDERS.drivers = { label:"Drivers & Fleet", icon:"\u{1F69B}", rungs: clone(DRIVER_RUNGS) };
 1963:  /* applyIndustryLabels() indexes BASE_LADDERS and INDUSTRIES[*].roles positionally,
-1964:     so any splice into LADDERS.sales must be mirrored into both. */
-1965:  var rungs = LADDERS.sales.rungs;
-1968:    if(typeof BASE_LADDERS !== "undefined" && BASE_LADDERS && BASE_LADDERS.sales){
-1969:      Array.prototype.push.apply(BASE_LADDERS.sales.rungs, clone(SALES_SPECIALISTS));
-1984:      var cfg = (typeof industry === "function") ? industry() : null;
-1986:        var L = LADDERS[dk], B = (typeof BASE_LADDERS !== "undefined" && BASE_LADDERS[dk]) || null;
-2207:      if(typeof LADDERS !== "undefined" && LADDERS.sales){
-2208:        var r = LADDERS.sales.rungs;
-2216:      if(pulledRungs.length && LADDERS.sales){
-2217:        pulledRungs.forEach(function(pair){ LADDERS.sales.rungs.splice(pair[0], 0, pair[1]); });
-2243:     applyIndustryLabels() reads BASE_LADDERS[dk].rungs[i].label positionally.
-2244:     BASE_LADDERS was snapshotted before later patches appended rungs to
-2245:     LADDERS, so any rung past the snapshot threw and killed the HR render. */
-2247:    if(typeof LADDERS==="undefined" || typeof BASE_LADDERS==="undefined") return;
-2248:    Object.keys(LADDERS).forEach(function(dk){
-2249:      var live = LADDERS[dk]; if(!live || !live.rungs) return;
-2250:      if(!BASE_LADDERS[dk]) BASE_LADDERS[dk] = { label: live.label, rungs: [] };
-2251:      var base = BASE_LADDERS[dk];
+1973:  if(typeof INDUSTRIES !== "undefined" && INDUSTRIES && INDUSTRIES.trucking){
+1974:    INDUSTRIES.trucking.deptLabels = INDUSTRIES.trucking.deptLabels || {};
+1975:    INDUSTRIES.trucking.deptLabels.drivers = "Drivers & Fleet";
+1976:    INDUSTRIES.trucking.deptLabels.sales = INDUSTRIES.trucking.deptLabels.sales || "Freight Sales";
 
