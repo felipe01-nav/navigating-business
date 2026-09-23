@@ -1,3 +1,4 @@
-113-icons.js|^\s*"?[A-Za-z_]+"?\s*:\s*"data:image
-113-icons.js|groupMap
-113-icons.js|itemMap
+113-icons.js|GROUP_ICON
+113-icons.js|ITEM_ICON
+113-icons.js|data:image
+113-icons.js@1-60
