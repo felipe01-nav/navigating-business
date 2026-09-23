@@ -1,5 +1,3 @@
-10-core-v40-v46.js|[^ -~]
-104-dock-shape.js|[^ -~]
-111-expansion-scope.js|[^ -~]
-112-kpi-scope.js|[^ -~]
-30-v410-v427.js|[^ -~]
+art-core.js|(function svgIcon|SHOPTAB_ICON|ICON_[A-Z]*\s*=|ICONS\s*=|SVG_ICONS|const DOCK_GROUPS|const DOCK_ITEMS)
+20-*.js|\\\\u[0-9A-Fa-f]{4}
+50-*.js|\\\\u[0-9A-Fa-f]{4}
