@@ -1,10 +1,11 @@
 # <file>|<regex> for grep, <file>@<start>-<end> for a line range.
-# v4.61 audit: which surfaces are industry-aware, and which are not.
-art-core.js|(const|let|var)\s+(INDUSTRIES|LADDERS|DOCK_ITEMS|DOCK_GROUPS|HQ_STAGES|FACILITIES|FACILITY)\s*=
-art-core.js|^\s{0,8}(ai_saas|trucking|nail_salon|restaurant|robotics|finance|retail|agency)\s*:
-art-core.js|function\s+(usesOps|IND|industryCfg|industryOf|isFleet)
-art-core.js|(opsType|v45)\s*:\s*["']
-art-core.js|function\s+(renderFacilitiesTab|renderBusinessHQ|renderExpansion|renderPeople|renderHiring|renderClients|renderProduct)
-art-core.js|c\.industry\s*===|company\.industry\s*===|industry\s*===\s*["']
-art-core.js|function\s+(hire|canHire|rungAvailable|ladderFor|rungsFor)
-40-v428-trucking.js|(usesOps|isFleet|industry\s*===|gateDock|LADDERS)
+# v4.61 audit, pass 2: what each industry actually defines.
+art-core.js@3177-3262
+art-core.js@7635-7700
+art-core.js@8267-8300
+art-core.js@8900-8950
+art-core.js@4770-4790
+art-core.js|(nail_salon|agency|trucking)
+50-v429-v432.js|(nail_salon|agency|INDUSTRIES\[|INDUSTRIES\.)
+60-v433-v437.js|(nail_salon|agency|INDUSTRIES\[|INDUSTRIES\.)
+40-v428-trucking.js|(INDUSTRIES\[|INDUSTRIES\.|roles\s*:)
