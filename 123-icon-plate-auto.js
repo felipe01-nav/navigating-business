@@ -1,63 +1,69 @@
-/* 123-icon-plate-auto.js — v4.76
+/* 123-icon-plate-auto.js — v4.77
    =====================================================================
    WHY THIS FILE EXISTS
    --------------------
-   v4.75 gave every icon the same backing plate. That was wrong, and the
-   error was one of assumption: a single plate colour only works if every
-   icon carries roughly the same tonal weight. Ours do not.
+   v4.75 gave every icon the same backing plate, which only works if
+   every icon carries the same tonal weight. Ours do not: compass, house
+   and bank have large pale fills, while person and lock are near-black
+   silhouettes. So the plate must be chosen per icon.
 
-     - compass, house, bank, factory: large pale fills. Already bright.
-       Put them on a light plate and the artwork dissolves into it.
-     - person, lock: solid dark silhouettes. On the dark rail they are
-       nearly invisible, and a light plate rescues them completely.
-     - chart, handshake, crane: mostly line. Somewhere in between.
+   v4.76 did that, by measuring each icon and splitting on a threshold.
+   It was still wrong, and the live measurements proved it. The light
+   plate was #9FB0C4, whose own luminance is 0.424. The compass measures
+   0.405. Clipboard 0.434. Target 0.435. Those icons were being placed on
+   a plate the same brightness as themselves — a contrast ratio of about
+   1.04:1, which is to say none. The frosted compass was handed a frosted
+   background.
 
-   So the plate cannot be a global setting. It has to be chosen per icon,
-   and the only honest way to choose is to look at the icon.
+   The threshold was not the problem. Sorted, the 36 measured icons show
+   their widest mid-range gap between 0.435 and 0.510, so 0.45 sat in the
+   natural valley. The problem was that the "light" member was not light.
 
-   HOW IT WORKS
-   ------------
+   HOW IT WORKS NOW
+   ----------------
    Each distinct icon source is drawn once into an offscreen canvas and
    its pixels read back. We take the mean relative luminance of every
-   pixel with meaningful alpha — transparent margin is ignored, or a
-   tightly-cropped icon and a loosely-cropped one would score
-   differently for no reason that matters visually.
+   pixel above alpha 32 — transparent margin ignored, so crop tightness
+   cannot skew the score. Luminance uses the sRGB coefficients (0.2126 R,
+   0.7152 G, 0.0722 B) on linearised channels, not a naive channel
+   average, which would rate saturated blue and saturated yellow as
+   equally bright. They are not remotely.
 
-   Relative luminance uses the sRGB coefficients (0.2126 R, 0.7152 G,
-   0.0722 B) on linearised channels, the same maths WCAG contrast uses,
-   rather than a naive (R+G+B)/3 — which would rate a saturated blue and
-   a saturated yellow as equally bright, and they are not remotely.
+   Then, instead of a threshold, the plate is chosen by arithmetic. Each
+   family offers two members of known luminance, and we compute the WCAG
+   contrast ratio of the icon against each:
 
-   Then, simply:
+       ratio = (lighter + 0.05) / (darker + 0.05)
 
-     mean luminance BELOW the threshold -> the icon is dark   -> LIGHT plate
-     mean luminance ABOVE the threshold -> the icon is light  -> DEEP plate
+   The winner is whichever ratio is larger. No dividing line to tune, and
+   an icon can never again be placed on a plate of its own brightness:
+   that outcome scores 1.0 and always loses.
 
-   A deep plate is not "no plate". It is a tile slightly raised from the
-   #20242c rail with a faint light hairline, so a pale icon still sits on
-   a defined placard and the dock keeps one consistent shape language.
-   Every icon gets a tile; only the tile's lightness varies.
+   The light member is now #C6D2DF (luminance 0.63) rather than 0.42, so
+   it is genuinely light. Still short of white — white is 1.00, and a
+   dozen white tiles on a #15171c page is a dozen small headlights, which
+   was the thing to avoid in the first place. The deep member is a tile
+   raised slightly off the #20242c rail with a faint hairline, not an
+   absence of plate, so the dock keeps one shape language throughout.
 
-   COLOUR FAMILY
-   -------------
-   The light and deep members are drawn from whichever family you chose
-   in v4.75 (NBIconPlate), so your taste in hue is preserved and only the
-   lightness is decided automatically. Change family and both members
-   move together:
-
-       NBIconPlate.set('warm')     then reload, or
-       NBIconPlateAuto.refresh()
+   On these measurements the crossover lands near luminance 0.19, so the
+   genuinely dark artwork — crane, camera, chat, bank, factory, chart —
+   takes the light plate, and everything mid or pale takes the deep one.
+   That is the correct answer even though it looks lopsided: a pale icon
+   needs a dark ground, and most of these icons are pale.
 
    CONSOLE
    -------
-       NBIconPlateAuto.report()            what each icon measured, and
-                                           which plate it was given
-       NBIconPlateAuto.setKey('compass','light')   force one icon
-       NBIconPlateAuto.threshold(0.5)      move the dividing line
-       NBIconPlateAuto.off()               back to the uniform v4.75 plate
+       NBIconPlateAuto.report()          every icon, its luminance, both
+                                         candidate ratios, and the winner
+       NBIconPlateAuto.setKey('compass','light')   pin one icon
+       NBIconPlateAuto.setKey('compass','auto')    release it
+       NBIconPlateAuto.threshold(0.45)   revert to fixed-threshold mode
+       NBIconPlateAuto.contrast()        back to automatic
+       NBIconPlateAuto.recompute()       remeasure from scratch
+       NBIconPlateAuto.off()             uniform v4.75 plate again
 
-   Measurements are cached in localStorage, so this costs nothing after
-   the first load. Off with ?noplateauto=1.
+   Measurements cache in localStorage. Off with ?noplateauto=1.
    ===================================================================== */
 (function () {
   "use strict";
@@ -69,38 +75,48 @@
   window.__nbPlateAuto476 = true;
 
   var CACHE = "nb.icoLum.v1";
-  var PREFS = "nb.icoPlateAuto.v1";
+  var PREFS = "nb.icoPlateAuto.v2";   /* v2: v4.76's threshold pref is retired */
 
-  /* Light and deep members of each family. The light member is the one
-     shipped in v4.75; the deep member is its counterpart, lifted just
-     far enough off the #20242c rail to read as a tile. */
+  /* Two members per family, each with its measured luminance recorded
+     alongside, so the contrast arithmetic never has to parse a colour
+     string at runtime — and so a translucent member can declare its
+     effective value over the #20242c rail rather than pretend to be
+     opaque. RAIL itself is 0.0175. */
   var FAMILY = {
-    slate: { light: "#9FB0C4", deep: "#2B323E",
-             lightEdge: "rgba(255,255,255,.14)", deepEdge: "rgba(255,255,255,.10)" },
-    warm:  { light: "#C9BEA6", deep: "#37322A",
-             lightEdge: "rgba(255,255,255,.16)", deepEdge: "rgba(255,235,200,.10)" },
-    mist:  { light: "#8494A8", deep: "#262C35",
-             lightEdge: "rgba(255,255,255,.12)", deepEdge: "rgba(255,255,255,.08)" },
-    ghost: { light: "rgba(159,188,214,.18)", deep: "rgba(0,0,0,.26)",
-             lightEdge: "rgba(255,255,255,.08)", deepEdge: "rgba(255,255,255,.05)" },
-    off:   { light: "transparent", deep: "transparent",
-             lightEdge: "transparent", deepEdge: "transparent" }
+    slate: {
+      light: { css: "#C6D2DF", lum: 0.634, edge: "rgba(255,255,255,.16)" },
+      deep:  { css: "#2B323E", lum: 0.031, edge: "rgba(255,255,255,.10)" }
+    },
+    warm: {
+      light: { css: "#E0D7C4", lum: 0.684, edge: "rgba(255,255,255,.18)" },
+      deep:  { css: "#37322A", lum: 0.033, edge: "rgba(255,235,200,.10)" }
+    },
+    mist: {
+      light: { css: "#BDC8D4", lum: 0.569, edge: "rgba(255,255,255,.14)" },
+      deep:  { css: "#262C35", lum: 0.026, edge: "rgba(255,255,255,.08)" }
+    },
+    ghost: {
+      light: { css: "rgba(159,188,214,.35)", lum: 0.180, edge: "rgba(255,255,255,.08)" },
+      deep:  { css: "rgba(0,0,0,.35)",       lum: 0.011, edge: "rgba(255,255,255,.05)" }
+    },
+    off: null
   };
 
   function familyName() {
     try {
       var v = localStorage.getItem("nb.icoPlate");
-      if (v && FAMILY[v]) return v;
+      if (v && (FAMILY[v] || v === "off")) return v;
     } catch (e) {}
     return "slate";
   }
 
-  var prefs = { threshold: 0.45, forced: {}, enabled: true };
+  var prefs = { mode: "contrast", threshold: 0.45, forced: {}, enabled: true };
   try {
     var raw = localStorage.getItem(PREFS);
     if (raw) {
       var p = JSON.parse(raw);
       if (p && typeof p === "object") {
+        if (p.mode === "contrast" || p.mode === "threshold") prefs.mode = p.mode;
         if (typeof p.threshold === "number") prefs.threshold = p.threshold;
         if (p.forced && typeof p.forced === "object") prefs.forced = p.forced;
         if (typeof p.enabled === "boolean") prefs.enabled = p.enabled;
@@ -112,7 +128,6 @@
     try { localStorage.setItem(PREFS, JSON.stringify(prefs)); } catch (e) {}
   }
 
-  /* key -> { lum, band, src }. Loaded from cache, filled in by measure(). */
   var measured = {};
   try {
     var c = localStorage.getItem(CACHE);
@@ -131,6 +146,12 @@
   function lin(v) {
     v = v / 255;
     return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  }
+
+  /* WCAG contrast ratio between two relative luminances. */
+  function ratio(a, b) {
+    var hi = a > b ? a : b, lo = a > b ? b : a;
+    return (hi + 0.05) / (lo + 0.05);
   }
 
   var canvas = null, ctx = null;
@@ -181,13 +202,30 @@
     img.src = src;
   }
 
-  function bandFor(key) {
-    if (prefs.forced[key] === "light" || prefs.forced[key] === "deep") {
-      return prefs.forced[key];
-    }
+  /* Returns { band, lightRatio, deepRatio } or null. */
+  function decide(key) {
+    var fam = FAMILY[familyName()];
+    if (!fam) return null;                       /* family 'off' */
+
+    var forced = prefs.forced[key];
     var m = measured[key];
-    if (!m || typeof m.lum !== "number") return null;
-    return m.lum < prefs.threshold ? "light" : "deep";
+    if (!m || typeof m.lum !== "number") {
+      return forced ? { band: forced, lightRatio: null, deepRatio: null } : null;
+    }
+
+    var lr = ratio(m.lum, fam.light.lum);
+    var dr = ratio(m.lum, fam.deep.lum);
+
+    var band;
+    if (forced === "light" || forced === "deep") band = forced;
+    else if (prefs.mode === "threshold") band = m.lum < prefs.threshold ? "light" : "deep";
+    else band = lr >= dr ? "light" : "deep";
+
+    return {
+      band: band,
+      lightRatio: Math.round(lr * 100) / 100,
+      deepRatio: Math.round(dr * 100) / 100
+    };
   }
 
   /* Inline styles, deliberately. 122's plate rules live in a stylesheet
@@ -199,9 +237,9 @@
     var src = el.getAttribute("src") || "";
     if (!src) return false;
 
-    if (!prefs.enabled) {
-      el.style.background = "";
-      el.style.boxShadow = "";
+    if (!prefs.enabled || !FAMILY[familyName()]) {
+      if (el.style.background) { el.style.background = ""; el.style.boxShadow = ""; }
+      el.__nbPlateBand = null;
       return false;
     }
 
@@ -210,18 +248,15 @@
       return false;
     }
 
-    var band = bandFor(key);
-    if (!band) return false;
+    var d = decide(key);
+    if (!d) return false;
 
-    var f = FAMILY[familyName()] || FAMILY.slate;
-    var fill = band === "light" ? f.light : f.deep;
-    var edge = band === "light" ? f.lightEdge : f.deepEdge;
+    if (el.__nbPlateBand === d.band && el.style.background) return false;
 
-    var want = fill;
-    if (el.__nbPlateBand === band && el.style.background) return false;
-    el.style.background = want;
-    el.style.boxShadow = "inset 0 0 0 1px " + edge + ", 0 1px 2px rgba(0,0,0,.34)";
-    el.__nbPlateBand = band;
+    var member = FAMILY[familyName()][d.band];
+    el.style.background = member.css;
+    el.style.boxShadow = "inset 0 0 0 1px " + member.edge + ", 0 1px 2px rgba(0,0,0,.34)";
+    el.__nbPlateBand = d.band;
     return true;
   }
 
@@ -267,22 +302,30 @@
     boot();
   }
 
+  function repaint() {
+    var list = document.querySelectorAll("img[data-nb-ico]");
+    for (var i = 0; i < list.length; i++) { list[i].__nbPlateBand = null; }
+    return apply();
+  }
+
   window.NBIconPlateAuto = {
-    version: "4.76",
-    refresh: function () {
-      var list = document.querySelectorAll("img[data-nb-ico]");
-      for (var i = 0; i < list.length; i++) { list[i].__nbPlateBand = null; }
-      return apply();
+    version: "4.77",
+    refresh: repaint,
+    contrast: function () {
+      prefs.mode = "contrast"; savePrefs(); repaint();
+      try { console.log("Plate chosen by measured contrast."); } catch (e) {}
+      return "contrast";
     },
     threshold: function (v) {
       if (typeof v !== "number" || v <= 0 || v >= 1) {
-        try { console.log("Threshold is " + prefs.threshold + ". Pass a number between 0 and 1."); } catch (e) {}
+        try {
+          console.log("Mode is '" + prefs.mode + "'. Pass a number between 0 and 1 " +
+                      "to switch to fixed-threshold mode, or call .contrast().");
+        } catch (e) {}
         return prefs.threshold;
       }
-      prefs.threshold = v;
-      savePrefs();
-      this.refresh();
-      try { console.log("Threshold " + v + " — icons darker than this get a light plate."); } catch (e) {}
+      prefs.mode = "threshold"; prefs.threshold = v; savePrefs(); repaint();
+      try { console.log("Fixed threshold " + v + " — darker than this gets a light plate."); } catch (e) {}
       return v;
     },
     setKey: function (key, band) {
@@ -292,8 +335,7 @@
         try { console.log("Band must be 'light', 'deep' or 'auto'."); } catch (e) {}
         return null;
       }
-      savePrefs();
-      this.refresh();
+      savePrefs(); repaint();
       return band;
     },
     off: function () {
@@ -307,33 +349,39 @@
       try { console.log("Per-icon plates off; the uniform v4.75 plate applies again."); } catch (e) {}
       return false;
     },
-    on: function () {
-      prefs.enabled = true; savePrefs();
-      return this.refresh();
-    },
-    recompute: function () {
-      measured = {}; saveCache();
-      return this.refresh();
-    },
+    on: function () { prefs.enabled = true; savePrefs(); return repaint(); },
+    recompute: function () { measured = {}; saveCache(); return repaint(); },
     report: function () {
-      var rows = [];
+      var fam = FAMILY[familyName()];
+      var rows = [], light = 0, deep = 0, weak = [];
       Object.keys(measured).sort().forEach(function (k) {
+        var d = decide(k) || {};
+        if (d.band === "light") light++; else if (d.band === "deep") deep++;
+        var won = d.band === "light" ? d.lightRatio : d.deepRatio;
+        if (typeof won === "number" && won < 2.0) weak.push(k + " (" + won + ":1)");
         rows.push({
           icon: k,
           luminance: measured[k].lum,
-          plate: bandFor(k),
+          onLight: d.lightRatio,
+          onDeep: d.deepRatio,
+          plate: d.band || null,
           forced: prefs.forced[k] ? true : false
         });
       });
       var out = {
-        version: "4.76",
+        version: "4.77",
         enabled: prefs.enabled,
+        mode: prefs.mode,
         family: familyName(),
-        threshold: prefs.threshold,
+        plateLuminance: fam ? { light: fam.light.lum, deep: fam.deep.lum } : null,
         measuredIcons: rows.length,
+        onLightPlate: light,
+        onDeepPlate: deep,
+        belowComfortable: weak.length ? weak : "none — every icon clears 2:1",
         icons: rows,
-        tip: "Darker than the threshold gets a LIGHT plate; lighter gets a DEEP one. " +
-             "Override one with NBIconPlateAuto.setKey('compass','deep')."
+        tip: "onLight and onDeep are the contrast ratios the icon would achieve " +
+             "on each plate; the larger one wins. Pin an exception with " +
+             "NBIconPlateAuto.setKey('compass','deep')."
       };
       try { console.log(JSON.stringify(out, null, 2)); } catch (e) { console.log(out); }
       return out;
@@ -341,6 +389,6 @@
   };
 
   try {
-    console.log("[v4.76] per-icon plates active. NBIconPlateAuto.report()");
+    console.log("[v4.77] plates chosen by measured contrast. NBIconPlateAuto.report()");
   } catch (e) {}
 })();
