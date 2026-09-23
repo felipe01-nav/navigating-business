@@ -1,11 +1,7 @@
 # <file>|<regex> for grep, <file>@<start>-<end> for a line range.
-# pass 10: dock styling owners.
-art-core.js|(dock-in|#dock\{|dock-btn\s*\{)
-art-merge.js|(dock-in|#dock|dock-btn)
-10-core-v40-v46.js|(dock-in|#dock|dock-btn)
-20-v47-v49.js|(dock-in|#dock|dock-btn)
-30-v410-v427.js|(dock-in|#dock|dock-btn)
-60-v433-v437.js|(dock-in|#dock|dock-btn)
-90-hq-stages.js|(dock-in|#dock|dock-btn)
-99-v454-ui.js|(dock-in|#dock|dock-btn)
-facilities.css|(dock-in|#dock|dock-btn)
+# pass 11: dock CSS blocks in context.
+10-core-v40-v46.js@1826-1852
+art-core.js@5700-5722
+art-core.js@10405-10440
+art-core.js@12340-12360
+art-core.js@10570-10595
