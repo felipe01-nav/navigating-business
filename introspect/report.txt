@@ -1,68 +1,20 @@
 # introspect report
-# generated: 2026-09-23 13:42:51Z
-# commit: 6aba5f9733653824c2984235720c07478c0272bb
+# generated: 2026-09-23 13:43:27Z
+# commit: 7f5c81891d36d81dbc1cb91a230d1bd8f9e9a5a6
 
-=== FILE: 10-core-v40-v46.js
-=== PATTERN: [^ -~]
-1404:/* ================= v4.5 — SMB starter businesses ================= */
-1834:/* ================= v4.6 — client tiers, reputation, budgets, hustle ================= */
+=== FILE: art-core.js
+=== PATTERN: (function svgIcon|SHOPTAB_ICON|ICON_[A-Z]*\s*=|ICONS\s*=|SVG_ICONS|const DOCK_GROUPS|const DOCK_ITEMS)
+1466:const DOCK_ITEMS = [
+4520:const DOCK_GROUPS = [
+5784:function svgIcon(name, cls){
+6126:const SHOPTAB_ICON = { houses:"house", cars:"car", air:"plane", sea:"yacht", lux:"gem", trips:"globe", owned:"box" };
+6132:    b.innerHTML = `${svgIcon(SHOPTAB_ICON[id]||"box")} ${txt}`;
 
-=== FILE: 104-dock-shape.js
-=== PATTERN: [^ -~]
-1:/* 104-dock-shape.js — v4.64 "Growth stays, market goes home"
-172:  try { console.log("[v4.64] dock shape armed — Growth label kept, market back under Personal."); } catch (e) {}
+=== FILE: 20-*.js
+=== PATTERN: \\\\u[0-9A-Fa-f]{4}
+(file not found)
 
-=== FILE: 111-expansion-scope.js
-=== PATTERN: [^ -~]
-1:/* 111-expansion-scope.js — v4.65 "Expansion is not a second Decide screen"
-
-=== FILE: 112-kpi-scope.js
-=== PATTERN: [^ -~]
-1:/* 112-kpi-scope.js — v4.66 "Company KPIs belong on company screens"
-
-=== FILE: 30-v410-v427.js
-=== PATTERN: [^ -~]
-2:   v4.10 — 1. Reputation grows in proportion to the company
-98:   v4.10 — 2. The endgame: you choose if and when to go public
-167:  /* the listing itself — the run does not end, you now run a public company */
-172:    /* price off today's book, but never off a momentarily empty one —
-353:   v4.10 — 3. Trucking and the agency get their own rivals and words
-434:   v4.10 — 4. The workspace ladder is visible and reachable
-517:   v4.11 — 1. The header tells the truth about money
-641:   v4.11 — 2. Your header layout stops being wiped
-679:   v4.11 — 3. The tile picker stays open until you say otherwise
-869:   v4.12 — Cash is exact, and it is never stale
-928:      /* Ending cash is a forecast of the same number — show it to the dollar too. */
-1027:   v4.13 — Cash cannot become NaN, and a poisoned save repairs itself
-1044:     1. REPAIR  — a poisoned save is reconstructed on load.
-1045:     2. GUARD   — a watcher catches NaN within half a second and rolls the
-1047:     3. PREVENT — the known NaN sources are sanitised at source.
-1213:            // the close itself poisoned it — roll back to the pre-close figure
-1300:   v4.15 — The save code is gone. Downloading a save file actually works.
-1531:   v4.16 — The marketing agency plays like a marketing agency
-1865:   v4.17 — Feedback pass
-2313:   v4.17.1 — Marketplace art stops cropping
-2333:   v4.18 — Confirmation boxes work inside the Notion embed
-2337:   dialog there — it returns false immediately. Every purchase gated behind
-2493:  /* The v3.3 Rivals screen has no acquisition controls at all — those live
-2520:   v4.19 — Amount prompts work inside the Notion embed
-2523:   allow-modals, so window.prompt() never opens an input box — it returns
-2750:   v4.20 — Owner's salary is per company
-2941:   v4.21 — Bank transfers, founder capital, and the end of the $0 "repair"
-2949:   one month with no expenses — nothing was ever spent; the number was
-2962:     1. SNAPSHOT  — every account's last verified balance is persisted in
-2965:     2. HEAL ALL  — the sweep covers EVERY company, not just the active
-2968:     3. TRANSFERS — account-to-account transfers validate both sides, are
-2972:     4. NO ZEROING — the guard will never again write 0 over a real
-3198:   v4.22 — CASH WRITE FIREWALL
-3201:   CASH $0 with a red delta of ▼$5.0M is a REAL numeric write of zero, not
-3339:    var out = ["v4.22 — " + s.blocked.length + " blocked cash write(s):"];
-3342:      out.push((i+1) + ") " + b.account + ": " + money(b.from) + " → " + b.to + "  [" + b.at + "]");
-3366:          + "<div><b>" + b.account + "</b>: " + money(b.from) + " → " + b.to + "</div>"
-3370:      box.innerHTML = "<div class=\"window-title\">\uD83D\uDEE1\uFE0F Cash audit — blocked writes</div>"
-3376:  /* v4.28d: audit card retired — the firewall still blocks bad writes, silently. */
-3401:   v4.28d — Owner pay across every company, the Chairman seat,
-3432:     1. OWNER PAY — every company pays its own draw
-3968:   v4.28d — Approved feedback build.
-4246:     CONTRACT TERMS (book-level, managed by AEs and CS — no 46k rows)
+=== FILE: 50-*.js
+=== PATTERN: \\\\u[0-9A-Fa-f]{4}
+(file not found)
 
